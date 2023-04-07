@@ -44,3 +44,6 @@ img {
    padding-top: 1%;
 }
 
+nav button {
+   display: inline-block;
+}

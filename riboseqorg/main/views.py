@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.core.paginator import Paginator
 
 from django.http import HttpResponseRedirect
-from .models import Data, Sample
+from .models import Dataset, Study
 from .forms import addNewSample
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -13,7 +13,7 @@ import pandas as pd
 
 class OrderListJson(BaseDatatableView):
     # The model we're going to show
-    model = Data
+    model = Dataset
 
     # define the columns that will be returned
     columns = ['sample_name', 'sample_description', 'cell_line', 'treatment', 'library_type']
@@ -62,17 +62,25 @@ def index(response):
     return render(response, "main/home.html", {})
 
 
-def db(request):
-    ls = Data.objects.get(id=1)
-    print(ls.sample_set.all())
-    paginator = Paginator(ls.sample_set.all(), 5) 
+def datasets(request):
+    ls = Dataset.objects.all()
+    paginator = Paginator(ls, 5) 
     
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     for i in page_obj:
         print(i)
-    return render(request, 'main/database.html', {'ls': page_obj })
+    return render(request, 'main/datasets.html', {'ls': page_obj })
 
+def studies(request):
+    ls = Sample.objects.all()
+    paginator = Paginator(ls, 5) 
+    
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    for i in page_obj:
+        print(i)
+    return render(request, 'main/studies.html', {'ls': page_obj })
 
 def add(response):
     if response.method == "POST":
