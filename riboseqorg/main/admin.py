@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import Dataset, Study
+from .models import Sample, Study
 # Register your models here.
 
-admin.site.register(Dataset)
+admin.site.register(Sample)
 admin.site.register(Study)

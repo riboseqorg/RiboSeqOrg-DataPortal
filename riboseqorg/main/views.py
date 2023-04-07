@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.core.paginator import Paginator
 
 from django.http import HttpResponseRedirect
-from .models import Dataset, Study
+from .models import Sample, Study
 from .forms import addNewSample
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -13,7 +13,7 @@ import pandas as pd
 
 class OrderListJson(BaseDatatableView):
     # The model we're going to show
-    model = Dataset
+    model = Sample
 
     # define the columns that will be returned
     columns = ['sample_name', 'sample_description', 'cell_line', 'treatment', 'library_type']
@@ -62,18 +62,18 @@ def index(response):
     return render(response, "main/home.html", {})
 
 
-def datasets(request):
-    ls = Dataset.objects.all()
+def samples(request):
+    ls = Sample.objects.all()
     paginator = Paginator(ls, 5) 
     
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     for i in page_obj:
         print(i)
-    return render(request, 'main/datasets.html', {'ls': page_obj })
+    return render(request, 'main/samples.html', {'ls': page_obj })
 
 def studies(request):
-    ls = Sample.objects.all()
+    ls = Study.objects.all()
     paginator = Paginator(ls, 5) 
     
     page_number = request.GET.get('page')
@@ -82,21 +82,3 @@ def studies(request):
         print(i)
     return render(request, 'main/studies.html', {'ls': page_obj })
 
-def add(response):
-    if response.method == "POST":
-        form = addNewSample(response.POST)
-
-        if form.is_valid():
-            new = Sample(
-                riboseq=Data.objects.get(id=1),
-                sample_name=form.cleaned_data["sample_name"],
-                sample_description=form.cleaned_data["sample_description"],
-                cell_line=form.cleaned_data["cell_line"],
-                library_type=form.cleaned_data["library_type"],
-                treatment=form.cleaned_data["treatment"],
-            )
-            new.save()
-        return HttpResponseRedirect("/db")
-
-    form = addNewSample()
-    return render(response, "main/add.html", {'form': form})
