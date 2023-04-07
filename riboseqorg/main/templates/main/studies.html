@@ -15,20 +15,17 @@
     <script>
         $(document).ready(function() {
             var table = $('#example').DataTable({
-                searchPanes: true
+                searchPanes: true,
+                scrollY:        "100pc",
+                scrollCollapse: true,
+                fixedColumns:   {
+                                left: 2,
+                                right: 1
+                                }
             });
             table.searchPanes.container().prependTo(table.table().container());
             table.searchPanes.resizePanes();
         });
-        $(document).ready(function () {
-            var oTable = $('.datatable').dataTable({
-            // ...
-            "processing": true,
-            "serverSide": true,
-            "ajax": "{% url 'order_list_json' %}"
-         });
-    // ...
-});
     </script>
     <section id="database">
         <div class="fw-container">
@@ -47,7 +44,6 @@
             </div>
             <div class="fw-body">
                 <div class="content">
-
                     <table id="example" class="table table-striped nowrap" style="width:90%; margin-left:auto; margin-right:auto">
                         <thead>
                             <tr>
@@ -66,7 +62,7 @@
                         <tbody>
                             {% for sample in ls %}
                                 <tr>
-                                    <td>{{ sample.sample_name }}</td>
+                                    <td>{{ sample.Acession }}</td>
                                     <td>{{ sample.sample_description }}</td>
                                     <td>{{ sample.cell_line }}</td>
                                     <td>{{ sample.library_type }}</td>
@@ -92,11 +88,6 @@
                             </tr>
                         </tfoot>
                     </table>
-                    <div style="align-content: center;">
-                        <button type="button" class="btn btn-primary">Link to Trips-Viz</button>
-                        <button type="button" class="btn btn-primary">Link to GWIPS-viz</button>
-                        <button type="button" class="btn btn-primary">Link to RiboCrypt</button>
-                    </div>
                 </div>
             </div>
         </div>
