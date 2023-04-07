@@ -1,0 +1,49 @@
+@charset "utf-8";
+
+.riboseqorg {
+	background-color: #f4eae0;
+	background-image: url(../images/150617-1415-page-background.jpg);
+	background-repeat: repeat-x;
+   padding-top: 1%;
+   padding-bottom: 1%;
+}
+
+.nav-link {
+   font-size: 120%;
+}
+
+#Table_01 {
+   margin-left: auto;
+   margin-right: auto;
+}
+
+form {
+   width: 70%;
+   margin: 0 auto;
+}
+/* CSS Document */
+a {
+   text-decoration: none;
+   outline: 0;
+}
+
+a:hover, a:focus, a:visited {
+   outline: 0;
+   text-decoration: none;
+}
+
+img {
+   border: 0;
+   outline: 0;
+}
+
+
+#database {
+   padding-left: 5%;
+   padding-right: 5%;
+   padding-top: 1%;
+}
+
+nav button {
+   display: inline-block;
+}
