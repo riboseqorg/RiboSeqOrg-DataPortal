@@ -145,12 +145,6 @@ def main():
 
     df = pd.read_csv(args.input)
 
-    ### MESSY: USED FOR TESTING
-    # df = df[df['Study_Accession'].str.startswith('PRJ')]
-    top_10_accessions = df['Study_Accession'].unique()[:10]
-    df = df[df['Study_Accession'].isin(top_10_accessions)]
-    ###
-
     df["Study_Pubmed_id"] = df["Study_Pubmed_id"].astype(str)
 
     df = df.drop(["CHECKED", "name", "not_unique", "KEEP", "UNIQUE", "GENE"], axis=1)

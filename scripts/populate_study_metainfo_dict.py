@@ -42,7 +42,7 @@ def get_geo_metainformation(record: dict) -> dict:
     information_dict = download_GSE_metadata_files(record['Accession'])
     record['Title'] = information_dict['Title']
     record['Study_abstract'] = information_dict['Study_abstract']
-    record['All_protocols'] = f"Overall-Design: {information_dict['Overall-Design']} Treatment-Protocol: {information_dict['Treatment-Protocol']} Growth-Protocol: {information_dict['Growth-Protocol']} Extract-Protocol: {information_dict['Extract-Protocol']} Data-Processing: {information_dict['Data-Processing']}"
+    record['All_protocols'] = f"Overall-Design: {information_dict['Overall-Design']}\n Treatment-Protocol: {information_dict['Treatment-Protocol']}\n Growth-Protocol: {information_dict['Growth-Protocol']}\n Extract-Protocol: {information_dict['Extract-Protocol']}\n Data-Processing: {information_dict['Data-Processing']}"
     record['Email'] = information_dict['Email']
 
     return record
@@ -97,7 +97,8 @@ def parse_pubmed_results(results: str, record: dict) -> dict:
     record['Publication_title'] = results['Title']
     record['doi'] = results['ArticleIds']['doi']
     record['Date_published'] = results['PubDate']
-    record['PMC'] = results['ArticleIds']['pmc']
+    if 'pmc' in results['ArticleIds']:
+        record['PMC'] = results['ArticleIds']['pmc']
     record['Journal'] = results['FullJournalName']
     return record
 
@@ -155,13 +156,15 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
     record['Release_Date'] = '/'.join(['00', str(df['MONTH'].unique()[0]), str(df['YEAR'].unique()[0])])
 
     # Seq_types is a ; separated list of all sequencing types in this study (Ribo-Seq, RNA-Seq, etc.)
-    record['seq_types'] = ';'.join(list(df['LIBRARYTYPE'].unique())).replace('RFP', 'Ribo-Seq').replace('RNA', 'RNA-Seq')
+    if list(df['LIBRARYTYPE'].unique()) == ['nan']:
+        record['seq_types'] = ';'.join(list(df['LIBRARYTYPE'].unique())).replace('RFP', 'Ribo-Seq').replace('RNA', 'RNA-Seq')
 
     # GSE is the GEO accession number. Can only be assigned here if the study accession is a GSE
     record['GSE'] = record['Accession'] if record['Accession'].startswith('GSE') else ''
 
     # BioProject is the BioProject accession number. If study_accession is GSE then this may be a list of BioProjects
-    record['BioProject'] = record['Accession'] if record['Accession'].startswith('PRJ') else ';'.join(list(df['BioProject'].unique()))
+    if list(df['BioProject'].unique()) == ['nan']:
+        record['BioProject'] = ';'.join(list(df['BioProject'].unique()))
 
     # PMID is the Pubmed ID. If there are multiple PMIDs then they are separated by ;
     if df['Study_Pubmed_id'].unique()[0] != 'nan':
@@ -170,9 +173,10 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
                 record['PMID'] = i.split('.')[0]
             else:
                 record['PMID'] += f";{i.split('.')[0]}"
-
+    print(record['GSE'])
     # Authors is a ; separated list of all authors in this study this will be overwritten from pubmed if possible
-    record['Authors'] = ';'.join(list(df['AUTHOR'].unique()))
+    if list(df['AUTHOR'].unique()) != ['nan']:
+        record['Authors'] = ';'.join(str(list(df['AUTHOR'].unique())))
 
 
     if record['Accession'].startswith('PRJ'):
@@ -184,6 +188,9 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
         print('Accession is from GEO. Running search...')
         record = get_geo_metainformation(record)
 
+    elif record['Accession'].startswith('SRA'):
+        print('Accession is from SRA. Running search...')
+        pass
     else:
         raise ValueError(f"Accession {record['Accession']} not recognized")
     
