@@ -24,7 +24,7 @@ class Study(models.Model):
     Email = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.Acession
+        return self.Accession
     
 
 
