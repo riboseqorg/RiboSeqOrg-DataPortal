@@ -1,7 +1,8 @@
 from django.db import models
 
 class Study(models.Model):
-    Acession = models.CharField(max_length=200, blank=True)
+    Accession = models.CharField(max_length=200, blank=True)
+    Name = models.CharField(max_length=200, blank=True)
     Title = models.CharField(max_length=200, blank=True)
     Organism = models.CharField(max_length=200, blank=True)
     Samples = models.CharField(max_length=200, blank=True)
@@ -10,7 +11,6 @@ class Study(models.Model):
     All_protocols = models.CharField(max_length=1500, blank=True)
     seq_types = models.CharField(max_length=200, blank=True)
     GSE = models.CharField(max_length=200, blank=True)
-    GSE_Supplementary = models.CharField(max_length=200, blank=True)
     BioProject = models.CharField(max_length=200, blank=True)
     PMID = models.CharField(max_length=200, blank=True)
     Authors = models.CharField(max_length=200, blank=True)
