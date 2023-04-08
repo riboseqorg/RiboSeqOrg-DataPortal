@@ -1,7 +1,8 @@
 from django.db import models
 
 class Study(models.Model):
-    Acession = models.CharField(max_length=200, blank=True)
+    Accession = models.CharField(max_length=200, blank=True)
+    Name = models.CharField(max_length=200, blank=True)
     Title = models.CharField(max_length=200, blank=True)
     Organism = models.CharField(max_length=200, blank=True)
     Samples = models.CharField(max_length=200, blank=True)
@@ -10,7 +11,6 @@ class Study(models.Model):
     All_protocols = models.CharField(max_length=1500, blank=True)
     seq_types = models.CharField(max_length=200, blank=True)
     GSE = models.CharField(max_length=200, blank=True)
-    GSE_Supplementary = models.CharField(max_length=200, blank=True)
     BioProject = models.CharField(max_length=200, blank=True)
     PMID = models.CharField(max_length=200, blank=True)
     Authors = models.CharField(max_length=200, blank=True)
@@ -24,7 +24,8 @@ class Study(models.Model):
     Email = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.Acession
+    
 
 
 # The inconsistent naming is due to the fact that the data is coming from different sources
@@ -39,10 +40,10 @@ class Sample(models.Model):
 
     Study_Accession = models.CharField(max_length=200, blank=True)
     Run = models.CharField(max_length=200, blank=True)
-    spots = models.IntegerField(blank=True)
-    bases = models.IntegerField(blank=True)
-    avgLength = models.IntegerField(blank=True)
-    size_MB = models.IntegerField(blank=True)
+    spots = models.IntegerField(blank=True, null=True)
+    bases = models.IntegerField(blank=True, null=True)
+    avgLength = models.IntegerField(blank=True, null=True)
+    size_MB = models.IntegerField(blank=True, null=True)
     Experiment = models.CharField(max_length=200, blank=True)
     LibraryName = models.CharField(max_length=200, blank=True)
     LibraryStrategy = models.CharField(max_length=200, blank=True)

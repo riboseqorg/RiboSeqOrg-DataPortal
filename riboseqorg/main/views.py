@@ -64,7 +64,7 @@ def index(response):
 
 def samples(request):
     ls = Sample.objects.all()
-    paginator = Paginator(ls, 5) 
+    paginator = Paginator(ls, 100) 
     
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -78,7 +78,6 @@ def studies(request):
     
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    for i in page_obj:
-        print(i)
-    return render(request, 'main/studies.html', {'ls': page_obj })
+
+    return render(request, 'main/studies.html', {'ls': ls })
 

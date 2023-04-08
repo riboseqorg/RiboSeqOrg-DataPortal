@@ -8,5 +8,5 @@ urlpatterns = [
     path('home', views.index, name='home'),
     path('samples', views.samples, name='samples'),
     path('studies', views.studies, name='studies'),
-    re_path(r'^my/datatable/data/$', OrderListJson.as_view(), name='order_list_json'),
+    # re_path(r'^my/datatable/data/$', OrderListJson.as_view(), name='order_list_json'),
 ]
