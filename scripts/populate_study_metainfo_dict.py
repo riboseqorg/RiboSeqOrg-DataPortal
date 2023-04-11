@@ -22,11 +22,13 @@ def get_pubmed_abstract(pmid: str) -> str:
     url = f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id={pmid}&retmode=xml'
     response = requests.get(url)
     xml = response.text
-    abstract = xml.split('<Abstract>')[1].split('</Abstract>')[0]
-    abstract = abstract.replace('<', '>')
-    abstract_list = abstract.split('>')
-    abstract = ' '.join([i for idx, i in enumerate(abstract_list) if idx % 2 == 0])
-
+    if '<Abstract>' in xml:
+        abstract = xml.split('<Abstract>')[1].split('</Abstract>')[0]
+        abstract = abstract.replace('<', '>')
+        abstract_list = abstract.split('>')
+        abstract = ' '.join([i for idx, i in enumerate(abstract_list) if idx % 2 == 0])
+    else:
+        abstract = ''
     return abstract
 
 def get_geo_metainformation(record: dict) -> dict:
