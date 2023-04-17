@@ -1,0 +1,96 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+    <div class="container">
+        <form method="GET" action="{% url 'search_results' %}" id="results-searchbar">
+            {{ search_form.as_p }}
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <section id="database">
+        <div class="fw-container">
+            <div class="fw-header">
+                <h1>Study Results</h1>
+            </div>
+            <div class="fw-body">
+                <div class="content">
+                    <table class="table table-striped nowrap">
+                        <thead>
+                            <tr>
+                                <th>Accession</th>
+                                <th>Name</th>
+                                <th>Title</th>
+                                <th>Organism</th>
+                                <th>Samples</th>
+                                <th>Date Published</th>
+                                <th>ENA</th>
+                                <th>SRA</th>
+                                <th>GEO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for study in study_results %}
+                                <tr>
+                                    <td>{{ study.Accession }}</td>
+                                    <td>{{ study.Name }}</td>
+                                    <td>{{ study.Title }}</td>
+                                    <td>{{ study.Organism }}</td>
+                                    <td>{{ study.Samples }}</td>
+                                    <td>{{ study.Date_published }}</td>
+                                    <td><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA}}</a></td>
+                                    <td><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
+                                    <td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={{ study.GSE }}">{{ study.GSE }}</a></td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="database">
+        <div class="fw-container">
+            <div class="fw-header">
+                <h1>Sample Results</h1>
+            </div>
+            <div class="fw-body">
+                <div class="content">
+                    <table class="table table-striped nowrap">
+                        <thead>
+                            <tr>
+                                <th>Run Accession</th>
+                                <th>Study Accession</th>
+                                <th>Scientific Name</th>
+                                <th>Description</th>
+                                <th>Cell Line</th>
+                                <th>Library Type</th>
+                                <th>Treatment</th>
+                                <th>Trips-Viz</th>
+                                <th>GWIPS-viz</th>
+                                <th>RiboCrypt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sample in sample_results %}
+                                <tr>
+                                    <td>{{ sample.Run }}</td>
+                                    <td>{{ sample.Study_Accession }}</td>
+                                    <td>{{ sample.ScientificName }}</td>
+                                    <td>{{ sample.sample_source }}</td>
+                                    <td>{{ sample.CELL_LINE }}</td>
+                                    <td>{{ sample.LIBRARYTYPE }}</td>
+                                    <td>{{ sample.INHIBITOR }}</td>
+                                    <td><a href="http://trips.ucc.ie">Trips-Viz</a></td>
+                                    <td><a href="http://gwips.ucc.ie">GWIPS-viz</a></td>
+                                    <td><a href="http://RiboCrypt.org">RiboCrypt</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

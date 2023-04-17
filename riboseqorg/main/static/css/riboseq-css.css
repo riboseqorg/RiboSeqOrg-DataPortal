@@ -6,6 +6,8 @@
 	background-repeat: repeat-x;
    padding-top: 1%;
    padding-bottom: 1%;
+   display: flex;
+   justify-content: center;
 }
 
 .nav-link {
@@ -71,4 +73,25 @@ th, td {
    -moz-hyphens: auto;
    -webkit-hyphens: auto;
    hyphens: auto;
+}
+
+.search-container {
+   display: flex;
+   justify-content: right;
+   padding-right: 5%;
+   width: 100%;
+}
+
+#searchbar {
+   width: 100%;
+   justify-content: right;
+}
+
+#results-searchbar {
+   width: 100%;
+   justify-content: right;
+}
+
+.container form  {
+   padding-top: 2%;
 }
