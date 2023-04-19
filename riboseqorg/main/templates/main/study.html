@@ -60,38 +60,43 @@
             </tr>
         </table>
         <h4>Publication</h4>
-        <table class="table table-bordered" id="study-pub">
-            <tr>
-                <th>Title</th>
-                <td>{{ Study.Publication_Title }}</td>
-            </tr>
-            <tr>
-                <th>Authors</th>
-                <td>{{ Study.Authors }}</td>
-            </tr>
-            <tr>
-                <th>Journal</th>
-                <td>{{ Study.Journal }}</td>
-            </tr>
-            <tr>
-                <th> Publication Date</th>
-                <td>{{ Study.Date_published }}</td>
-            </tr>
-            <tr>
-                <th> Abstract</th>
-                <td>{{ Study.Paper_abstract }}</td>
-            </tr>
-            <tr>
-                <th>PMC</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/{{ Study.PMC }}">{{ Study.PMC }}</a></td>
-            <tr>
-                <th>PMID</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ Study.PMID }}">{{ Study.PMID }}</a></td>
-            </tr>
-            <tr>
-                <th>DOI</th>
-                <td><a href="https://doi.org/{{ Study.DOI }}">{{ Study.DOI }}</a></td>
-            </tr>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-bordered" id="study-pub">
+                    <tr>
+                        <th>Title</th>
+                        <td>{{ Study.Publication_Title }}</td>
+                    </tr>
+                    <tr>
+                        <th>Authors</th>
+                        <td>{{ Study.Authors }}</td>
+                    </tr>
+                    <tr>
+                        <th>Journal</th>
+                        <td>{{ Study.Journal }}</td>
+                    </tr>
+                    <tr>
+                        <th> Publication Date</th>
+                        <td>{{ Study.Date_published }}</td>
+                    </tr>
+                    <tr>
+                        <th> Abstract</th>
+                        <td>{{ Study.Paper_abstract }}</td>
+                    </tr>
+                    <tr>
+                        <th>PMC</th>
+                        <td><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/{{ Study.PMC }}">{{ Study.PMC }}</a></td>
+                    <tr>
+                        <th>PMID</th>
+                        <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ Study.PMID }}">{{ Study.PMID }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>DOI</th>
+                        <td><a href="https://doi.org/{{ Study.DOI }}">{{ Study.DOI }}</a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
         <div class="fw-container">
             <div class="fw-header">                
                 <div class="nav-wrapper">

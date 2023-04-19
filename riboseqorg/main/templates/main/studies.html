@@ -61,7 +61,7 @@
                         <tbody>
                             {% for study in ls %}
                                 <tr>
-                                    <td>{{ study.Name }}</td>
+                                    <td><a href="/Study/{{ study.Accession }}">{{ study.Name }}</a></td>
                                     <td>{{ study.Organism}}</td>
                                     <td>{{ study.Samples }}</td>
                                     <td>{{ study.Date_published }}</td>

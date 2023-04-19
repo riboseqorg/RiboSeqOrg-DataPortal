@@ -95,3 +95,7 @@ th, td {
 .container form  {
    padding-top: 2%;
 }
+#study-pub {
+   word-wrap: break-word;
+   width: 80%;
+}
