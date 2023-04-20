@@ -9,97 +9,151 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css">
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
 
+    <!-- Include Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
     <link href="{% static 'css/riboseq-css.css' %}"
         rel="stylesheet"
         type="text/css">
     <script>
-        $(document).ready(function() {
-            var table = $('#samples').DataTable({
-                scrollY:        "100pc",
-                scrollX:        true,
-                scrollCollapse: true,
-                fixedColumns:   {
-                                left: 2
-                                },
-                responsive: false,
-            });
-            table.searchPanes.container().prependTo(table.table().container());
-            table.searchPanes.resizePanes();
-        });
+      $(document).ready(function() {
+          var table = $('#example').DataTable({
+              dom: 'Plfrtip',
+              scrollY: '100vh',
+                // scrollX: true,
+              scrollCollapse: true,
+              fixedColumns: {
+                  leftColumns: 1,
+              },
+              searchPanes: {
+                  threshold: 0.5,
+                  columns: [1,2,3,4,5,6,7],
+                  layout: 'columns-4',
+                  showCounts: true,
+                  dtOpts: {
+                      select: {
+                          style: 'multi'
+                      }
+                  }
+              }
+          });
+      });
 
     </script>
     <section id="database">
-        <div class="fw-container">
-            <div class="fw-header">
-                <h1>Samples</h1>
-                <div class="nav-wrapper">
-                    <div class="nav-search">
-                        <div class="nav-item i-user">
-                            <div class="account"></div>
+        <div id="side-panel">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#side-panel-collapse" role="button" aria-expanded="false" aria-controls="side-panel-collapse">
+                Filters
+            </a>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="collapse show" id="side-panel-collapse">
+                    <div class="col-md-3 d-md-block ">
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="GET">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <button type="submit" class="btn btn-primary me-2">Apply</button>
+                                        <a href="{% url 'studies' %}" class="btn btn-secondary">Reset</a>
+                                    </div>
+                                    {% for field, options in param_options.items %}
+                                        <div class="mb-3">
+                                            <a class="collapse_filter" class="text-decoration-none" data-bs-toggle="collapse" href="#{{ field }}-collapse" role="button" aria-expanded="false" aria-controls="{{ field }}-collapse">
+                                                {{ field|title }}
+                                            </a>
+                                            <div class="collapse" id="{{ field }}-collapse">
+                                                {% for option in options %}
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="{{ field }}" id="{{ option.value }}" value="{{ option.value }}" multiple>
+                                                        <label class="form-check-label" for="{{ option.value }}">
+                                                            {{ option.value }} ({{ option.count }})
+                                                        </label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="nav-ad">
-                    <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
-                </div>
-            </div>
-            <div class="fw-body">
-                <div class="content">
-                    <table id="samples" class="table table-striped nowrap" style="width:100%; margin-left:auto; margin-right:auto">
-                        <thead>
-                            <tr>
-                                <th scope="col"></th>
-                                <th>Run Accession</th>
-                                <th>Study Accession</th>
-                                <th>Scientific Name</th>
-                                <th>Description</th>
-                                <th>Cell Line</th>
-                                <th>Library Type</th>
-                                <th>Treatment</th>
-                                <th>Trips-Viz</th>
-                                <th>GWIPS-viz</th>
-                                <th>RiboCrypt</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sample in ls %}
-                                <tr>
-                                    <td><input type="checkbox" /></td>
-                                    <td>{{ sample.Run }}</td>
-                                    <td>{{ sample.Study_Accession }}</td>
-                                    <td>{{ sample.ScientificName }}</td>
-                                    <td>{{ sample.sample_source }}</td>
-                                    <td>{{ sample.CELL_LINE }}</td>
-                                    <td>{{ sample.LIBRARYTYPE }}</td>
-                                    <td>{{ sample.INHIBITOR }}</td>
-                                    <td><a href="http://trips.ucc.ie">Trips-Viz</a></td>
-                                    <td><a href="http://gwips.ucc.ie">GWIPS-viz</a></td>
-                                    <td><a href="http://RiboCrypt.org">RiboCrypt</a></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th>Accession</th>
-                                <th>Description</th>
-                                <th>Cell Line</th>
-                                <th>Library Type</th>
-                                <th>Treatment</th>
-                                <th>Trips-Viz</th>
-                                <th>GWIPS-viz</th>
-                                <th>RiboCrypt</th>
-                                <th scope="col">Select</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <!-- <div style="align-content: center;">
-                        <button type="button" class="btn btn-primary">Link to Trips-Viz</button>
-                        <button type="button" class="btn btn-primary">Link to GWIPS-viz</button>
-                        <button type="button" class="btn btn-primary">Link to RiboCrypt</button>
-                    </div> -->
+                <!-- Table column -->
+                <div class="col-md-9">
+                    <div class="fw-container">
+                        <div class="fw-header">
+                            <h1>Studies</h1>
+                            <div class="nav-wrapper">
+                                <div class="nav-search">
+                                    <div class="nav-item i-user">
+                                        <div class="account"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="nav-ad">
+                                <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
+                            </div>
+                        </div>
+                        <div class="fw-body">
+                            <div class="content">
+                                <table id="example" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                                    <thead>
+                                        <tr>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Description</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Cell Line</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Treatment</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Trips-Viz</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">GWIPS-viz</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">RiboCrypt</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for sample in page_obj %}
+                                        <tr>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.Run }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.Study_Accession }}">{{ sample.Study_Accession }}</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.sample_source }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.CELL_LINE }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="http://trips.ucc.ie">Trips-Viz</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="http://gwips.ucc.ie">GWIPS-viz</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="http://RiboCrypt.org">RiboCrypt</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" /></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Description</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Cell Line</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Treatment</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Trips-Viz</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">GWIPS-viz</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">RiboCrypt</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
+
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

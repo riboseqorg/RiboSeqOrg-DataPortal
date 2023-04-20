@@ -61,6 +61,16 @@
                     </div>
                 </div>
             </div>
+            <div class="search-container">
+                <div class="row">
+                    <div class="col-12">
+                        <form action="{% url 'search_results' %}" method="GET" class="d-flex my-3" id="searchbar">
+                            {{ search_form.query }}
+                            <button type="submit" class="btn btn-primary ms-2">Search</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </nav>
         <!-- Navbar -->
         <div id="content", name="content">

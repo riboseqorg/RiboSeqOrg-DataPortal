@@ -83,8 +83,12 @@ def write_study_fixture(information_dict: str, pk) -> str:
     fixture.append('    "model": "main.study",\n')
     fixture.append(f'    "pk":{pk},\n')
     fixture.append('    "fields": {\n')
-    for field in information_dict:    
-        fixture.append(f'        "{field}": "{information_dict[field]}",\n')
+    for field in information_dict:
+        if type(information_dict[field]) == str:
+            entry = information_dict[field].replace('""""', "'")
+            fixture.append(f'        "{field}": "{entry}",\n')
+        else:
+            fixture.append(f'        "{field}": "{information_dict[field]}",\n')
     fixture[-1] = fixture[-1][:-2]
     fixture.append("    }\n")
     fixture.append("},\n")

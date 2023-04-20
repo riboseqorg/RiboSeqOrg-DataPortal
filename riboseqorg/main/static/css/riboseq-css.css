@@ -6,6 +6,8 @@
 	background-repeat: repeat-x;
    padding-top: 1%;
    padding-bottom: 1%;
+   display: flex;
+   justify-content: center;
 }
 
 .nav-link {
@@ -30,12 +32,7 @@ img {
    padding-right: 5%;
    padding-top: 1%;
 }
-#samples td {
-   background-color: white
-}
-#samples th {
-   background-color: rgba(white, 1)
-}
+
 nav button {
    display: inline-block;
 }
@@ -72,3 +69,60 @@ th, td {
    -webkit-hyphens: auto;
    hyphens: auto;
 }
+
+.search-container {
+   display: flex;
+   justify-content: right;
+   padding-right: 5%;
+   width: 100%;
+}
+
+#searchbar {
+   width: 100%;
+   justify-content: right;
+}
+
+#results-searchbar {
+   width: 100%;
+   justify-content: right;
+}
+
+.container form  {
+   padding-top: 2%;
+}
+#study-pub {
+   word-wrap: break-word;
+   width: 80%;
+}
+
+
+.collapse_filter {
+   text-decoration: none;
+   font-family: sans-serif;
+   font-size: 1.5rem;
+   color: #222;
+}
+
+#side-panel-collapse {
+  /* position: fixed; */
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+   max-width: 2000px;
+  background-color: #fff;
+  z-index: 1000;
+  padding: 0px;
+  transition: transform 0.3s ease-in-out;
+  float: left;
+}
+
+.col-md-3 {
+   width: 250px;
+   float: left;
+}
+ .col-md-9 {
+   width: calc(100% - 250px);
+   float: right;
+ }
+
