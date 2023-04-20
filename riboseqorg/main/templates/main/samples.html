@@ -53,17 +53,17 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="collapse show" id="side-panel-collapse">
-                    <div class="col-md-3 d-md-block ">
+                    <div class="col-md-3 d-md-block order-1">
                         <div class="card">
                             <div class="card-body">
                                 <form method="GET">
                                     <div class="d-flex justify-content-between mb-3">
                                         <button type="submit" class="btn btn-primary me-2">Apply</button>
-                                        <a href="{% url 'studies' %}" class="btn btn-secondary">Reset</a>
-                                    </div>
+                                        <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
+                                      </div>
                                     {% for field, options in param_options.items %}
                                         <div class="mb-3">
-                                            <a class="collapse_filter" class="text-decoration-none" data-bs-toggle="collapse" href="#{{ field }}-collapse" role="button" aria-expanded="false" aria-controls="{{ field }}-collapse">
+                                            <a class="collapse_filter" class="text-decoration-none" data-bs-toggle="collapse" href="#{{ field }}-collapse" role="button" aria-expanded="false" aria-controls="{{ field }}-collapse" id="field-name">
                                                 {{ field|title }}
                                             </a>
                                             <div class="collapse" id="{{ field }}-collapse">
@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <!-- Table column -->
-                <div class="col-md-9">
+                <div class="col-md-9 order-2">
                     <div class="fw-container">
                         <div class="fw-header">
                             <h1>Studies</h1>
