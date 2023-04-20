@@ -25,10 +25,11 @@
           var table = $('#example').DataTable({
               dom: 'Plfrtip',
               scrollY: '100vh',
+              // scrollX: true, // Turning this on makes the table scrollable horizontally but the columns are offset strangely        
               scrollCollapse: true,
               fixedColumns: {
-                  leftColumns: 2,
-                  rightColumns: 1
+                  leftColumns: 1,
+                  // rightColumns: 1
               },
               searchPanes: {
                   threshold: 0.5,
@@ -52,10 +53,15 @@
       <div class="container-fluid">
         <div class="row">
           <div class="collapse show" id="side-panel-collapse">
-            <div class="col-md-3 flex-shrink-0">
+            <div class="col-md-3 d-md-block">
               <div class="card">
                 <div class="card-body">
                   <form method="GET">
+                    <div class="d-flex justify-content-between mb-3">
+                      <button type="submit" class="btn btn-primary me-2">Apply</button>
+                      <a href="{% url 'studies' %}" class="btn btn-secondary">Reset</a>
+                    </div>
+
                     {% for field, options in param_options.items %}
                       <div class="mb-3">
                         <a class="collapse_filter" class="text-decoration-none" data-bs-toggle="collapse" href="#{{ field }}-collapse" role="button" aria-expanded="false" aria-controls="{{ field }}-collapse">
@@ -73,8 +79,6 @@
                         </div>
                       </div>
                     {% endfor %}
-                    <button type="submit" class="btn btn-primary">Apply</button>
-                    <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
                   </form>
                 </div>
               </div>
@@ -100,40 +104,40 @@
                 <table id="example" class="table table-striped nowrap" style="width:90%; margin-left:auto; margin-right:auto">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Organism</th>
-                      <th># Samples</th>
-                      <th>Date</th>
-                      <th>ENA</th>
-                      <th>SRA</th>
-                      <th>GEO</th>
-                      <th scope="col">Select</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">GEO</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for study in page_obj %}
                       <tr>
-                        <td><a href="/Study/{{ study.Accession }}">{{ study.Name }}</a></td>
-                        <td>{{ study.Organism }}</td>
-                        <td>{{ study.Samples }}</td>
-                        <td>{{ study.Date_published }}</td>
-                        <td><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
-                        <td><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
-                        <td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={{ study.GSE }}">{{ study.GSE }}</a></td>
-                        <td><input type="checkbox" /></td>
+                        <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ study.Accession }}">{{ study.Name }}</a></td>
+                        <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Organism }}</td>
+                        <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Samples }}</td>
+                        <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Date_published }}</td>
+                        <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
+                        <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
+                        <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={{ study.GSE }}">{{ study.GSE }}</a></td>
+                        <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" /></td>
                       </tr>
                     {% endfor %}
                   </tbody>
                   <tfoot>
                     <tr>
-                      <th>Name</th>
-                      <th>Organism</th>
-                      <th># Samples</th>
-                      <th>Date</th>
-                      <th>ENA</th>
-                      <th>SRA</th>
-                      <th>GEO</th>
-                      <th scope="col">Select</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);">GEO</th>
+                      <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
                     </tr>
                   </tfoot>
                 </table>

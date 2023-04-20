@@ -32,12 +32,7 @@ img {
    padding-right: 5%;
    padding-top: 1%;
 }
-#samples td {
-   background-color: white
-}
-#samples th {
-   background-color: rgba(white, 1)
-}
+
 nav button {
    display: inline-block;
 }
@@ -122,6 +117,10 @@ th, td {
   float: left;
 }
 
+.col-md-3 {
+   width: 250px;
+   float: left;
+}
  .col-md-9 {
    width: calc(100% - 250px);
    float: right;
