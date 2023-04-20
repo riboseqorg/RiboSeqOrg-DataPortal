@@ -100,22 +100,30 @@ th, td {
    width: 80%;
 }
 
-/* Collapse sidepanel */
-.offcanvas {
-   position: fixed;
-   top: 0;
-   bottom: 0;
-   z-index: 1040;
-   display: flex;
-   flex-direction: column;
-   width: 280px;
-   max-width: 100%;
-   overflow-y: auto;
-   outline: 0;
-   transition: transform 0.3s ease-in-out;
-   transform: translateX(-100%);
+
+.collapse_filter {
+   text-decoration: none;
+   font-family: sans-serif;
+   font-size: 1.5rem;
+   color: #222;
 }
 
-.offcanvas.show {
-   transform: translateX(0%);
+#side-panel-collapse {
+  /* position: fixed; */
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+   max-width: 2000px;
+  background-color: #fff;
+  z-index: 1000;
+  padding: 0px;
+  transition: transform 0.3s ease-in-out;
+  float: left;
 }
+
+ .col-md-9 {
+   width: calc(100% - 250px);
+   float: right;
+ }
+
