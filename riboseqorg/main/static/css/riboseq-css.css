@@ -28,8 +28,7 @@ img {
    outline: 0;
 }
 #database {
-   padding-left: 5%;
-   padding-right: 5%;
+   padding-left: 2%;
    padding-top: 1%;
 }
 
@@ -40,7 +39,8 @@ th, td {
    white-space: nowrap; 
 }
 #study {
-
+   padding-left: 5%;
+   padding-top: 5%;
    display: inline-block;
    word-break: break-word;
 
@@ -126,5 +126,4 @@ th, td {
 
 #field-name {
    font-weight: bold;
-   text-decoration: underline;
 }

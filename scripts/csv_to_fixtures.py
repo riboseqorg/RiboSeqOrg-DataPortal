@@ -59,7 +59,12 @@ def df_to_sample_fixture(df: pd.DataFrame, last_pk: int) -> str:
                 except:
                     pass
             else:
-                fixture.append(f'        "{col}": "{row[col]}",\n')
+                if type(row[col]) == str:
+                    entry = row[col].replace('""""', "'").replace('\n', ' ').replace('"', "'")
+                    fixture.append(f'        "{col}": "{entry}",\n')
+                else: 
+                    fixture.append(f'        "{col}": "{row[col]}",\n')
+
         fixture[-1] = fixture[-1][:-2]  # removes trailing comma
         fixture.append("    }\n")
         fixture.append("},\n")
@@ -85,7 +90,7 @@ def write_study_fixture(information_dict: str, pk) -> str:
     fixture.append('    "fields": {\n')
     for field in information_dict:
         if type(information_dict[field]) == str:
-            entry = information_dict[field].replace('""""', "'")
+            entry = information_dict[field].replace('\n', ' ').replace('"', "'")
             fixture.append(f'        "{field}": "{entry}",\n')
         else:
             fixture.append(f'        "{field}": "{information_dict[field]}",\n')
