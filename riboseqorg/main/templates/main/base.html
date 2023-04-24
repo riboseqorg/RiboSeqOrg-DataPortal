@@ -35,43 +35,32 @@
         <!-- Image and text -->
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
             <div class="container-fluid">
-                <a class="navbar-brand" href="/home">
-                    <img src="{% static 'images/favicon.png' %}"
-                         class="me-2"
-                         height="50"
-                         alt="RiboSeq.org Logo"
-                         loading="lazy"/>
-                </a>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <div class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/samples">Samples</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/studies">Studies</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/about">About</a>
-                        </li>
-                    </div>
-                </div>
+              <a class="navbar-brand" href="/home">
+                <img src="{% static 'images/Logo.png' %}" class="me-2" height="50" alt="RiboSeq.org Logo" loading="lazy"/>
+              </a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                  <li class="nav-item">
+                    <a class="nav-link" href="/samples">Samples</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/studies">Studies</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                  </li>
+                </ul>
+                <form action="{% url 'search_results' %}" method="GET" class="d-flex my-3" id="searchbar">
+                  {{ search_form.query }}
+                  <button type="submit" class="btn btn-primary ms-2">Search</button>
+                </form>
+              </div>
             </div>
-            <div class="search-container">
-                <div class="row">
-                    <div class="col-12">
-                        <form action="{% url 'search_results' %}" method="GET" class="d-flex my-3" id="searchbar">
-                            {{ search_form.query }}
-                            <button type="submit" class="btn btn-primary ms-2">Search</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </nav>
+          </nav>
         <!-- Navbar -->
         <div id="content", name="content">
             {% block content %}{% endblock %}

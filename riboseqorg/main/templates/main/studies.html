@@ -64,7 +64,7 @@
 
                     {% for field, options in param_options.items %}
                       <div class="mb-3">
-                        <a class="collapse_filter" class="text-decoration-none" data-bs-toggle="collapse" href="#{{ field }}-collapse" role="button" aria-expanded="false" aria-controls="{{ field }}-collapse">
+                        <a class="collapse_filter" class="text-decoration-none" data-bs-toggle="collapse" href="#{{ field }}-collapse" role="button" aria-expanded="false" aria-controls="{{ field }}-collapse" id="field-name">
                           {{ field|title }}
                         </a>
                         <div class="collapse" id="{{ field }}-collapse">
