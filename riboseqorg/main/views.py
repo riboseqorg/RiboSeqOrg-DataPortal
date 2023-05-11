@@ -170,8 +170,8 @@ def samples(request: HttpRequest) -> render:
     Returns:
     - (render): the rendered HTTP response for the page
     """
-    appropriate_fields = ['CELL_LINE', 'CONDITION', 'INHIBITOR', 'REPLICATE', 'TIMEPOINT', 'TISSUE', 'KO', 'KD', 'KI', 'FRACTION', 'BATCH', 'LIBRARYTYPE', 'sample_source']
-    clean_names = {'CELL_LINE': 'Cell Line', 'CONDITION': 'Condition', 'INHIBITOR': 'Inhibitor', 'REPLICATE': 'Replicate', 'TIMEPOINT': 'Timepoint', 'TISSUE': 'Tissue', 'KO': 'KO', 'KD': 'KD', 'KI': 'KI', 'FRACTION': 'Fraction', 'BATCH': 'Batch', 'LIBRARYTYPE': 'Library Type', 'sample_source': 'Sample Source'}
+    appropriate_fields = ['CELL_LINE', 'INHIBITOR', 'TISSUE', 'LIBRARYTYPE', "ScientificName"]
+    clean_names = {'CELL_LINE': 'Cell Line', 'CONDITION': 'Condition', 'INHIBITOR': 'Inhibitor', 'ScientificName': 'ScientificName','REPLICATE': 'Replicate', 'TIMEPOINT': 'Timepoint', 'TISSUE': 'Tissue', 'KO': 'KO', 'KD': 'KD', 'KI': 'KI', 'FRACTION': 'Fraction', 'BATCH': 'Batch', 'LIBRARYTYPE': 'Library Type', 'sample_source': 'Sample Source', 'count':'count'}
     # Get all the query parameters from the request
     query_params = request.GET.dict()
 
@@ -188,20 +188,17 @@ def samples(request: HttpRequest) -> render:
             param_options[field.name] = values
     
     result_dict = {}
+    clean_results_dict = {}
 
     # Convert the values to a list of dictionaries for each parameter as I couldn't get the template to iterate over the values in the queryset
     for name, queryset in param_options.items():
         if name in appropriate_fields:
             for obj in queryset:
                 for field_name in obj.keys():
-                    if field_name in clean_names:
-                        clean_name = clean_names[field_name]
                     if field_name not in result_dict:
                         result_dict[field_name] = []
                     if obj[field_name] == '' or obj[field_name] == 'nan':
                         obj[field_name] = 'None'
-                    
-
                     result_dict[field_name].append({'value': obj[field_name], 'count': obj['count']})
 
     # Remove the count from the list of values for each parameter
