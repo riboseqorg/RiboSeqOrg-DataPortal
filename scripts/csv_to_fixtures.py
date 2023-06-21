@@ -75,7 +75,7 @@ def df_to_sample_fixture(df: pd.DataFrame, last_pk: int) -> str:
     return fixture
 
 
-def write_study_fixture(information_dict: dict, pk) -> str:
+def write_study_fixture(information_dict: dict) -> str:
     """
     Give the accession of the study, return the study fixture
     
@@ -90,8 +90,9 @@ def write_study_fixture(information_dict: dict, pk) -> str:
 
     fixture.append("{\n")
     fixture.append('    "model": "main.study",\n')
-    fixture.append(f'    "pk":{pk},\n')
+    fixture.append(f'    "pk":"{information_dict["BioProject"]}",\n')
     fixture.append('    "fields": {\n')
+
     for field in information_dict:
         if type(information_dict[field]) == str:
             entry = information_dict[field].replace('\n', ' ').replace('"', "'")
@@ -150,7 +151,7 @@ def add_study_fixtures(df: pd.DataFrame, db: str, core_columns: list) -> pd.Data
     """
     study_fixtures = ""
     study_accessions = []
-    last_pk_study = get_last_pk("main_study", db)
+    # last_pk_study = get_last_pk("main_study", db)
     last_pk_OpenColumns = get_last_pk("main_opencolumns", db)
     for idx, row in df.iterrows():
         if row["BioProject"] not in study_accessions:
@@ -158,11 +159,11 @@ def add_study_fixtures(df: pd.DataFrame, db: str, core_columns: list) -> pd.Data
             subset_df = df[df["BioProject"] == row["BioProject"]]
             core_df = subset_df[core_columns]
             study_info_dict = get_metainformation_dict(core_df)
-            if last_pk_study:
-                last_pk_study += 1
-            else:
-                last_pk_study = 1
-            study_fixture = write_study_fixture(study_info_dict, last_pk_study)
+            # if last_pk_study:
+            #     last_pk_study += 1
+            # else:
+            #     last_pk_study = 1
+            study_fixture = write_study_fixture(study_info_dict)
             
             open_df = subset_df.drop(
                 [i for i in core_columns if i != 'BioProject']
@@ -194,6 +195,27 @@ def fixtures_to_file(fixtures: str, output_file: str):
         f.write(fixtures)
 
 
+def generate_open_column_sqlites(df: pd.DataFrame, sqlite_dir_path: str):
+    '''
+    For all studies (unique BioProject) in the dataframe, generate a sqlite database
+    that contains a open columns table named after the BioProject. This is to contain 
+    all the columns that are not in the core columns list 
+
+    Inputs:
+        df: pandas dataframe no core columns except BioProject
+        sqlite_dir_path: string
+    
+    '''
+
+    grouped = df.groupby("BioProject")
+    for group, group_df in grouped:
+        group_df = group_df.dropna(axis=1, how="all")
+        conn = sqlite3.connect(f"{sqlite_dir_path}/{group}.sqlite")
+
+        group_df.to_sql(group, conn, if_exists="replace")
+
+
+
 def main(args):
 
     df = pd.read_csv(args.input)
@@ -205,7 +227,6 @@ def main(args):
     core_columns = ["BioProject", "Run","spots", "bases", "avgLength", "size_MB", "Experiment", "LibraryName", "LibraryStrategy", "LibrarySelection", "LibrarySource", "LibraryLayout", "InsertSize", "InsertDev", "Platform", "Model", "SRAStudy", "Study_Pubmed_id", "Sample", "BioSample", "SampleType", "TaxID", "ScientificName", "SampleName", "CenterName", "Submission", "MONTH", "YEAR", "AUTHOR", "sample_source", "sample_title", "LIBRARYTYPE", "REPLICATE", "CONDITION", "INHIBITOR", "TIMEPOINT", "TISSUE", "CELL_LINE", "FRACTION"]
 
     # df = df.drop(["CHECKED", "name", "not_unique", "KEEP", "UNIQUE", "GENE"], axis=1)
-    df = df.sample(2)
 
     last_pk_sample = get_last_pk("main_sample", args.db)
     print(last_pk_sample)
@@ -222,6 +243,10 @@ def main(args):
     fixtures += "\n]"
     print("writing fixtures to file")
     fixtures_to_file(fixtures, args.output)
+    open_df = df.drop(
+        [i for i in core_columns if i != 'BioProject']
+            , axis=1)
+    generate_open_column_sqlites(open_df, "/home/jack/projects/RiboSeqOrg-DataPortal/sqlites")
     print("Done!")
 
 

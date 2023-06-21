@@ -37,7 +37,7 @@ class Sample(models.Model):
     ribocrypt_id = models.CharField(max_length=200, blank=False, default=None, null=True)
     readfile = models.CharField(max_length=200, blank=False, default=None, null=True)
 
-    BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', blank=True, null=True)
+    BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', related_name = "sample", blank=True, null=True)
     Run = models.CharField(max_length=200, blank=True)
     spots = models.IntegerField(blank=True, null=True)
     bases = models.IntegerField(blank=True, null=True)
