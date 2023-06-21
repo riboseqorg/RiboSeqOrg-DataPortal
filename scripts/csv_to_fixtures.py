@@ -43,14 +43,16 @@ def df_to_sample_fixture(df: pd.DataFrame, last_pk: int) -> str:
     Returns:
         fixture string
     """
-    fixture = ["[\n"]
+    fixture = []
 
     for i, row in df.iterrows():
-        if last_pk:
-            i += last_pk + 1
+        if not last_pk:
+            last_pk = 1
+        else:
+            last_pk += 1
         fixture.append("{\n")
         fixture.append('    "model": "main.sample",\n')
-        fixture.append(f'    "pk": {i},\n')
+        fixture.append(f'    "pk": {last_pk},\n')
         fixture.append('    "fields": {\n')
         for col in df.columns:
             if col in ["spots", "bases", "avgLength", "size_MB"]:
@@ -70,20 +72,22 @@ def df_to_sample_fixture(df: pd.DataFrame, last_pk: int) -> str:
         fixture.append("},\n")
 
     fixture = " ".join(fixture)
-
     return fixture
 
 
-def write_study_fixture(information_dict: str, pk) -> str:
+def write_study_fixture(information_dict: dict, pk) -> str:
     """
     Give the accession of the study, return the study fixture
     
     inputs:
-        accession: string
+        information_dict: dictionary
+        pk: int
+
     returns:
         fixture: string
     """
     fixture = []
+
     fixture.append("{\n")
     fixture.append('    "model": "main.study",\n')
     fixture.append(f'    "pk":{pk},\n')
@@ -103,14 +107,43 @@ def write_study_fixture(information_dict: str, pk) -> str:
     return fixture
 
 
+def write_OpenColumns_fixture(column: str, bioproject: str, pk: int) -> str:
+    '''
+    Write the OpenColumns fixture string
 
-def add_study_fixtures(df: pd.DataFrame, db: str) -> pd.DataFrame:
+    Inputs:
+        column: string
+        bioProject: string
+        last_pk: int
+
+    Returns:
+        fixture: string
+    '''
+    fixture = []
+    fixture.append("{\n")
+    fixture.append('    "model": "main.opencolumns",\n')
+    fixture.append(f'    "pk":{pk},\n')
+    fixture.append('    "fields": {\n')
+    fixture.append(f'        "column_name": "{column}",\n')
+    fixture.append(f'        "bioproject": "{bioproject}",\n')
+    fixture[-1] = fixture[-1][:-2]
+    fixture.append("    }\n")
+    fixture.append("},\n")
+
+    fixture = " ".join(fixture)
+
+    return fixture
+
+
+
+def add_study_fixtures(df: pd.DataFrame, db: str, core_columns: list) -> pd.DataFrame:
     """
     Add study fixtures to the dataframe
     
     Inputs:
         df: pandas dataframe
         db: string
+        core_columns: list of strings
     
     Returns:
         df: pandas dataframe
@@ -118,18 +151,34 @@ def add_study_fixtures(df: pd.DataFrame, db: str) -> pd.DataFrame:
     study_fixtures = ""
     study_accessions = []
     last_pk_study = get_last_pk("main_study", db)
+    last_pk_OpenColumns = get_last_pk("main_opencolumns", db)
     for idx, row in df.iterrows():
-        if row["Study_Accession"] not in study_accessions:
-            study_accessions.append(row["Study_Accession"])
-            subset_df = df[df["Study_Accession"] == row["Study_Accession"]]
-            study_info_dict = get_metainformation_dict(subset_df)        
+        if row["BioProject"] not in study_accessions:
+            study_accessions.append(row["BioProject"])
+            subset_df = df[df["BioProject"] == row["BioProject"]]
+            core_df = subset_df[core_columns]
+            study_info_dict = get_metainformation_dict(core_df)
             if last_pk_study:
                 last_pk_study += 1
             else:
                 last_pk_study = 1
             study_fixture = write_study_fixture(study_info_dict, last_pk_study)
             
+            open_df = subset_df.drop(
+                [i for i in core_columns if i != 'BioProject']
+                 , axis=1)
+            open_df = open_df.dropna(axis=1, how="all")
+            bioproject = open_df["BioProject"].iloc[0]
+            open_fixtures = ""
+            for col in open_df.columns:
+                if last_pk_OpenColumns:
+                    last_pk_OpenColumns += 1
+                else:
+                    last_pk_OpenColumns = 1
+                open_fixtures += write_OpenColumns_fixture(col, bioproject, last_pk_OpenColumns)
+
         study_fixtures += study_fixture
+        study_fixtures += open_fixtures
     return study_fixtures
 
 
@@ -145,28 +194,43 @@ def fixtures_to_file(fixtures: str, output_file: str):
         f.write(fixtures)
 
 
-def main():
+def main(args):
+
+    df = pd.read_csv(args.input)
+
+    df["Study_Pubmed_id"] = df["Study_Pubmed_id"].astype("Int64").astype(str)
+    df['Study_Pubmed_id'] = df['Study_Pubmed_id'].replace("1", '')
+    df['YEAR'] = df['YEAR'].astype("Int64").astype(str)
+
+    core_columns = ["BioProject", "Run","spots", "bases", "avgLength", "size_MB", "Experiment", "LibraryName", "LibraryStrategy", "LibrarySelection", "LibrarySource", "LibraryLayout", "InsertSize", "InsertDev", "Platform", "Model", "SRAStudy", "Study_Pubmed_id", "Sample", "BioSample", "SampleType", "TaxID", "ScientificName", "SampleName", "CenterName", "Submission", "MONTH", "YEAR", "AUTHOR", "sample_source", "sample_title", "LIBRARYTYPE", "REPLICATE", "CONDITION", "INHIBITOR", "TIMEPOINT", "TISSUE", "CELL_LINE", "FRACTION"]
+
+    # df = df.drop(["CHECKED", "name", "not_unique", "KEEP", "UNIQUE", "GENE"], axis=1)
+    df = df.sample(2)
+
+    last_pk_sample = get_last_pk("main_sample", args.db)
+    print(last_pk_sample)
+
+    print("generating sample fixtures")
+    print("generating study fixtures")
+    fixtures = "[\n"
+    fixtures += add_study_fixtures(df, args.db, core_columns)
+    fixtures += df_to_sample_fixture(df[core_columns], last_pk_sample)
+
+    print("Done!")
+
+    fixtures = fixtures[:-2]
+    fixtures += "\n]"
+    print("writing fixtures to file")
+    fixtures_to_file(fixtures, args.output)
+    print("Done!")
+
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert csv file to fixture file")
     parser.add_argument("-i", "--input", help="Input csv file", required=True)
     parser.add_argument("--db", help="Sqlite database", required=True)
     parser.add_argument("-o", "--output", help="Output fixture file", required=True)
     args = parser.parse_args()
 
-    df = pd.read_csv(args.input)
-
-    df["Study_Pubmed_id"] = df["Study_Pubmed_id"].astype(str)
-
-    df = df.drop(["CHECKED", "name", "not_unique", "KEEP", "UNIQUE", "GENE"], axis=1)
-
-    last_pk_sample = get_last_pk("main_sample", args.db)
-
-    fixtures = df_to_sample_fixture(df, last_pk_sample)
-    fixtures += add_study_fixtures(df, args.db)
-
-    fixtures = fixtures[:-2]
-    fixtures += "\n]"
-    fixtures_to_file(fixtures, args.output)
-
-
-if __name__ == "__main__":
-    main()
+    main(args)

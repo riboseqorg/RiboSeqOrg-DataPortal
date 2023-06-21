@@ -5,6 +5,7 @@ It is not directly called by the user but functions are used in csv_to_fixtures.
 '''
 
 import pandas as pd
+import numpy as np
 import requests
 from get_study_metainformation import get_metainformation, xmlData_to_dict, download_GSE_metadata_files
 
@@ -41,10 +42,10 @@ def get_geo_metainformation(record: dict) -> dict:
     Returns:
         record: dictionary
     '''
-    information_dict = download_GSE_metadata_files(record['Accession'])
+    information_dict = download_GSE_metadata_files(record['GSE'])
     record['Title'] = information_dict['Title']
     record['Study_abstract'] = information_dict['Study_abstract']
-    record['All_protocols'] = f"Overall-Design: {information_dict['Overall-Design']}\n Treatment-Protocol: {information_dict['Treatment-Protocol']}\n Growth-Protocol: {information_dict['Growth-Protocol']}\n Extract-Protocol: {information_dict['Extract-Protocol']}\n Data-Processing: {information_dict['Data-Processing']}"
+    record['Description'] = f"Overall-Design: {information_dict['Overall-Design']}\n Treatment-Protocol: {information_dict['Treatment-Protocol']}\n Growth-Protocol: {information_dict['Growth-Protocol']}\n Extract-Protocol: {information_dict['Extract-Protocol']}\n Data-Processing: {information_dict['Data-Processing']}"
     record['Email'] = information_dict['Email']
 
     return record
@@ -82,6 +83,8 @@ def parse_sra_results(results: str, record: dict) -> dict:
     ExpXML = xmlData_to_dict(results[0]['ExpXml'])
     results[0].pop('ExpXml')
     record['Title'] = ExpXML['Title']
+    return record
+
 
 def parse_pubmed_results(results: str, record: dict) -> dict:
     '''
@@ -116,17 +119,16 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
         record: dictionary
     '''
     record = {
-        "Accession":"",
+        "BioProject":"",
         "Name":"",
         "Title":"",
         "Organism":"",
         "Samples":"",
         "SRA":"",
         "Release_Date":"",
-        "All_protocols" :"",
+        "Description" :"",
         "seq_types":"",
         "GSE":"",
-        "BioProject":"",
         "PMID":"",
         "Authors":"",
         "Study_abstract" :"",
@@ -139,16 +141,19 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
         "Email":"",
     }
     # Accession is the unique value by which this dataframe has been subsetted. [0] is used to get the value from the series
-    record['Accession'] = df['Study_Accession'].unique()[0]
+    record['BioProject'] = df['BioProject'].unique()[0]
 
     # Name assigned to the study. It is a combination of the author and the year. But Author and year can be overwritten from pubmed
-    record['Name'] = f"{df['AUTHOR'].unique()[0]} et al. {df['YEAR'].unique()[0]}" 
+    if df['AUTHOR'].unique()[0] == 'nan':
+        record['Name'] = f"Unknown Author {df['YEAR'].unique()[0]}"
+    
+    else:
+        record['Name'] = f"{df['AUTHOR'].unique()[0]} et al. {df['YEAR'].unique()[0]}" 
 
     # Samples is the number of samples that share this study accession i.e the number of rows in this df
     record['Samples'] = df.shape[0]
 
     # Organism is a ; separated list of all organisms in this study
-    print(list(df['ScientificName'].unique()))
     record['Organism'] = ';'.join(list(df['ScientificName'].unique()))
 
     # SRA is a ; separated list of all SRA studies (SRPs) in this study
@@ -163,39 +168,41 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
         record['seq_types'] = ';'.join(list(df['LIBRARYTYPE'].unique())).replace('RFP', 'Ribo-Seq').replace('RNA', 'RNA-Seq')
 
     # GSE is the GEO accession number. Can only be assigned here if the study accession is a GSE
-    record['GSE'] = record['Accession'] if record['Accession'].startswith('GSE') else ''
+    record['GSE'] = record['BioProject'] if record['BioProject'].startswith('GSE') else ''
 
     # BioProject is the BioProject accession number. If study_accession is GSE then this may be a list of BioProjects
     if list(df['BioProject'].unique()) == ['nan']:
         record['BioProject'] = ';'.join(list(df['BioProject'].unique()))
 
     # PMID is the Pubmed ID. If there are multiple PMIDs then they are separated by ;
-    if df['Study_Pubmed_id'].unique()[0] != 'nan':
+    if df['Study_Pubmed_id'].unique()[0] != np.nan:
         for i in df['Study_Pubmed_id'].unique():
             if record['PMID'] == '':
                 record['PMID'] = i.split('.')[0]
             else:
                 record['PMID'] += f";{i.split('.')[0]}"
-    print(record['GSE'])
+
     # Authors is a ; separated list of all authors in this study this will be overwritten from pubmed if possible
     if list(df['AUTHOR'].unique()) != ['nan']:
-        record['Authors'] = ';'.join(str(list(df['AUTHOR'].unique())))
+        if len(list(df['AUTHOR'].unique())) == 1:
+            record['Authors'] = list(df['AUTHOR'].unique())[0]
+        else:
+            record['Authors'] = ';'.join(str(list(df['AUTHOR'].unique())))
+    else:
+        record['Authors'] = 'Unknown Author'
 
 
-    if record['Accession'].startswith('PRJ'):
+    if record['BioProject'].startswith('PRJ'):
         print('Accession is from BioProject. Running search...')
-        d = get_metainformation(record['Accession'], 'bioproject')
+        d = get_metainformation(record['BioProject'], 'bioproject')
         record = parse_bioproject_results(d, record)
 
-    elif record['Accession'].startswith('GSE'):
+    elif record['BioProject'].startswith('GSE'):
         print('Accession is from GEO. Running search...')
         record = get_geo_metainformation(record)
 
-    elif record['Accession'].startswith('SRA'):
-        print('Accession is from SRA. Running search...')
-        pass
     else:
-        raise ValueError(f"Accession {record['Accession']} not recognized")
+        raise ValueError(f"Accession {record['BioProject']} not recognized")
     
     if record['PMID'] != '':
         print('Found PMID. Running search...')
