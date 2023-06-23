@@ -1,17 +1,16 @@
 from django.db import models
 
 class Study(models.Model):
-    Accession = models.CharField(max_length=200, blank=True)
+    BioProject = models.CharField(max_length=200, blank=False, null=False, unique=True, primary_key=True)
     Name = models.CharField(max_length=200, blank=True)
     Title = models.CharField(max_length=200, blank=True)
     Organism = models.CharField(max_length=200, blank=True)
     Samples = models.CharField(max_length=200, blank=True)
     SRA = models.CharField(max_length=200, blank=True)
     Release_Date = models.CharField(max_length=200, blank=True)
-    All_protocols = models.CharField(max_length=1500, blank=True)
+    Description = models.CharField(max_length=1500, blank=True)
     seq_types = models.CharField(max_length=200, blank=True)
     GSE = models.CharField(max_length=200, blank=True)
-    BioProject = models.CharField(max_length=200, blank=True)
     PMID = models.CharField(max_length=200, blank=True)
     Authors = models.CharField(max_length=200, blank=True)
     Study_abstract = models.CharField(max_length=1500, blank=True)
@@ -24,7 +23,7 @@ class Study(models.Model):
     Email = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.Accession
+        return self.BioProject
     
 
 
@@ -33,12 +32,12 @@ class Study(models.Model):
 # Manually curated metadata is in columns that are in all caps
 class Sample(models.Model):
     verified = models.BooleanField(blank=True, default=False)
-    trips = models.CharField(max_length=200, blank=True, default=False)
-    gwips = models.CharField(max_length=200, blank=True, default=False)
-    ribocrypt = models.CharField(max_length=200, blank=True, default=False)
-    ftp = models.CharField(max_length=200, blank=True, default=False)
+    trips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
+    gwips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
+    ribocrypt_id = models.CharField(max_length=200, blank=False, default=None, null=True)
+    readfile = models.CharField(max_length=200, blank=False, default=None, null=True)
 
-    Study_Accession = models.CharField(max_length=200, blank=True)
+    BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', related_name = "sample", blank=True, null=True)
     Run = models.CharField(max_length=200, blank=True)
     spots = models.IntegerField(blank=True, null=True)
     bases = models.IntegerField(blank=True, null=True)
@@ -55,9 +54,7 @@ class Sample(models.Model):
     Platform = models.CharField(max_length=200, blank=True)
     Model = models.CharField(max_length=200, blank=True)
     SRAStudy = models.CharField(max_length=200, blank=True)
-    BioProject = models.CharField(max_length=200, blank=True)
     Study_Pubmed_id = models.CharField(max_length=200, blank=True)
-    ProjectID = models.CharField(max_length=200, blank=True)
     Sample = models.CharField(max_length=200, blank=True)
     BioSample = models.CharField(max_length=200, blank=True)
     SampleType = models.CharField(max_length=200, blank=True)
@@ -79,10 +76,16 @@ class Sample(models.Model):
     TIMEPOINT = models.CharField(max_length=200, blank=True)
     TISSUE = models.CharField(max_length=200, blank=True)
     CELL_LINE = models.CharField(max_length=200, blank=True)
-    KO = models.CharField(max_length=200, blank=True)
-    KD = models.CharField(max_length=200, blank=True)
-    KI = models.CharField(max_length=200, blank=True)
     FRACTION = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.Study_Accession
+        return self.Run
+    
+
+class OpenColumns(models.Model):
+    column_name = models.CharField(max_length=200, blank=True)
+    bioproject = models.CharField(max_length=200, blank=True)
+    values = models.CharField(max_length=2000, blank=True)
+
+    def __str__(self):
+        return self.column_name

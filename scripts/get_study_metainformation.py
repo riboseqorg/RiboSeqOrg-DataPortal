@@ -24,7 +24,6 @@ def xmlData_to_dict(xmlData):
     Returns:
         information_dict: dictionary
     '''
-
     information_dict = {}
     xml_list = xmlData.split('>')
     key = None
@@ -92,12 +91,11 @@ def download_GSE_metadata_files(accession: str) -> dict:
                     'miniml':f'{base_url}/miniml/{accession}_family.xml.tgz',
                     'supp':f'{base_url}/suppl/{accession}_raw.tar',
                 }
-
+    print(metadata_files['soft'])
     soft = requests.get(metadata_files['soft'])
     soft_content = BytesIO(gzip.decompress(soft.content)).read().decode('utf-8')
     information_dict = parse_soft_metadata(soft_content)
     return information_dict
-
 
 
 
