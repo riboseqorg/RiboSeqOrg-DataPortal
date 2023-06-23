@@ -108,13 +108,14 @@ def write_study_fixture(information_dict: dict) -> str:
     return fixture
 
 
-def write_OpenColumns_fixture(column: str, bioproject: str, pk: int) -> str:
+def write_OpenColumns_fixture(column: str, bioproject: str, values: list, pk: int) -> str:
     '''
     Write the OpenColumns fixture string
 
     Inputs:
         column: string
         bioProject: string
+        values: list
         last_pk: int
 
     Returns:
@@ -127,6 +128,7 @@ def write_OpenColumns_fixture(column: str, bioproject: str, pk: int) -> str:
     fixture.append('    "fields": {\n')
     fixture.append(f'        "column_name": "{column}",\n')
     fixture.append(f'        "bioproject": "{bioproject}",\n')
+    fixture.append(f'        "values": "{",".join(values)}",\n')
     fixture[-1] = fixture[-1][:-2]
     fixture.append("    }\n")
     fixture.append("},\n")
@@ -172,11 +174,14 @@ def add_study_fixtures(df: pd.DataFrame, db: str, core_columns: list) -> pd.Data
             bioproject = open_df["BioProject"].iloc[0]
             open_fixtures = ""
             for col in open_df.columns:
+                if col == "BioProject":
+                    continue
                 if last_pk_OpenColumns:
                     last_pk_OpenColumns += 1
                 else:
                     last_pk_OpenColumns = 1
-                open_fixtures += write_OpenColumns_fixture(col, bioproject, last_pk_OpenColumns)
+                values = open_df[col].dropna().astype(str).unique().tolist()
+                open_fixtures += write_OpenColumns_fixture(col, bioproject, values, last_pk_OpenColumns)
 
         study_fixtures += study_fixture
         study_fixtures += open_fixtures
@@ -227,7 +232,8 @@ def main(args):
     core_columns = ["BioProject", "Run","spots", "bases", "avgLength", "size_MB", "Experiment", "LibraryName", "LibraryStrategy", "LibrarySelection", "LibrarySource", "LibraryLayout", "InsertSize", "InsertDev", "Platform", "Model", "SRAStudy", "Study_Pubmed_id", "Sample", "BioSample", "SampleType", "TaxID", "ScientificName", "SampleName", "CenterName", "Submission", "MONTH", "YEAR", "AUTHOR", "sample_source", "sample_title", "LIBRARYTYPE", "REPLICATE", "CONDITION", "INHIBITOR", "TIMEPOINT", "TISSUE", "CELL_LINE", "FRACTION"]
 
     # df = df.drop(["CHECKED", "name", "not_unique", "KEEP", "UNIQUE", "GENE"], axis=1)
-
+    # df = df.sample(10).reset_index(drop=True)
+    # print(df.shape)
     last_pk_sample = get_last_pk("main_sample", args.db)
     print(last_pk_sample)
 
@@ -244,7 +250,7 @@ def main(args):
     print("writing fixtures to file")
     fixtures_to_file(fixtures, args.output)
     open_df = df.drop(
-        [i for i in core_columns if i != 'BioProject']
+        [i for i in core_columns if i not in ['Run', 'BioProject']]
             , axis=1)
     generate_open_column_sqlites(open_df, "/home/jack/projects/RiboSeqOrg-DataPortal/sqlites")
     print("Done!")

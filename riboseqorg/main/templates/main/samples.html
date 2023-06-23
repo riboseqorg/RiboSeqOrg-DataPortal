@@ -2,6 +2,7 @@
 {% block title %}Samples{% endblock %}
 {% block content %}
 {% load static %}
+
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
@@ -10,10 +11,10 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css">
     <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
 
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
     <link href="{% static 'css/riboseq-css.css' %}"
@@ -42,13 +43,40 @@
               }
           });
       });
+      function updateAccordion(ulId, inputId) {
+        // Get the UL element
+        var ul = document.getElementById(ulId);
 
+        // Get the input element
+        var input = document.getElementById(inputId);
+
+        // Get the filter value
+        var filter = input.value.toUpperCase();
+
+        // Get the list items
+        var li = ul.getElementsByTagName('li');
+
+        // Loop through all list items, and hide or show them based on the filter
+        for (var i = 0; i < li.length; i++) {
+            var a = li[i].getElementsByTagName("a")[0];
+            var txtValue = a.textContent || a.innerText;
+
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+            } else {
+            li[i].style.display = "none";
+            }
+        }
+    }
     </script>
     <section id="database">
-        <div id="side-panel">
+        <div id="side-panel" style="padding-bottom: 5px;">
             <a class="btn btn-primary" data-bs-toggle="collapse" href="#side-panel-collapse" role="button" aria-expanded="false" aria-controls="side-panel-collapse">
                 Filters
             </a>
+            <button type="button" class="btn btn-secondary" data-mdb-toggle="modal" data-mdb-target="#exampleModal">
+                Get Links
+            </button>
         </div>
         <div class="container-fluid">
             <div class="row">
@@ -56,29 +84,39 @@
                     <div class="col-md-3 d-md-block order-1">
                         <div class="card">
                             <div class="card-body">
-                                <form method="GET">
-                                    <div class="d-flex justify-content-between mb-3">
-                                        <button type="submit" class="btn btn-primary me-2">Apply</button>
-                                        <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
-                                      </div>
-                                    {% for field, options in param_options.items %}
-                                        <div class="mb-3">
-                                            <a class="collapse_filter" class="text-decoration-none" data-bs-toggle="collapse" href="#{{ field }}-collapse" role="button" aria-expanded="false" aria-controls="{{ field }}-collapse" id="field-name">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
+                                </div>
+                                    <div class="mb-3 accordion", id="filterAccordion">
+
+                                    {% for field, options in param_options.items %}   
+                                        <h2 class="accordion-header" id="{{ field }}">
+                                            <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#{{ field }}-collapse" aria-expanded="false" aria-controls="{{ field }}-collapse">
                                                 {{ field|title }}
-                                            </a>
-                                            <div class="collapse" id="{{ field }}-collapse">
-                                                {% for option in options %}
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="{{ field }}" id="{{ option.value }}" value="{{ option.value }}" multiple>
-                                                        <label class="form-check-label" for="{{ option.value }}">
-                                                            {{ option.value }} ({{ option.count }})
-                                                        </label>
-                                                    </div>
-                                                {% endfor %}
+                                            </button>
+                                        </h2>
+                                        <div id="{{ field }}-collapse" class="accordion-collapse collapse" aria-labelledby="{{ field }}" data-bs-parent="#filterAccordion" data-live-search="true" style="width: 98%;">
+                                            <div class="accordion-body" style="padding: 0 0;">
+                                                <input type="text" id="{{ field }}-Input" onkeyup="updateAccordion('{{ field }}-UL','{{ field }}-Input')" placeholder="Search for names..", style="max-width: 100%; justify-content: center;" class="form-control">
+                                                <ul class="list-group overflow-auto" id="{{ field }}-UL", style="list-style-type: none;">
+                                                    {% for option in options %}
+                                                    {% url 'samples' as url %}
+                                                        <li style="width: 100%;" class="list-group-item justify-content-between align-items-center" style="justify-content: space-between;">
+                                                            <div>
+                                                                <a class="sidenav-link link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="{{ url }}?{{ request.GET.urlencode }}&{{ field }}={{ option.value|urlencode }}">
+                                                                    {{ option.value }}    
+                                                                </a>
+                                                            </div>
+                                                            <div style="display: inline;">
+                                                                <span class="badge bg-primary rounded-pill">{{ option.count }}</span>
+                                                            </div>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
                                             </div>
                                         </div>
                                     {% endfor %}
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -87,7 +125,7 @@
                 <div class="col-md-9 order-2">
                     <div class="fw-container">
                         <div class="fw-header">
-                            <h1>Studies</h1>
+                            <h1>Samples</h1>
                             <div class="nav-wrapper">
                                 <div class="nav-search">
                                     <div class="nav-item i-user">
@@ -107,7 +145,6 @@
                                             <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Description</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Treatment</th>
                                             <!-- <th style="background-color: rgba(255, 255, 255, 1);">Trips-Viz</th>
@@ -120,9 +157,8 @@
                                         {% for sample in page_obj %}
                                         <tr>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.Run }}</td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.Study_Accession }}">{{ sample.Study_Accession }}</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.sample_source }}</td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
                                             <!-- <td style="background-color: rgba(255, 255, 255, 1);"><a href="http://trips.ucc.ie">Trips-Viz</a></td>
@@ -137,9 +173,8 @@
                                             <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Description</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Treatment</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
                                             <!-- <th style="background-color: rgba(255, 255, 255, 1);">Trips-Viz</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">GWIPS-viz</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">RiboCrypt</th> -->
@@ -150,6 +185,97 @@
                                 </table>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+              <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">RiboSeq.Org Links</h5>
+                        <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Tabs navs -->
+                        <ul class="nav nav-tabs mb-3" id="ex1" role="tablist">
+                            <li class="nav-item" role="presentation">
+                            <a
+                                class="nav-link active"
+                                id="ex1-tab-1"
+                                data-mdb-toggle="tab"
+                                href="#ex1-tabs-1"
+                                role="tab"
+                                aria-controls="ex1-tabs-1"
+                                aria-selected="true"
+                                >Read Files</a
+                            >
+                            </li>
+                            <li class="nav-item" role="presentation">
+                            <a
+                                class="nav-link"
+                                id="ex1-tab-2"
+                                data-mdb-toggle="tab"
+                                href="#ex1-tabs-2"
+                                role="tab"
+                                aria-controls="ex1-tabs-2"
+                                aria-selected="false"
+                                >Trips-Viz</a
+                            >
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a
+                                    class="nav-link"
+                                    id="ex1-tab-3"
+                                    data-mdb-toggle="tab"
+                                    href="#ex1-tabs-3"
+                                    role="tab"
+                                    aria-controls="ex1-tabs-3"
+                                    aria-selected="false"
+                                    >GWIPS-viz</a
+                                >
+                                </li>
+                            <li class="nav-item" role="presentation">
+                            <a
+                                class="nav-link"
+                                id="ex1-tab-4"
+                                data-mdb-toggle="tab"
+                                href="#ex1-tabs-4"
+                                role="tab"
+                                aria-controls="ex1-tabs-4"
+                                aria-selected="false"
+                                >RiboCrypt</a
+                            >
+                            </li>
+                        </ul>
+                        <!-- Tabs navs -->
+                        
+                        <!-- Tabs content -->
+                        <div class="tab-content" id="ex1-content">
+                            <div
+                            class="tab-pane fade show active"
+                            id="ex1-tabs-1"
+                            role="tabpanel"
+                            aria-labelledby="ex1-tab-1"
+                            >
+                            Download Read Files
+                            </div>
+                            <div class="tab-pane fade" id="ex1-tabs-2" role="tabpanel" aria-labelledby="ex1-tab-2">
+                                <a href="https://trips.ucc.ie/">Trips-Viz</a>
+                            </div>
+                            <div class="tab-pane fade" id="ex1-tabs-3" role="tabpanel" aria-labelledby="ex1-tab-3">
+                                <a href="https://gwips.ucc.ie/">GWIPS-viz</a>
+                            </div>
+                            <div class="tab-pane fade" id="ex1-tabs-4" role="tabpanel" aria-labelledby="ex1-tab-4">
+                                <a href="https://ribocrypt.org/">RiboCrypt</a>
+                            </div>
+                        </div>
+                        <!-- Tabs content -->
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+                      <button type="button" class="btn btn-primary">Save changes</button>
                     </div>
                 </div>
             </div>

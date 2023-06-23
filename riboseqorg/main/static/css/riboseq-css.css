@@ -9,7 +9,23 @@
    display: flex;
    justify-content: center;
 }
-
+.accordion-body ul {
+   display: block;
+   align-items: normal; /* Default */
+   justify-content: space-between;
+   width: 100%;
+   margin: 0;
+   padding: 0;
+}
+.list-group{
+   max-height: 300px;
+   margin-bottom: 10px;
+}
+li {
+   display: block;
+   /* flex: 0 1 auto; Default */
+   list-style-type: none;
+}
 .nav-link {
    font-size: 120%;
 }
@@ -35,8 +51,9 @@ img {
 nav button {
    display: inline-block;
 }
-th, td { 
-   white-space: nowrap; 
+th, td {
+   word-break: break-word;
+   white-space: normal;
 }
 #study {
    padding-left: 5%;
@@ -45,10 +62,12 @@ th, td {
    word-break: break-word;
 
 }
-#study table {
+#study table, #database table {
    word-break: break-word;
    white-space: nowrap; 
-   width: 100%;
+   width: 95%;
+   max-width: 95%;
+   table-layout: fixed;
 }
 
 #study table td {

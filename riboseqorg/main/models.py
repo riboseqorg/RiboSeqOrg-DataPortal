@@ -23,7 +23,7 @@ class Study(models.Model):
     Email = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.Accession
+        return self.BioProject
     
 
 
@@ -85,6 +85,7 @@ class Sample(models.Model):
 class OpenColumns(models.Model):
     column_name = models.CharField(max_length=200, blank=True)
     bioproject = models.CharField(max_length=200, blank=True)
+    values = models.CharField(max_length=2000, blank=True)
 
     def __str__(self):
         return self.column_name

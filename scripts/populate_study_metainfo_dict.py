@@ -154,7 +154,7 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
     record['Samples'] = df.shape[0]
 
     # Organism is a ; separated list of all organisms in this study
-    record['Organism'] = ';'.join(list(df['ScientificName'].unique()))
+    record['Organism'] = ';'.join(list(df['ScientificName'].astype(str).unique()))
 
     # SRA is a ; separated list of all SRA studies (SRPs) in this study
     record['SRA'] = ';'.join(list(df['SRAStudy'].unique()))
