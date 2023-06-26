@@ -6,7 +6,7 @@ from django.db.models import Count
 
 
 from django.db.models import Q
-from .models import Sample, Study
+from .models import Sample, Study, OpenColumns
 
 
 import pandas as pd
@@ -337,9 +337,31 @@ def study_detail(request: HttpRequest, query: str) -> render:
 
     # return all results from Study where Accession=query
     ls = Sample.objects.filter(BioProject=query)
+    open_columns = OpenColumns.objects.filter(bioproject=query)
+    print(open_columns)
+    # Return all results from Sample and query the sqlite too and add this to the table
     context = {'Study': study_model, 'ls': ls}
     return render(request, 'main/study.html', context)
 
+
+def sample_detail(request: HttpRequest, query: str) -> render:
+    """
+    Render a page for a specific study.
+    
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    - query (str): the study accession number
+    
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """ 
+    print(query)
+    sample_model = get_object_or_404(Sample, Run=query)
+
+    # return all results from Study where Accession=query
+    ls = Sample.objects.filter(Run=query)
+    context = {'Sample': sample_model, 'ls': ls}
+    return render(request, 'main/sample.html', context)
 
 class StudyListView(FilterView):
     """

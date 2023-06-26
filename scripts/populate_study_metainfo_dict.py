@@ -140,6 +140,7 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
         "Paper_abstract" :"",
         "Email":"",
     }
+    print(df['BioProject'])
     # Accession is the unique value by which this dataframe has been subsetted. [0] is used to get the value from the series
     record['BioProject'] = df['BioProject'].unique()[0]
 

@@ -235,13 +235,13 @@ def main(args):
     # df = df.sample(10).reset_index(drop=True)
     # print(df.shape)
     last_pk_sample = get_last_pk("main_sample", args.db)
-    print(last_pk_sample)
 
+    print(df.head())
     print("generating sample fixtures")
     print("generating study fixtures")
     fixtures = "[\n"
     fixtures += add_study_fixtures(df, args.db, core_columns)
-    fixtures += df_to_sample_fixture(df[core_columns], last_pk_sample)
+    fixtures += df_to_sample_fixture(df, last_pk_sample)
 
     print("Done!")
 
