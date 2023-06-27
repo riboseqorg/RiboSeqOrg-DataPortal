@@ -221,8 +221,37 @@ def samples(request: HttpRequest) -> render:
     Returns:
     - (render): the rendered HTTP response for the page
     """
-    appropriate_fields = ['CELL_LINE', 'INHIBITOR', 'TISSUE', 'LIBRARYTYPE', "ScientificName"]
-    clean_names = {'CELL_LINE': 'Cell-Line', 'CONDITION': 'Condition', 'INHIBITOR': 'Inhibitor', 'ScientificName': 'Organism','REPLICATE': 'Replicate', 'TIMEPOINT': 'Timepoint', 'TISSUE': 'Tissue', 'KO': 'KO', 'KD': 'KD', 'KI': 'KI', 'FRACTION': 'Fraction', 'BATCH': 'Batch', 'LIBRARYTYPE': 'Library-Type', 'sample_source': 'Sample-Source', 'count':'count'}
+
+    #fields to show in Filter Panel 
+    appropriate_fields = [
+        'CELL_LINE',
+        'INHIBITOR', 
+        'TISSUE', 
+        'LIBRARYTYPE', 
+        "ScientificName", 
+        "FRACTION", 
+        "Infected", 
+        "Disease", 
+        "Sex"
+        ]
+    clean_names = {
+        'CELL_LINE': 'Cell-Line',
+        'CONDITION': 'Condition', 
+        'INHIBITOR': 'Inhibitor', 
+        'ScientificName': 'Organism',
+        'REPLICATE': 'Replicate',
+        'TIMEPOINT': 'Timepoint',
+        'TISSUE': 'Tissue',
+        'FRACTION': 'Fraction',
+        'BATCH': 'Batch',
+        'LIBRARYTYPE': 'Library-Type',
+        'sample_source': 'Sample-Source',
+        'count':'count', 
+        'FRACTION':'Fraction',
+        'Infected':'Infected',
+        'Disease':'Disease',
+        'Sex':'Sex',
+        }
     # Get all the query parameters from the request
     query_params = request.GET.lists()
 
@@ -355,12 +384,193 @@ def sample_detail(request: HttpRequest, query: str) -> render:
     Returns:
     - (render): the rendered HTTP response for the page
     """ 
-    print(query)
+
+    appropriate_fields = [
+        'Run', 
+        'spots', 
+        'bases', 
+        'avgLength', 
+        'size_MB', 
+        'LibraryName', 
+        'LibraryStrategy', 
+        'LibrarySelection', 
+        'LibrarySource', 
+        'LibraryLayout', 
+        'InsertSize', 
+        'InsertDev', 
+        'Platform',	
+        'Model',	
+        'SRAStudy',	
+        'BioProject',
+        'Study_Pubmed_id',
+        'Sample',
+        'BioSample',
+        'SampleType',
+        'TaxID',
+        'ScientificName',
+        'SampleName',
+        'CenterName',	
+        'Submission',
+        'MONTH',
+        'YEAR',
+        'AUTHOR',
+        'sample_source',
+        'sample_title',
+        'ENA_first_public',
+        'ENA_last_update',
+        'INSDC_center_alias',	
+        'INSDC_center_name',
+        'INSDC_first_public',
+        'INSDC_last_update',
+        'INSDC_status',
+        'ENA_checklist',
+        'GEO_Accession',
+        'Experiment_Date',
+        'date_sequenced',
+        'submission_date',
+        'date',
+        'Experiment',
+        'CELL_LINE',
+        'TISSUE',
+        'INHIBITOR',
+        'TIMEPOINT',
+        'FRACTION',
+        'REPLICATE',
+        'CONDITION',
+        'LIBRARYTYPE',
+        'STAGE',
+        'GENE',
+        'Sex',
+        'Strain',
+        'Age',
+        'Infected',
+        'Disease',
+        'Genotype'	,
+        'Feeding',
+        'Temperature',
+        'SiRNA',
+        'SgRNA',
+        'ShRNA',
+        'Plasmid',
+        'Growth_Condition',
+        'Stress',
+        'Cancer',
+        'microRNA',
+        'Individual',
+        'Antibody',
+        'Ethnicity',
+        'Dose',
+        'Stimulation',
+        'Host',
+        'UMI',
+        'Adapter',
+        'Separation',
+        'rRNA_depletion',
+        'Barcode',
+        'Monosome_purification',
+        'Nuclease'
+        'Kit',
+        ]
+    
+    clean_names = {
+        'Run':'Run Accession', 
+        'spots':'Total Number of Spots (Original file))', 
+        'bases':'Total Number of Bases (Original file)', 
+        'avgLength':'Average Read Length', 
+        'size_MB':'Original File Size (MB)', 
+        'LibraryName':'Library Name', 
+        'LibraryStrategy':'Library Strategy', 
+        'LibrarySelection':'Library Selection', 
+        'LibrarySource':'Library Source', 
+        'LibraryLayout':'Library Layout', 
+        'InsertSize':'Insert Size', 
+        'InsertDev':'Insert Deviation', 
+        'Platform':'Platform',	
+        'Model':'Model',	
+        'SRAStudy': 'SRA Project Accession (SRP)',	
+        'BioProject':'BioProject',
+        'Study_Pubmed_id':'PubMed ID',
+        'Sample':'Sample',
+        'BioSample':'BioSample',
+        'SampleType':'Sample Type',
+        'TaxID':'Organism TaxID',
+        'ScientificName':'Organism',
+        'SampleName':'Sample Name',
+        'CenterName':'Center Name',	
+        'Submission':'Submission',
+        'MONTH':'Month',
+        'YEAR':'Year',
+        'AUTHOR':'Author',
+        'sample_source':'Sample Source',
+        'sample_title':'Sample Title',
+        'ENA_first_public':'ENA First Public',
+        'ENA_last_update':'ENA Last Update',
+        'INSDC_center_alias':'INSDC Center Alias',	
+        'INSDC_center_name':'INSDC Center Name',
+        'INSDC_first_public':'INSDC First Public',
+        'INSDC_last_update':'INSDC Last Update',
+        'GEO_Accession'	:'GEO Accession',
+        'Experiment_Date':'Date of Experiment',
+        'date_sequenced':'Date of Sequencing',
+        'submission_date':'Submission Date',
+        'date':'Date',
+        'Experiment':'Experiment ID',
+        'CELL_LINE':'Cell Line',
+        'TISSUE':'Tissue',
+        'INHIBITOR':'Inhibitor',
+        'TIMEPOINT':'Timepoint',
+        'FRACTION':'Cellular Compartment',
+        'REPLICATE':'Replicate Number',
+        'CONDITION':'Condition',
+        'LIBRARYTYPE':'Library Type',
+        'STAGE':'Stage',
+        'GENE':'Gene',
+        'Sex':'Sex',
+        'Strain':'Strain',
+        'Age':'Age',
+        'Infected':'Infected',
+        'Disease':'Disease',
+        'Genotype'	:'Genotype Information',
+        'Feeding':'Feeding Details',
+        'Temperature':'Temperature',
+        'SiRNA':'SiRNA',
+        'SgRNA':'SgRNA',
+        'ShRNA':'ShRNA',
+        'Plasmid':'Plasmid',
+        'Growth_Condition':'Growth Condition',
+        'Stress':'Stress',
+        'Cancer':'Cancer type',
+        'microRNA':'MicroRNA',
+        'Individual':'Individual',
+        'Antibody':'Antibody Used',
+        'Ethnicity':'Ethnicity',
+        'Dose':'Dose',
+        'Stimulation':'Stimulation',
+        'Host':'Host Organism',
+        'UMI':'Unique Molecular Identifier (UMI)',
+        'Adapter':'Adapter Sequence',
+        'Separation':'Mode of Separation',
+        'rRNA_depletion':'Mode of rRNA depletion',
+        'Barcode':'Barcode Information',
+        'Monosome_purification':'Mode of Purification',
+        'Nuclease':'Nucelase Used',
+        'Kit':'Kit Used',
+        }
     sample_model = get_object_or_404(Sample, Run=query)
 
     # return all results from Study where Accession=query
     ls = Sample.objects.filter(Run=query)
-    context = {'Sample': sample_model, 'ls': ls}
+    # Return all results from Sample and query the sqlite too and add this to the table
+
+    ks = []
+    for key, value in ls.values()[0].items():
+        if value not in ['nan', '']:
+            if key in appropriate_fields:
+                ks.append(
+                    (clean_names[key], value)
+                )
+
+    context = {'Sample': sample_model, 'ls': ls, 'ks': ks}
     return render(request, 'main/sample.html', context)
 
 class StudyListView(FilterView):

@@ -18,10 +18,7 @@
         type="text/css">
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
     <section id="study">
-        <h1>{{ Sample.Run }} ({{ Sample.BioProject }})</h1>
-        <h5>
-            <a href="/Study/{{ Sample.bioproject }}">Study: {{ Sample.Name }}</a>
-        </h5>
+        <h1>{{ Sample.Run }} (<a href="/Study/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a>)</h1>
         <h4>General Details</h4>
         <table class="table table-bordered" id="study-general">
             <tr>
@@ -74,6 +71,19 @@
                         <th>Title</th>
                         <td>{{ Sample.sample_title }}</td>
                     </tr>
+                </table>
+            </div>
+        </div>
+        <h4>Sample Details</h4>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-bordered" id="study-pub">
+                    {% for field, value in ks %}
+                    <tr>
+                        <th>{{ field|title }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
                 </table>
             </div>
         </div>
