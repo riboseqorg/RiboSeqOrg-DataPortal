@@ -6,7 +6,7 @@ from django.db.models import Count
 
 
 from django.db.models import Q
-from .models import Sample, Study
+from .models import Sample, Study, OpenColumns
 
 
 import pandas as pd
@@ -16,6 +16,102 @@ from django_filters.views import FilterView
 from .filters import StudyFilter, SampleFilter
 
 from django.db.models import Count
+
+def get_clean_names() -> dict:
+    '''
+    Return a dictionary of clean names to original names as in database
+    
+    Returns:
+        clean_names: dictionary
+    '''
+    clean_names = {
+    'Run':'Run Accession', 
+    'spots':'Total Number of Spots (Original file))', 
+    'bases':'Total Number of Bases (Original file)', 
+    'avgLength':'Average Read Length', 
+    'size_MB':'Original File Size (MB)', 
+    'LibraryName':'Library Name', 
+    'LibraryStrategy':'Library Strategy', 
+    'LibrarySelection':'Library Selection', 
+    'LibrarySource':'Library Source', 
+    'LibraryLayout':'Library Layout', 
+    'InsertSize':'Insert Size', 
+    'InsertDev':'Insert Deviation', 
+    'Platform':'Platform',	
+    'Model':'Model',	
+    'SRAStudy': 'SRA Project Accession (SRP)',	
+    'BioProject':'BioProject',
+    'Study_Pubmed_id':'PubMed ID',
+    'Sample':'Sample',
+    'BioSample':'BioSample',
+    'SampleType':'Sample Type',
+    'TaxID':'Organism TaxID',
+    'ScientificName':'Organism',
+    'SampleName':'Sample Name',
+    'CenterName':'Center Name',	
+    'Submission':'Submission',
+    'MONTH':'Month',
+    'YEAR':'Year',
+    'AUTHOR':'Author',
+    'sample_source':'Sample Source',
+    'sample_title':'Sample Title',
+    'ENA_first_public':'ENA First Public',
+    'ENA_last_update':'ENA Last Update',
+    'INSDC_center_alias':'INSDC Center Alias',	
+    'INSDC_center_name':'INSDC Center Name',
+    'INSDC_first_public':'INSDC First Public',
+    'INSDC_last_update':'INSDC Last Update',
+    'GEO_Accession'	:'GEO Accession',
+    'Experiment_Date':'Date of Experiment',
+    'date_sequenced':'Date of Sequencing',
+    'submission_date':'Submission Date',
+    'date':'Date',
+    'Experiment':'Experiment ID',
+    'CELL_LINE':'Cell-Line',
+    'TISSUE':'Tissue',
+    'INHIBITOR':'Inhibitor',
+    'TIMEPOINT':'Timepoint',
+    'FRACTION':'Cellular-Compartment',
+    'REPLICATE':'Replicate-Number',
+    'CONDITION':'Condition',
+    'LIBRARYTYPE':'Library-Type',
+    'STAGE':'Stage',
+    'GENE':'Gene',
+    'Sex':'Sex',
+    'Strain':'Strain',
+    'Age':'Age',
+    'Infected':'Infected',
+    'Disease':'Disease',
+    'Genotype'	:'Genotype',
+    'Feeding':'Feeding',
+    'Temperature':'Temperature',
+    'SiRNA':'SiRNA',
+    'SgRNA':'SgRNA',
+    'ShRNA':'ShRNA',
+    'Plasmid':'Plasmid',
+    'Growth_Condition':'Growth-Condition',
+    'Stress':'Stress',
+    'Cancer':'Cancer',
+    'microRNA':'MicroRNA',
+    'Individual':'Individual',
+    'Antibody':'Antibody Used',
+    'Ethnicity':'Ethnicity',
+    'Dose':'Dose',
+    'Stimulation':'Stimulation',
+    'Host':'Host Organism',
+    'UMI':'Unique Molecular Identifier (UMI)',
+    'Adapter':'Adapter Sequence',
+    'Separation':'Mode of Separation',
+    'rRNA_depletion':'Mode of rRNA depletion',
+    'Barcode':'Barcode Information',
+    'Monosome_purification':'Mode of Purification',
+    'Nuclease':'Nucelase Used',
+    'Kit':'Kit Used',
+    'Organism': 'Organism',
+    'PMID': 'PubMed',
+    'count':'count',
+    }
+    return clean_names
 
 def get_original_name(name: str, clean_names: dict) -> str:
     """
@@ -210,6 +306,42 @@ def handle_filter(
     return clean_results_dict
 
 
+def get_sample_filter_options(studies: list,
+                              sample_fields: list=[
+                                'CELL_LINE',
+                                'INHIBITOR',
+                                'TISSUE',
+                                'LIBRARYTYPE',
+                              ]) -> dict:
+    '''
+    For a given filtered study queryset, return the filter options for the sample parameters.
+
+    Arguments:
+    - studies (list): the filtered study queryset
+    - sample_fields (list): the list of sample parameters to filter
+
+    Returns:
+    - (dict): the filter options for each sample parameter
+    '''
+    sample_filter_options = {}
+    bioprojects = studies.values_list('BioProject', flat=True)
+    clean_names = get_clean_names()
+    samples = Sample.objects.filter(BioProject_id__in=bioprojects)
+
+    
+    for field in sample_fields:
+        values = samples.values(field).annotate(count=Count(field)).order_by('-count')
+        for obj in values:
+            for field_name in obj.keys():
+                if obj[field_name] == '' or obj[field_name] == 'nan':
+                    obj[field_name] = 'None'
+
+                if clean_names[field_name] not in sample_filter_options:
+                    sample_filter_options[clean_names[field_name]] = [{'value': obj[field_name], 'count': obj['count']}]
+                else:
+                    sample_filter_options[clean_names[field_name]].append({'value': obj[field_name], 'count': obj['count']})
+    return sample_filter_options
+
 
 def samples(request: HttpRequest) -> render:
     """
@@ -221,8 +353,26 @@ def samples(request: HttpRequest) -> render:
     Returns:
     - (render): the rendered HTTP response for the page
     """
-    appropriate_fields = ['CELL_LINE', 'INHIBITOR', 'TISSUE', 'LIBRARYTYPE', "ScientificName"]
-    clean_names = {'CELL_LINE': 'Cell-Line', 'CONDITION': 'Condition', 'INHIBITOR': 'Inhibitor', 'ScientificName': 'Organism','REPLICATE': 'Replicate', 'TIMEPOINT': 'Timepoint', 'TISSUE': 'Tissue', 'KO': 'KO', 'KD': 'KD', 'KI': 'KI', 'FRACTION': 'Fraction', 'BATCH': 'Batch', 'LIBRARYTYPE': 'Library-Type', 'sample_source': 'Sample-Source', 'count':'count'}
+
+    #fields to show in Filter Panel 
+    appropriate_fields = [
+        'CELL_LINE',
+        'INHIBITOR', 
+        'TISSUE', 
+        'LIBRARYTYPE', 
+        "ScientificName", 
+        "FRACTION", 
+        "Infected", 
+        "Disease", 
+        "Sex",
+        "Cancer",
+        # "Growth_Condition",
+        # "Stress",
+        # "Genotype",
+        # "Feeding",
+        # "Temperature",
+        ]
+    clean_names = get_clean_names()
     # Get all the query parameters from the request
     query_params = request.GET.lists()
 
@@ -252,7 +402,7 @@ def samples(request: HttpRequest) -> render:
     clean_results_dict.pop('count', None)
 
     # Paginate the studies
-    paginator = Paginator(samples, 50)
+    paginator = Paginator(samples, len(samples))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -270,13 +420,21 @@ def studies(request: HttpRequest) -> render:
     Returns:
     - (render): the rendered HTTP response for the page
     """    
-    appropriate_fields = ['Organism', 'Journal']
-    clean_names = {'Organism': 'Organism', 'Journal': 'Journal', 'count':'count'}
+    appropriate_fields = [
+        'Organism',
+        ]
+    boolean_fields = [
+        'PMID',
+    ]
+    clean_names = get_clean_names()
+    del clean_names['ScientificName']
+    
     # Get all the query parameters from the request
-    query_params = request.GET.lists()
-
+    # used for filter panel
+    query_params = [(name, values) for name, values in request.GET.lists() if name in appropriate_fields or name in boolean_fields]
     filtered_columns = [get_original_name(name, clean_names) for name, values in request.GET.lists()]
 
+    boolenan_param_options = {}
     # Get the unique values and counts for each parameter within the filtered queryset
     param_options = {}
     for field in Study._meta.fields:
@@ -284,6 +442,8 @@ def studies(request: HttpRequest) -> render:
             if field.name in filtered_columns:
                 # update query_params to remove the current field to ensure this field is not filtered by itself
                 query_params = [i for i in request.GET.lists() if get_original_name(i[0], clean_names) != field.name]
+                query_params = [(name, values) for name, values in request.GET.lists() if (name in appropriate_fields or name in boolean_fields) and get_original_name(name, clean_names) != field.name]
+
                 query = build_query(request, query_params, clean_names)
                 studies = Study.objects.filter(query)
 
@@ -296,12 +456,32 @@ def studies(request: HttpRequest) -> render:
                 values = studies.values(field.name).annotate(count=Count(field.name)).order_by('-count')
                 param_options[field.name] = values
 
+        if field.name in boolean_fields:
+            query = build_query(request, query_params, clean_names)
+            studies = Study.objects.filter(query)
+            values = studies.values(field.name).annotate(count=Count(field.name)).order_by('-count')
 
+            available = [i for i in values if i[field.name] not in ['', 'nan', None]]
+            available_count = sum([i['count'] for i in available])
+
+            not_available = [i for i in values if i[field.name] in ['', 'nan', None]]
+            not_available_count = sum([i['count'] for i in not_available])
+
+            clean_name = clean_names[field.name]
+            boolenan_param_options[clean_name] = [{'count': available_count, 'value': 'Available'}, {'count': not_available_count, 'value': 'Not Available'}]
+
+
+    # rebuild query to populate table
+    query_params = [(name, values) for name, values in request.GET.lists() if name in appropriate_fields or name in boolean_fields]
+    query = build_query(request, query_params, clean_names)
+    studies = Study.objects.filter(query)
+    sample_filter_options = get_sample_filter_options(studies)
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
+    clean_results_dict = {**clean_results_dict, **boolenan_param_options}#, **sample_filter_options}
     clean_results_dict.pop('count', None)
     
     # Paginate the studies
-    paginator = Paginator(studies, 50)
+    paginator = Paginator(studies, len(studies))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -337,9 +517,129 @@ def study_detail(request: HttpRequest, query: str) -> render:
 
     # return all results from Study where Accession=query
     ls = Sample.objects.filter(BioProject=query)
+    open_columns = OpenColumns.objects.filter(bioproject=query)
+
+    # Return all results from Sample and query the sqlite too and add this to the table
     context = {'Study': study_model, 'ls': ls}
     return render(request, 'main/study.html', context)
 
+
+def sample_detail(request: HttpRequest, query: str) -> render:
+    """
+    Render a page for a specific study.
+    
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    - query (str): the study accession number
+    
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """ 
+
+    appropriate_fields = [
+        'Run', 
+        'spots', 
+        'bases', 
+        'avgLength', 
+        'size_MB', 
+        'LibraryName', 
+        'LibraryStrategy', 
+        'LibrarySelection', 
+        'LibrarySource', 
+        'LibraryLayout', 
+        'InsertSize', 
+        'InsertDev', 
+        'Platform',	
+        'Model',	
+        'SRAStudy',	
+        'BioProject',
+        'Study_Pubmed_id',
+        'Sample',
+        'BioSample',
+        'SampleType',
+        'TaxID',
+        'ScientificName',
+        'SampleName',
+        'CenterName',	
+        'Submission',
+        'MONTH',
+        'YEAR',
+        'AUTHOR',
+        'sample_source',
+        'sample_title',
+        'ENA_first_public',
+        'ENA_last_update',
+        'INSDC_center_alias',	
+        'INSDC_center_name',
+        'INSDC_first_public',
+        'INSDC_last_update',
+        'INSDC_status',
+        'ENA_checklist',
+        'GEO_Accession',
+        'Experiment_Date',
+        'date_sequenced',
+        'submission_date',
+        'date',
+        'Experiment',
+        'CELL_LINE',
+        'TISSUE',
+        'INHIBITOR',
+        'TIMEPOINT',
+        'FRACTION',
+        'REPLICATE',
+        'CONDITION',
+        'LIBRARYTYPE',
+        'STAGE',
+        'GENE',
+        'Sex',
+        'Strain',
+        'Age',
+        'Infected',
+        'Disease',
+        'Genotype'	,
+        'Feeding',
+        'Temperature',
+        'SiRNA',
+        'SgRNA',
+        'ShRNA',
+        'Plasmid',
+        'Growth_Condition',
+        'Stress',
+        'Cancer',
+        'microRNA',
+        'Individual',
+        'Antibody',
+        'Ethnicity',
+        'Dose',
+        'Stimulation',
+        'Host',
+        'UMI',
+        'Adapter',
+        'Separation',
+        'rRNA_depletion',
+        'Barcode',
+        'Monosome_purification',
+        'Nuclease'
+        'Kit',
+        ]
+    
+    clean_names = get_clean_names()
+    sample_model = get_object_or_404(Sample, Run=query)
+
+    # return all results from Study where Accession=query
+    ls = Sample.objects.filter(Run=query)
+    # Return all results from Sample and query the sqlite too and add this to the table
+
+    ks = []
+    for key, value in ls.values()[0].items():
+        if value not in ['nan', '']:
+            if key in appropriate_fields:
+                ks.append(
+                    (clean_names[key], value)
+                )
+
+    context = {'Sample': sample_model, 'ls': ls, 'ks': ks}
+    return render(request, 'main/sample.html', context)
 
 class StudyListView(FilterView):
     """

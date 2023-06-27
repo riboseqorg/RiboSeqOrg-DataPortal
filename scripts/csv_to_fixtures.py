@@ -153,18 +153,15 @@ def add_study_fixtures(df: pd.DataFrame, db: str, core_columns: list) -> pd.Data
     """
     study_fixtures = ""
     study_accessions = []
-    # last_pk_study = get_last_pk("main_study", db)
+
     last_pk_OpenColumns = get_last_pk("main_opencolumns", db)
+    df.fillna("", inplace=True)
     for idx, row in df.iterrows():
         if row["BioProject"] not in study_accessions:
             study_accessions.append(row["BioProject"])
             subset_df = df[df["BioProject"] == row["BioProject"]]
             core_df = subset_df[core_columns]
             study_info_dict = get_metainformation_dict(core_df)
-            # if last_pk_study:
-            #     last_pk_study += 1
-            # else:
-            #     last_pk_study = 1
             study_fixture = write_study_fixture(study_info_dict)
             
             open_df = subset_df.drop(
@@ -231,17 +228,16 @@ def main(args):
 
     core_columns = ["BioProject", "Run","spots", "bases", "avgLength", "size_MB", "Experiment", "LibraryName", "LibraryStrategy", "LibrarySelection", "LibrarySource", "LibraryLayout", "InsertSize", "InsertDev", "Platform", "Model", "SRAStudy", "Study_Pubmed_id", "Sample", "BioSample", "SampleType", "TaxID", "ScientificName", "SampleName", "CenterName", "Submission", "MONTH", "YEAR", "AUTHOR", "sample_source", "sample_title", "LIBRARYTYPE", "REPLICATE", "CONDITION", "INHIBITOR", "TIMEPOINT", "TISSUE", "CELL_LINE", "FRACTION"]
 
-    # df = df.drop(["CHECKED", "name", "not_unique", "KEEP", "UNIQUE", "GENE"], axis=1)
-    # df = df.sample(10).reset_index(drop=True)
-    # print(df.shape)
-    last_pk_sample = get_last_pk("main_sample", args.db)
-    print(last_pk_sample)
+    core_columns = list(df.columns)
 
+    last_pk_sample = get_last_pk("main_sample", args.db)
+
+    print(df.head())
     print("generating sample fixtures")
     print("generating study fixtures")
     fixtures = "[\n"
     fixtures += add_study_fixtures(df, args.db, core_columns)
-    fixtures += df_to_sample_fixture(df[core_columns], last_pk_sample)
+    fixtures += df_to_sample_fixture(df, last_pk_sample)
 
     print("Done!")
 

@@ -88,7 +88,6 @@
                                     <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
                                 </div>
                                     <div class="mb-3 accordion", id="filterAccordion">
-
                                     {% for field, options in param_options.items %}   
                                         <h2 class="accordion-header" id="{{ field }}">
                                             <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#{{ field }}-collapse" aria-expanded="false" aria-controls="{{ field }}-collapse">
@@ -146,24 +145,18 @@
                                             <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Treatment</th>
-                                            <!-- <th style="background-color: rgba(255, 255, 255, 1);">Trips-Viz</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">GWIPS-viz</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">RiboCrypt</th> -->
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for sample in page_obj %}
                                         <tr>
-                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.Run }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
                                             <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
-                                            <!-- <td style="background-color: rgba(255, 255, 255, 1);"><a href="http://trips.ucc.ie">Trips-Viz</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="http://gwips.ucc.ie">GWIPS-viz</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="http://RiboCrypt.org">RiboCrypt</a></td> -->
                                             <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" /></td>
                                         </tr>
                                         {% endfor %}
@@ -175,9 +168,6 @@
                                             <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                            <!-- <th style="background-color: rgba(255, 255, 255, 1);">Trips-Viz</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">GWIPS-viz</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">RiboCrypt</th> -->
                                             <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
 
                                         </tr>
