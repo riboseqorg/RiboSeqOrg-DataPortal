@@ -400,9 +400,12 @@ def samples(request: HttpRequest) -> render:
 
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
     clean_results_dict.pop('count', None)
+    query_params = [(name, values) for name, values in request.GET.lists() if get_original_name(name, clean_names) in appropriate_fields]
+    query = build_query(request, query_params, clean_names)
+    samples = Sample.objects.filter(query)
 
     # Paginate the studies
-    paginator = Paginator(samples, len(samples))
+    paginator = Paginator(samples, 1000)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
