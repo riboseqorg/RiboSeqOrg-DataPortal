@@ -6,7 +6,6 @@ It exposes the WSGI callable as a module-level variable named ``application``.
 For more information on this file, see
 https://docs.djangoproject.com/en/4.1/howto/deployment/wsgi/
 """
-
 # Added by Anmol
 import os, sys, subprocess
 PROJECT_DIR = '/home/DATA/www/RiboSeqOrg-DataPortal/riboseqorg'
@@ -19,7 +18,6 @@ activate_this = os.path.join( PROJECT_DIR, '../riboseq_venv/bin', 'activate_this
 execfile( activate_this )
 
 # End
-
 
 from django.core.wsgi import get_wsgi_application
 
