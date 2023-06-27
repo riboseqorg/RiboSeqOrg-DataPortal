@@ -93,7 +93,7 @@
                                     {% for field, options in param_options.items %}   
                                         <h2 class="accordion-header" id="{{ field }}">
                                             <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#{{ field }}-collapse" aria-expanded="false" aria-controls="{{ field }}-collapse">
-                                                {{ field|title }}
+                                                {{ field }}
                                             </button>
                                         </h2>
                                         <div id="{{ field }}-collapse" class="accordion-collapse collapse" aria-labelledby="{{ field }}" data-bs-parent="#filterAccordion" data-live-search="true" style="width: 98%;">

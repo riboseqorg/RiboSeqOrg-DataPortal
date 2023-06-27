@@ -229,9 +229,7 @@ def main(args):
     core_columns = ["BioProject", "Run","spots", "bases", "avgLength", "size_MB", "Experiment", "LibraryName", "LibraryStrategy", "LibrarySelection", "LibrarySource", "LibraryLayout", "InsertSize", "InsertDev", "Platform", "Model", "SRAStudy", "Study_Pubmed_id", "Sample", "BioSample", "SampleType", "TaxID", "ScientificName", "SampleName", "CenterName", "Submission", "MONTH", "YEAR", "AUTHOR", "sample_source", "sample_title", "LIBRARYTYPE", "REPLICATE", "CONDITION", "INHIBITOR", "TIMEPOINT", "TISSUE", "CELL_LINE", "FRACTION"]
 
     core_columns = list(df.columns)
-    # df = df.drop(["CHECKED", "name", "not_unique", "KEEP", "UNIQUE", "GENE"], axis=1)
-    # df = df.sample(10).reset_index(drop=True)
-    # print(df.shape)
+
     last_pk_sample = get_last_pk("main_sample", args.db)
 
     print(df.head())

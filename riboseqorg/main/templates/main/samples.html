@@ -88,7 +88,6 @@
                                     <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
                                 </div>
                                     <div class="mb-3 accordion", id="filterAccordion">
-
                                     {% for field, options in param_options.items %}   
                                         <h2 class="accordion-header" id="{{ field }}">
                                             <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#{{ field }}-collapse" aria-expanded="false" aria-controls="{{ field }}-collapse">
@@ -146,7 +145,7 @@
                                             <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Treatment</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
                                         </tr>
                                     </thead>
