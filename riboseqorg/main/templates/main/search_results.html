@@ -36,7 +36,7 @@
                         <tbody>
                             {% for study in study_results %}
                                 <tr>
-                                    <td><a href="/Study/{{ study.Accession }}">{{ study.Accession }}</a></td>
+                                    <td><a href="/Study/{{ study.BioProject }}">{{ study.BioProject }}</a></td>
                                     <td>{{ study.Name }}</td>
                                     <td>{{ study.Title }}</td>
                                     <td>{{ study.Organism }}</td>
@@ -80,7 +80,7 @@
                             {% for sample in sample_results %}
                                 <tr>
                                     <td>{{ sample.Run }}</td>
-                                    <td>{{ sample.Study_Accession }}</td>
+                                    <td><a href="/Study/{{ study.BioProject }}">{{ study.BioProject }}</a></td>
                                     <td>{{ sample.ScientificName }}</td>
                                     <td>{{ sample.sample_source }}</td>
                                     <td>{{ sample.LIBRARYTYPE }}</td>

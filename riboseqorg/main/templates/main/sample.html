@@ -1,0 +1,158 @@
+{% extends 'main/base.html' %}
+{% block title %}Datasets{% endblock %}
+{% block content %}
+{% load static %}
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.5.0/css/select.bootstrap5.min.css">
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
+
+    <!-- Include Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+    <link href="{% static 'css/riboseq-css.css' %}"
+        rel="stylesheet"
+        type="text/css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+    <section id="study">
+        <h1>{{ Sample.Run }} (<a href="/Study/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a>)</h1>
+        <h4>General Details</h4>
+        <table class="table table-bordered" id="study-general">
+            <tr>
+                <th>Sample Name</th>
+                <td>{{ Sample.SampleName }}</td>
+            </tr>
+            <tr>
+                <th>Organism</th>
+                <td>{{ Sample.ScientificName }}</td>
+            </tr>
+            <tr>
+                <th>Release Date</th>
+                <td>{{ Sample.MONTH }}/{{ Sample.YEAR }}</td>
+            </tr>
+        </table>
+        <h4>Run Details</h4>
+        <table class="table table-bordered" id="sample-run">
+            <tr>
+                <th>Spots</th>
+                <td>{{ Sample.spots }}</td>
+            </tr>
+            <tr>
+                <th>Total Bases</th>
+                <td>{{ Sample.bases }}</td>
+            </tr>
+            <tr>
+                <th>Total Bases</th>
+                <td>{{ Sample.bases }}</td>
+            </tr>
+        </table>
+        <h4>Repository Details</h4>
+        <table class="table table-bordered" id="sample-repos">
+            <tr>
+                <th>SRA</th>
+                <td><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ Sample.Run }}">{{ Sample.Run }}</a></td>
+            </tr>
+            <tr>
+                <th>ENA</th>
+                <td><a href="https://ebi.ac.uk/ena/browser/view/{{ Sample.Run }}">{{ Sample.Run}}</a></td>
+            <tr>
+                <th>BioProject</th>
+                <td><a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ study.BioProject }}">{{ Sample.BioProject }}</a></td>
+            </tr>
+        </table>
+        <h4>Experiment Details</h4>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-bordered" id="study-pub">
+                    <tr>
+                        <th>Title</th>
+                        <td>{{ Sample.sample_title }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <h4>Sample Details</h4>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-bordered" id="study-pub">
+                    {% for field, value in ks %}
+                    <tr>
+                        <th>{{ field|title }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="fw-container">
+            <div class="fw-header">                
+                <div class="nav-wrapper">
+                    <div class="nav-search">
+                        <div class="nav-item i-user">
+                            <div class="account"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-ad">
+                    <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
+                </div>
+            </div>
+            <div class="fw-body">
+                <div class="content">
+                    <table id="samples" class="table table-striped nowrap" style="width:100%; margin-left:auto; margin-right:auto">
+                        <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th>Run Accession</th>
+                                <th>Study Accession</th>
+                                <th>Scientific Name</th>
+                                <th>Description</th>
+                                <th>Cell Line</th>
+                                <th>Library Type</th>
+                                <th>Treatment</th>
+                                <th>Trips-Viz</th>
+                                <th>GWIPS-viz</th>
+                                <th>RiboCrypt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sample in ls %}
+                                <tr>
+                                    <td><input type="checkbox" /></td>
+                                    <td>{{ sample.Run }}</td>
+                                    <td>{{ sample.Study_Accession }}</td>
+                                    <td>{{ sample.ScientificName }}</td>
+                                    <td>{{ sample.sample_source }}</td>
+                                    <td>{{ sample.CELL_LINE }}</td>
+                                    <td>{{ sample.LIBRARYTYPE }}</td>
+                                    <td>{{ sample.INHIBITOR }}</td>
+                                    <td><a href="http://trips.ucc.ie">Trips-Viz</a></td>
+                                    <td><a href="http://gwips.ucc.ie">GWIPS-viz</a></td>
+                                    <td><a href="http://RiboCrypt.org">RiboCrypt</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th scope="col"></th>
+                                <th>Run Accession</th>
+                                <th>Study Accession</th>
+                                <th>Scientific Name</th>
+                                <th>Description</th>
+                                <th>Cell Line</th>
+                                <th>Library Type</th>
+                                <th>Treatment</th>
+                                <th>Trips-Viz</th>
+                                <th>GWIPS-viz</th>
+                                <th>RiboCrypt</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

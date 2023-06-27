@@ -1,17 +1,16 @@
 from django.db import models
 
 class Study(models.Model):
-    Accession = models.CharField(max_length=200, blank=True)
+    BioProject = models.CharField(max_length=200, blank=False, null=False, unique=True, primary_key=True)
     Name = models.CharField(max_length=200, blank=True)
     Title = models.CharField(max_length=200, blank=True)
     Organism = models.CharField(max_length=200, blank=True)
     Samples = models.CharField(max_length=200, blank=True)
     SRA = models.CharField(max_length=200, blank=True)
     Release_Date = models.CharField(max_length=200, blank=True)
-    All_protocols = models.CharField(max_length=1500, blank=True)
+    Description = models.CharField(max_length=1500, blank=True)
     seq_types = models.CharField(max_length=200, blank=True)
     GSE = models.CharField(max_length=200, blank=True)
-    BioProject = models.CharField(max_length=200, blank=True)
     PMID = models.CharField(max_length=200, blank=True)
     Authors = models.CharField(max_length=200, blank=True)
     Study_abstract = models.CharField(max_length=1500, blank=True)
@@ -24,7 +23,7 @@ class Study(models.Model):
     Email = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.Accession
+        return self.BioProject
     
 
 
@@ -33,12 +32,12 @@ class Study(models.Model):
 # Manually curated metadata is in columns that are in all caps
 class Sample(models.Model):
     verified = models.BooleanField(blank=True, default=False)
-    trips = models.CharField(max_length=200, blank=True, default=False)
-    gwips = models.CharField(max_length=200, blank=True, default=False)
-    ribocrypt = models.CharField(max_length=200, blank=True, default=False)
-    ftp = models.CharField(max_length=200, blank=True, default=False)
+    trips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
+    gwips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
+    ribocrypt_id = models.CharField(max_length=200, blank=False, default=None, null=True)
+    readfile = models.CharField(max_length=200, blank=False, default=None, null=True)
 
-    Study_Accession = models.CharField(max_length=200, blank=True)
+    BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', related_name="sample", blank=True, null=True)
     Run = models.CharField(max_length=200, blank=True)
     spots = models.IntegerField(blank=True, null=True)
     bases = models.IntegerField(blank=True, null=True)
@@ -55,9 +54,7 @@ class Sample(models.Model):
     Platform = models.CharField(max_length=200, blank=True)
     Model = models.CharField(max_length=200, blank=True)
     SRAStudy = models.CharField(max_length=200, blank=True)
-    BioProject = models.CharField(max_length=200, blank=True)
     Study_Pubmed_id = models.CharField(max_length=200, blank=True)
-    ProjectID = models.CharField(max_length=200, blank=True)
     Sample = models.CharField(max_length=200, blank=True)
     BioSample = models.CharField(max_length=200, blank=True)
     SampleType = models.CharField(max_length=200, blank=True)
@@ -79,10 +76,64 @@ class Sample(models.Model):
     TIMEPOINT = models.CharField(max_length=200, blank=True)
     TISSUE = models.CharField(max_length=200, blank=True)
     CELL_LINE = models.CharField(max_length=200, blank=True)
-    KO = models.CharField(max_length=200, blank=True)
-    KD = models.CharField(max_length=200, blank=True)
-    KI = models.CharField(max_length=200, blank=True)
     FRACTION = models.CharField(max_length=200, blank=True)
 
+    # Additional fields from the list
+    ENA_first_public = models.CharField(max_length=200, blank=True)
+    ENA_last_update = models.CharField(max_length=200, blank=True)
+    INSDC_center_alias = models.CharField(max_length=200, blank=True)
+    INSDC_center_name = models.CharField(max_length=200, blank=True)
+    INSDC_first_public = models.CharField(max_length=200, blank=True)
+    INSDC_last_update = models.CharField(max_length=200, blank=True)
+    INSDC_status = models.CharField(max_length=200, blank=True)
+    ENA_checklist = models.CharField(max_length=200, blank=True)
+    GEO_Accession = models.CharField(max_length=200, blank=True)
+    Experiment_Date = models.CharField(max_length=200, blank=True)
+    date_sequenced = models.CharField(max_length=200, blank=True)
+    submission_date = models.CharField(max_length=200, blank=True)
+    date = models.CharField(max_length=200, blank=True)
+    STAGE = models.CharField(max_length=200, blank=True)
+    GENE = models.CharField(max_length=200, blank=True)
+    Sex = models.CharField(max_length=200, blank=True)
+    Strain = models.CharField(max_length=200, blank=True)
+    Age = models.CharField(max_length=200, blank=True)
+    Infected = models.CharField(max_length=200, blank=True)
+    Disease = models.CharField(max_length=200, blank=True)
+    Genotype = models.CharField(max_length=200, blank=True)
+    Feeding = models.CharField(max_length=200, blank=True)
+    Temperature = models.CharField(max_length=200, blank=True)
+    SiRNA = models.CharField(max_length=200, blank=True)
+    SgRNA = models.CharField(max_length=200, blank=True)
+    ShRNA = models.CharField(max_length=200, blank=True)
+    Plasmid = models.CharField(max_length=200, blank=True)
+    Growth_Condition = models.CharField(max_length=200, blank=True)
+    Stress = models.CharField(max_length=200, blank=True)
+    Cancer = models.CharField(max_length=200, blank=True)
+    microRNA = models.CharField(max_length=200, blank=True)
+    Individual = models.CharField(max_length=200, blank=True)
+    Antibody = models.CharField(max_length=200, blank=True)
+    Ethnicity = models.CharField(max_length=200, blank=True)
+    Dose = models.CharField(max_length=200, blank=True)
+    Stimulation = models.CharField(max_length=200, blank=True)
+    Host = models.CharField(max_length=200, blank=True)
+    UMI = models.CharField(max_length=200, blank=True)
+    Adapter = models.CharField(max_length=200, blank=True)
+    Separation = models.CharField(max_length=200, blank=True)
+    rRNA_depletion = models.CharField(max_length=200, blank=True)
+    Barcode = models.CharField(max_length=200, blank=True)
+    Monosome_purification = models.CharField(max_length=200, blank=True)
+    Nuclease = models.CharField(max_length=200, blank=True)
+    Kit = models.CharField(max_length=200, blank=True)
+    Info = models.CharField(max_length=200, blank=True)
+
     def __str__(self):
-        return self.Study_Accession
+        return self.Run
+
+
+class OpenColumns(models.Model):
+    column_name = models.CharField(max_length=200, blank=True)
+    bioproject = models.CharField(max_length=200, blank=True)
+    values = models.CharField(max_length=2000, blank=True)
+
+    def __str__(self):
+        return self.column_name
