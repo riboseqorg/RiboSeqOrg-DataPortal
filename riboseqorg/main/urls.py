@@ -12,5 +12,6 @@ urlpatterns = [
     path('Study/<str:query>/', views.study_detail, name='study'),
     path('Sample/<str:query>/', views.sample_detail, name='sample'),
     path('search/', views.search_results, name='search_results'),
+    path('links/', views.links, name='links'),
 
 ]

@@ -32,10 +32,10 @@ class Study(models.Model):
 # Manually curated metadata is in columns that are in all caps
 class Sample(models.Model):
     verified = models.BooleanField(blank=True, default=False)
-    trips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
-    gwips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
-    ribocrypt_id = models.CharField(max_length=200, blank=False, default=None, null=True)
-    readfile = models.CharField(max_length=200, blank=False, default=None, null=True)
+    trips_id = models.BooleanField(default=False)
+    gwips_id = models.BooleanField(default=False)
+    ribocrypt_id = models.BooleanField(default=False)
+    readfile = models.BooleanField(default=False)
 
     BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', related_name="sample", blank=True, null=True)
     Run = models.CharField(max_length=200, blank=True)

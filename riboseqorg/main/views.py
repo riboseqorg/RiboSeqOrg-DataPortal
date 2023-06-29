@@ -6,7 +6,7 @@ from django.db.models import Count
 
 
 from django.db.models import Q
-from .models import Sample, Study, OpenColumns
+from .models import Sample, Study, OpenColumns, Trips, GWIPS
 
 
 import pandas as pd
@@ -16,6 +16,11 @@ from django_filters.views import FilterView
 from .filters import StudyFilter, SampleFilter
 
 from django.db.models import Count
+
+
+from django import template
+
+register = template.Library()
 
 def get_clean_names() -> dict:
     '''
@@ -641,7 +646,11 @@ def sample_detail(request: HttpRequest, query: str) -> render:
                     (clean_names[key], value)
                 )
 
-    context = {'Sample': sample_model, 'ls': ls, 'ks': ks}
+    paginator = Paginator(ls, len(ls))
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {'Sample': sample_model, 'ls': page_obj, 'ks': ks}
     return render(request, 'main/sample.html', context)
 
 class StudyListView(FilterView):
@@ -660,3 +669,109 @@ class SampleListView(FilterView):
     model = Sample
     template_name = 'sample_list.html'
     filterset_class = SampleFilter
+
+
+def build_run_query(run_list: list) -> Q:
+    '''
+    For a given run list return a query to filter the Sample model.
+
+    Arguments:
+    - run_list (list): the list of runs to filter  
+
+    Returns:
+    - (Q): the query
+    '''
+    query = Q()
+    for run in run_list:
+        query |= Q(Run=run)
+
+    return query
+
+def build_bioproject_query(run_list: list) -> Q:
+    '''
+    For a given run list return a query to filter the Sample model.
+
+    Arguments:
+    - run_list (list): the list of runs to filter  
+
+    Returns:
+    - (Q): the query
+    '''
+    query = Q()
+    for run in run_list:
+        query |= Q(BioProject=run)
+
+    return query
+
+def handle_trips_urls(query: Q) -> list:
+    '''
+    For a given query return the required information to link those sample in trips.
+
+    Arguments:
+    - query (Q): the query
+
+    Returns:
+    - (dict): the required information to link those sample in trips
+    '''
+    trips = []
+    trips_entries = Trips.objects.filter(query)
+
+    trips_df = pd.DataFrame(list(trips_entries.values()))
+    if trips_df.empty:
+        trips.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
+            }
+        )
+    else:
+        for transcriptome in trips_df['transcriptome'].unique():
+            organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
+            file_ids = [str(int(i)) for i in organism_df['Trips_id'].unique().tolist()]
+            trips_dict = {
+                'clean_organism': organism_df['organism'].unique()[0].replace('_', ' ').capitalize(),
+                'organism': organism_df['organism'].unique()[0],
+                'transcriptome': transcriptome,
+                'files': f"files={','.join(file_ids)}",
+            }
+            trips.append(trips_dict)
+
+    return trips
+
+def links(request: HttpRequest) -> render:
+    """
+    Render the links page.
+    
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """ 
+
+
+    selected = dict(request.GET.lists())
+    if 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+        sample_entries = Sample.objects.filter(sample_query)
+        paginator = Paginator(sample_entries, len(sample_entries))
+        page_number = request.GET.get('page')
+        sample_page_obj = paginator.get_page(page_number)
+
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
+        sample_entries = Sample.objects.filter(sample_query)
+        paginator = Paginator(sample_entries, len(sample_entries))
+        page_number = request.GET.get('page')
+        sample_page_obj = paginator.get_page(page_number)
+    
+    else:
+        sample_page_obj = None
+        sample_query = None
+
+    trips_dict = handle_trips_urls(sample_query)
+    print(trips_dict)
+    return render(request, 'main/links.html', {
+        'sample_results': sample_page_obj,
+        'trips': trips_dict
+        })
+

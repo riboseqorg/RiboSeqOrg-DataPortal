@@ -44,6 +44,14 @@
               }
           });
       });
+      function selectAll() {
+        var table = $('#example').DataTable();
+        var checkboxes = table.column(8).nodes().to$().find('input[type="checkbox"]');
+        
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = true;
+        }
+    }
       function updateAccordion(ulId, inputId) {
         // Get the UL element
         var ul = document.getElementById(ulId);
@@ -140,46 +148,51 @@
                         </div>
                         <div class="fw-body">
                             <div class="content">
-                              <table id="example" class="table table-striped nowrap" style="width:90%; margin-left:auto; margin-right:auto">
-                                <thead>
-                                  <tr>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">GEO</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {% for study in page_obj %}
-                                    <tr>
-                                      <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a></td>
-                                      <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Organism }}</td>
-                                      <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Samples }}</td>
-                                      <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Date_published }}</td>
-                                      <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
-                                      <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
-                                      <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={{ study.GSE }}">{{ study.GSE }}</a></td>
-                                      <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" /></td>
-                                    </tr>
-                                  {% endfor %}
-                                </tbody>
-                                <tfoot>
-                                  <tr>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);">GEO</th>
-                                    <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
-                                  </tr>
-                                </tfoot>
-                              </table>
+                                <form action="{% url 'links' %}" method="get">
+                                    <table id="example" class="table table-striped nowrap" style="width:90%; margin-left:auto; margin-right:auto">
+                                        <thead>
+                                        <tr>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">GEO</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for study in page_obj %}
+                                            <tr>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Organism }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Samples }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Date_published }}</td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={{ study.GSE }}">{{ study.GSE }}</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" name="bioproject" value="{{ study.BioProject }}"/></td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">GEO</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                    <button type="button" class="btn btn-secondary" onclick="selectAll()">Select All</button>
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
+
                             </div>
                         </div>
                     </div>

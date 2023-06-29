@@ -67,27 +67,20 @@
                             <tr>
                                 <th>Run Accession</th>
                                 <th>Study Accession</th>
-                                <th>Scientific Name</th>
-                                <th>Description</th>
+                                <th>Organism</th>
                                 <th>Library Type</th>
-                                <th>Treatment</th>
-                                <th>Trips-Viz</th>
-                                <th>GWIPS-viz</th>
-                                <th>RiboCrypt</th>
+                                <th>Inhibitor</th>
+    
                             </tr>
                         </thead>
                         <tbody>
                             {% for sample in sample_results %}
                                 <tr>
-                                    <td>{{ sample.Run }}</td>
-                                    <td><a href="/Study/{{ study.BioProject }}">{{ study.BioProject }}</a></td>
+                                    <td><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
+                                    <td><a href="/Study/{{ study.BioProject }}">{{ sample.BioProject }}</a></td>
                                     <td>{{ sample.ScientificName }}</td>
-                                    <td>{{ sample.sample_source }}</td>
                                     <td>{{ sample.LIBRARYTYPE }}</td>
                                     <td>{{ sample.INHIBITOR }}</td>
-                                    <td><a href="http://trips.ucc.ie">Trips-Viz</a></td>
-                                    <td><a href="http://gwips.ucc.ie">GWIPS-viz</a></td>
-                                    <td><a href="http://RiboCrypt.org">RiboCrypt</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>
