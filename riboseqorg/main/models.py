@@ -137,3 +137,30 @@ class OpenColumns(models.Model):
 
     def __str__(self):
         return self.column_name
+    
+
+class Trips(models.Model):
+    BioProject = models.CharField(max_length=100)
+    Run = models.CharField(max_length=100)
+    Trips_id = models.FloatField()
+    file_name = models.CharField(max_length=100)
+    study_name = models.CharField(max_length=100)
+    study_srp = models.CharField(max_length=100)
+    study_gse = models.CharField(max_length=100)
+    PMID = models.CharField(max_length=100)
+    organism = models.CharField(max_length=100)
+    transcriptome = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"Trips {self.pk}: {self.file_name}"
+    
+
+class GWIPS(models.Model):
+    BioProject = models.CharField(max_length=100)
+    Organism = models.CharField(max_length=100)
+    gwips_db = models.CharField(max_length=100)
+    GWIPS_Elong_Suffix = models.CharField(max_length=100)
+    GWIPS_Init_Suffix = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"GWIPS {self.pk}: {self.gwips_db}"
