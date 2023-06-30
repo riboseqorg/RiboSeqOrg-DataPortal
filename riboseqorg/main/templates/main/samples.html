@@ -43,6 +43,15 @@
               }
           });
       });
+
+      function selectAll() {
+        var table = $('#example').DataTable();
+        var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
+        
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = true;
+        }
+    }
       function updateAccordion(ulId, inputId) {
         // Get the UL element
         var ul = document.getElementById(ulId);
@@ -74,9 +83,9 @@
             <a class="btn btn-primary" data-bs-toggle="collapse" href="#side-panel-collapse" role="button" aria-expanded="false" aria-controls="side-panel-collapse">
                 Filters
             </a>
-            <button type="button" class="btn btn-secondary" data-mdb-toggle="modal" data-mdb-target="#exampleModal">
+            <!-- <button type="button" class="btn btn-secondary" data-mdb-toggle="modal" data-mdb-target="#exampleModal">
                 Get Links
-            </button>
+            </button> -->
         </div>
         <div class="container-fluid">
             <div class="row">
@@ -138,41 +147,45 @@
                         </div>
                         <div class="fw-body">
                             <div class="content">
-                                <table id="example" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
-                                    <thead>
-                                        <tr>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for sample in page_obj %}
-                                        <tr>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" /></td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
+                                <form action="{% url 'links' %}" method="get">
+                                    <table id="example" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                                        <thead>
+                                            <tr>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
+                                                <th style="background-color: rgba(255, 255q, 255, 1);">Study Accession</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for sample in page_obj %}
+                                            <tr>
+                                                <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
+                                                <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
+                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
+                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
+                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
+                                                <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" name="run" value="{{ sample.Run }}"/></td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
 
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                    <button type="button" class="btn btn-secondary" onclick="selectAll()">Select All</button>
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
                             </div>
                         </div>
                     </div>

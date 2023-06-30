@@ -32,10 +32,10 @@ class Study(models.Model):
 # Manually curated metadata is in columns that are in all caps
 class Sample(models.Model):
     verified = models.BooleanField(blank=True, default=False)
-    trips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
-    gwips_id = models.CharField(max_length=200, blank=False, default=None, null=True)
-    ribocrypt_id = models.CharField(max_length=200, blank=False, default=None, null=True)
-    readfile = models.CharField(max_length=200, blank=False, default=None, null=True)
+    trips_id = models.BooleanField(default=False)
+    gwips_id = models.BooleanField(default=False)
+    ribocrypt_id = models.BooleanField(default=False)
+    readfile = models.BooleanField(default=False)
 
     BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', related_name="sample", blank=True, null=True)
     Run = models.CharField(max_length=200, blank=True)
@@ -137,3 +137,30 @@ class OpenColumns(models.Model):
 
     def __str__(self):
         return self.column_name
+    
+
+class Trips(models.Model):
+    BioProject = models.CharField(max_length=100)
+    Run = models.CharField(max_length=100)
+    Trips_id = models.FloatField()
+    file_name = models.CharField(max_length=100)
+    study_name = models.CharField(max_length=100)
+    study_srp = models.CharField(max_length=100)
+    study_gse = models.CharField(max_length=100)
+    PMID = models.CharField(max_length=100)
+    organism = models.CharField(max_length=100)
+    transcriptome = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"Trips {self.pk}: {self.file_name}"
+    
+
+class GWIPS(models.Model):
+    BioProject = models.CharField(max_length=100)
+    Organism = models.CharField(max_length=100)
+    gwips_db = models.CharField(max_length=100)
+    GWIPS_Elong_Suffix = models.CharField(max_length=100)
+    GWIPS_Init_Suffix = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"GWIPS {self.pk}: {self.gwips_db}"

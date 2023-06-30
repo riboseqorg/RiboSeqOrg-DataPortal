@@ -6,7 +6,7 @@ from django.db.models import Count
 
 
 from django.db.models import Q
-from .models import Sample, Study, OpenColumns
+from .models import Sample, Study, OpenColumns, Trips, GWIPS
 
 
 import pandas as pd
@@ -16,6 +16,11 @@ from django_filters.views import FilterView
 from .filters import StudyFilter, SampleFilter
 
 from django.db.models import Count
+
+
+from django import template
+
+register = template.Library()
 
 def get_clean_names() -> dict:
     '''
@@ -198,7 +203,7 @@ def search_results(request: HttpRequest) -> render:
         Q(gwips_id__icontains=query) |
         Q(ribocrypt_id__icontains=query) |
         Q(readfile__icontains=query) |
-        # Q(BioProject__icontains=query) |
+        Q(BioProject__icontains=query) |
         Q(Run__icontains=query) |
         Q(spots__icontains=query) |
         Q(bases__icontains=query) |
@@ -237,8 +242,55 @@ def search_results(request: HttpRequest) -> render:
         Q(TIMEPOINT__icontains=query) |
         Q(TISSUE__icontains=query) |
         Q(CELL_LINE__icontains=query) |
-        Q(FRACTION__icontains=query)
+        Q(FRACTION__icontains=query) |
+        Q(ENA_first_public__icontains=query) |
+        Q(ENA_last_update__icontains=query) |
+        Q(INSDC_center_alias__icontains=query) |
+        Q(INSDC_center_name__icontains=query) |
+        Q(INSDC_first_public__icontains=query) |
+        Q(INSDC_last_update__icontains=query) |
+        Q(INSDC_status__icontains=query) |
+        Q(ENA_checklist__icontains=query) |
+        Q(GEO_Accession__icontains=query) |
+        Q(Experiment_Date__icontains=query) |
+        Q(date_sequenced__icontains=query) |
+        Q(submission_date__icontains=query) |
+        Q(date__icontains=query) |
+        Q(STAGE__icontains=query) |
+        Q(GENE__icontains=query) |
+        Q(Sex__icontains=query) |
+        Q(Strain__icontains=query) |
+        Q(Age__icontains=query) |
+        Q(Infected__icontains=query) |
+        Q(Disease__icontains=query) |
+        Q(Genotype__icontains=query) |
+        Q(Feeding__icontains=query) |
+        Q(Temperature__icontains=query) |
+        Q(SiRNA__icontains=query) |
+        Q(SgRNA__icontains=query) |
+        Q(ShRNA__icontains=query) |
+        Q(Plasmid__icontains=query) |
+        Q(Growth_Condition__icontains=query) |
+        Q(Stress__icontains=query) |
+        Q(Cancer__icontains=query) |
+        Q(microRNA__icontains=query) |
+        Q(Individual__icontains=query) |
+        Q(Antibody__icontains=query) |
+        Q(Ethnicity__icontains=query) |
+        Q(Dose__icontains=query) |
+        Q(Stimulation__icontains=query) |
+        Q(Host__icontains=query) |
+        Q(UMI__icontains=query) |
+        Q(Adapter__icontains=query) |
+        Q(Separation__icontains=query) |
+        Q(rRNA_depletion__icontains=query) |
+        Q(Barcode__icontains=query) |
+        Q(Monomosome_purification__icontains=query) |
+        Q(Nuclease__icontains=query) |
+        Q(Kit__icontains=query) |
+        Q(Info__icontains=query)
     )
+
 
     context = {
         'search_form': search_form,
@@ -405,7 +457,7 @@ def samples(request: HttpRequest) -> render:
     samples = Sample.objects.filter(query)
 
     # Paginate the studies
-    paginator = Paginator(samples, 1000)
+    paginator = Paginator(samples, len(samples))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -641,7 +693,11 @@ def sample_detail(request: HttpRequest, query: str) -> render:
                     (clean_names[key], value)
                 )
 
-    context = {'Sample': sample_model, 'ls': ls, 'ks': ks}
+    paginator = Paginator(ls, len(ls))
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {'Sample': sample_model, 'ls': page_obj, 'ks': ks}
     return render(request, 'main/sample.html', context)
 
 class StudyListView(FilterView):
@@ -660,3 +716,160 @@ class SampleListView(FilterView):
     model = Sample
     template_name = 'sample_list.html'
     filterset_class = SampleFilter
+
+
+def build_run_query(run_list: list) -> Q:
+    '''
+    For a given run list return a query to filter the Sample model.
+
+    Arguments:
+    - run_list (list): the list of runs to filter  
+
+    Returns:
+    - (Q): the query
+    '''
+    query = Q()
+    for run in run_list:
+        query |= Q(Run=run)
+
+    return query
+
+def build_bioproject_query(run_list: list) -> Q:
+    '''
+    For a given run list return a query to filter the Sample model.
+
+    Arguments:
+    - run_list (list): the list of runs to filter  
+
+    Returns:
+    - (Q): the query
+    '''
+    query = Q()
+    for run in run_list:
+        query |= Q(BioProject=run)
+
+    return query
+
+def handle_trips_urls(query: Q) -> list:
+    '''
+    For a given query return the required information to link those sample in trips.
+
+    Arguments:
+    - query (Q): the query
+
+    Returns:
+    - (list): the required information to link those samples in trips (list of dicts)
+    '''
+    trips = []
+    trips_entries = Trips.objects.filter(query)
+
+    trips_df = pd.DataFrame(list(trips_entries.values()))
+    if trips_df.empty:
+        trips.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
+                'organism': 'None of the Selected Runs are available on Trips-Viz',
+            }
+        )
+    else:
+        for transcriptome in trips_df['transcriptome'].unique():
+            organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
+            file_ids = [str(int(i)) for i in organism_df['Trips_id'].unique().tolist()]
+            trips_dict = {
+                'clean_organism': organism_df['organism'].unique()[0].replace('_', ' ').capitalize(),
+                'organism': organism_df['organism'].unique()[0],
+                'transcriptome': transcriptome,
+                'files': f"files={','.join(file_ids)}",
+            }
+            trips.append(trips_dict)
+
+    return trips
+
+
+# def handle_gwips_urls(request: HttpRequest) -> list:
+#     '''
+#     For a given query return the required information to link those sample in GWIPS-viz.
+
+#     Arguments:
+#     - request (HttpRequest): the HTTP request for the page
+ 
+
+#     Returns:
+#     - (list): the required information to link those samples in GWIPS-viz (list of dicts)
+#     '''
+#     gwips = []
+
+#     requested = dict(request.GET.lists())
+#     if 'run' in requested:
+#         samples = Sample.objects.filter(build_run_query(requested['run']))
+#         bioprojects = samples.values_list('BioProject', flat=True)
+
+#         for sample in samples.values():
+
+
+#     elif 'bioproject' in requested:
+#         bioprojects = requested['bioproject']
+
+#     for bioproject in bioprojects:
+#         samples = Sample.objects.filter(BioProject=bioproject)
+#         samples_df = pd.DataFrame(list(samples.values()))
+#         if samples_df['INHIBITOR'].unique().tolist() == [' ']:
+#         print(samples_df['INHIBITOR'].value_counts())
+#         if samples_df.empty:
+#             gwips.append(
+#                 {
+#                     'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+
+#                 }
+#             )
+#         # else:
+#         #     gwips_dict = {
+#         #         'bioproject': bioproject,
+#         #         'gwipsDB':
+#         #         'files': f"files={bioproject}",
+#         #     }
+#         print(bioproject)
+
+
+
+
+def links(request: HttpRequest) -> render:
+    """
+    Render the links page.
+    
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """ 
+
+
+    selected = dict(request.GET.lists())
+    if 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+        print(sample_query)
+        sample_entries = Sample.objects.filter(sample_query)
+        paginator = Paginator(sample_entries, len(sample_entries))
+        page_number = request.GET.get('page')
+        sample_page_obj = paginator.get_page(page_number)
+
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
+        sample_entries = Sample.objects.filter(sample_query)
+        paginator = Paginator(sample_entries, len(sample_entries))
+        page_number = request.GET.get('page')
+        sample_page_obj = paginator.get_page(page_number)
+    
+    else:
+        sample_page_obj = None
+        sample_query = None
+
+    trips = handle_trips_urls(sample_query)
+    gwips = handle_gwips_urls(request)
+    print(gwips)
+    return render(request, 'main/links.html', {
+        'sample_results': sample_page_obj,
+        'trips': trips
+        })
+

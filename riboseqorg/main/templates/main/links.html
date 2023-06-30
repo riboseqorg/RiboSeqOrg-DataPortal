@@ -1,0 +1,162 @@
+{% extends 'main/base.html' %}
+{% block title %}RiboSeq.Org{% endblock %}
+{% load static %}
+
+{% block content %}
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
+
+    <!-- Include Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
+    <section id="links">
+        <div class="fw-container">
+            <div class="fw-header">
+                <h1>Links</h1>
+            </div>
+            <div class="fw-body">
+                <div class="content">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link active" id="download-tab" data-bs-toggle="tab" data-bs-target="#download" type="button" role="tab" aria-controls="download" aria-selected="true">Download</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" id="GWIPS-viz-tab" data-bs-toggle="tab" data-bs-target="#GWIPS-viz" type="button" role="tab" aria-controls="GWIPS-viz" aria-selected="false">GWIPS-viz</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" id="Trips-Viz-tab" data-bs-toggle="tab" data-bs-target="#Trips-Viz" type="button" role="tab" aria-controls="Trips-Viz" aria-selected="false">Trips-Viz</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="RiboCrypt-tab" data-bs-toggle="tab" data-bs-target="#RiboCrypt" type="button" role="tab" aria-controls="RiboCrypt" aria-selected="false">RiboCrypt</button>
+                          </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="download" role="tabpanel" aria-labelledby="download-tab">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="card">
+                                        <img src="{% static 'images/download.png' %}" 
+                                                class="card-img-top" 
+                                                alt="Stock download image"
+                                                style="
+                                                max-height:750px;
+                                                max-width:750px;">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Download</h5>
+                                            <p class="card-text">Download collapsed read files for selected samples</p>
+                                            <a href="#" class="btn btn-primary">Go!</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                        
+                        <div class="tab-pane fade" id="GWIPS-viz" role="tabpanel" aria-labelledby="GWIPS-viz-tab">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="card">
+                                        <img src="{% static 'images/GWIPS.png' %}" 
+                                            class="card-img-top" 
+                                            alt="Example image of a view in GWIPS-Viz"
+                                            style="
+                                            max-height:750px;
+                                            max-width:750px;">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Visualise</h5>
+                                            <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
+                                            <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db=hg38&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position=chr9%3A136849012%2D136852353&hgsid=540402_MelveM7DTidtvPutRdcAVIAszwUd" class="btn btn-primary">Genomic View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="Trips-Viz" role="tabpanel" aria-labelledby="Trips-Viz-tab">
+                            {% for transcriptome in trips %}
+                            <br>
+                            <div class="row">
+                                <h4>{{ transcriptome.clean_organism }}</h4>
+                                <div class="col-sm-3">
+                                    <div class="card">
+                                        <img src="{% static 'images/single_transcript_plot.png' %}" 
+                                        class="card-img-top" 
+                                        alt="Example image of single transcript plot of PEG10"
+                                        style="
+                                        max-height:750px;
+                                        max-width:750px;">
+                                        <div class="card-body">
+                                          <h5 class="card-title">Visualise</h5>
+                                          <p class="card-text">Visualise selected datasets on a transcriptome level</p>
+                                          <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/interactive_plot/?{{ transcriptome.files}}" class="btn btn-primary">Single Transcript Plot</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="card">
+                                        <img src="{% static 'images/triplet_periodicity_plot.png' %}" class="card-img-top" alt="Example image of a triplet periodicity plot"
+                                        style="
+                                        max-height:750px;
+                                        max-width:750px;">
+                                        <div class="card-body">
+                                          <h5 class="card-title">Meta Information</h5>
+                                          <p class="card-text">Generate plots to understand the composition of your selection.</p>
+                                          <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/metainfo_plot/?{{ transcriptome.files}}" class="btn btn-primary">Meta Information Plots</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="tab-pane fade" id="RiboCrypt" role="tabpanel" aria-labelledby="RiboCrypt-tab">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="card">
+                                        <img src="{% static 'images/RiboCrypt.svg' %}" 
+                                        class="card-img-top" 
+                                        alt="Example image of a view in RiboCrypt"
+                                        style="
+                                        max-height:750px;
+                                        max-width:750px;">
+                                        <div class="card-body">
+                                          <h5 class="card-title">Visualise</h5>
+                                          <p class="card-text">Visualise selected datasets in RiboCrypt</p>
+                                          <a href="#" class="btn btn-primary">Genomic View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="database">
+        <div class="fw-body">
+            <div class="content">
+                <table class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                    <thead>
+                        <tr>
+                            <th>Run Accession</th>
+                            <th>Study Accession</th>
+                            <th>Organism</th>
+                            <th>Library Type</th>
+                            <th>Inhibitor</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in sample_results %}
+                            <tr>
+                                <td><a href="/Study/{{ sample.Run }}">{{ sample.Run }}</a></td>
+                                <td><a href="/Study/{{ study.BioProject }}">{{ sample.BioProject }}</a></td>
+                                <td>{{ sample.ScientificName }}</td>
+                                <td>{{ sample.LIBRARYTYPE }}</td>
+                                <td>{{ sample.INHIBITOR }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        
+    </section>
+{% endblock %}
