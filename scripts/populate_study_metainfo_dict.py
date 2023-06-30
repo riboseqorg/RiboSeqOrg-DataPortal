@@ -61,6 +61,12 @@ def parse_bioproject_results(results: str, record: dict) -> dict:
     Returns:
         record: dictionary
     '''
+    if len(results['DocumentSummarySet']['DocumentSummary']) != 1:
+        record['Title'] = ''
+        record['Organism'] = ''
+        record['Release_Date'] = ''
+        return record
+
     results = results['DocumentSummarySet']['DocumentSummary'][0]
 
     record['Title'] = results['Project_Title']
@@ -194,7 +200,7 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
 
 
     if record['BioProject'].startswith('PRJ'):
-        print('Accession is from BioProject. Running search...')
+        print(f'Accession {record["BioProject"]} is from BioProject. Running search...')
         d = get_metainformation(record['BioProject'], 'bioproject')
         record = parse_bioproject_results(d, record)
 
