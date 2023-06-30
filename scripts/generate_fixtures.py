@@ -281,10 +281,10 @@ def add_readfile_booleans(df: pd.DataFrame, readfile_df: pd.DataFrame) -> pd.Dat
     Returns:
         df: pandas dataframe
     '''
-    df["readfile_id"] = False
+    df["readfile"] = False
     for idx, row in df.iterrows():
         if row["Run"] in readfile_df["Run"].tolist():
-            df.loc[idx, "readfile_id"] = True
+            df.loc[idx, "readfile"] = True
     return df
 
 
@@ -316,6 +316,25 @@ def clean_column_content(df: pd.DataFrame, clean_df: pd.DataFrame) -> pd.DataFra
                     if row[column] == main_name:
                         df.loc[idx, column] = clean_name
     return df
+
+
+def add_verification(df: pd.DataFrame, verified_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Add verification boolean to the dataframe
+
+    Inputs:
+        df: pandas dataframe
+        verified_df: pandas dataframe
+
+    Returns:
+        df: pandas dataframe    
+    '''
+    df["verified"] = False
+    for idx, row in df.iterrows():
+        if row["Run"] in verified_df["Run"].tolist():
+            df.loc[idx, "verified"] = True
+    return df
+
 
 def main(args):
 
@@ -350,6 +369,10 @@ def main(args):
     if args.clean:
         df = clean_column_content(df, args.clean)
 
+    if args.verified:
+        verified_df = pd.read_csv(args.verified)
+        df = add_verification(df, verified_df)
+
 
     print("generating sample fixtures")
     print("generating study fixtures")
@@ -378,6 +401,7 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--gwips", help="GWIPS CSV", required=False) # GWIPS csv file containing sample information for GWIPS manually generated https://docs.google.com/spreadsheets/d/1oQDNpkVTbKptdPksgpX9qg5dsp5f0NYcp20fppNGEjg/edit?usp=sharing
     parser.add_argument("-r", "--ribocrypt", help="RiboCrypt CSV", required=False) # Yet to be designed 
     parser.add_argument("-f", "--readfile", help="Readfile CSV", required=False) # File containing list of Run accessions that have been collapsed and are available 
+    parser.add_argument("-v", "--verified", help="Verified CSV - Manually checked", required=False) # CSV file containing manually checked samples (BioProject and Run columns important)
     parser.add_argument("-c", "--clean", help="Clean Names file", required=False) # Csv showing metadata content clean names (eg RFP to Ribo-Seq)
     parser.add_argument("--db", help="Sqlite database", required=True) # Sqlite database for Data Protal 
     parser.add_argument("-o", "--output", help="Output fixture file", required=True)
@@ -386,7 +410,7 @@ if __name__ == "__main__":
     main(args)
 
 '''
-python scripts/generate_fixtures.py -i data/filtered_riboseq_done_260623.csv --db riboseqorg/db.sqlite3 -o data/riboseqorg_metadata.json -t data/Sample_Matching-Trips-Viz.csv -g data/Sample_Matching-GWIPS-Viz.csv -f data/collapsed_accessions.tsv -c data/RiboSeqOrg_Vocabularies-Main_Name_Cleaning.csv \
+python scripts/generate_fixtures.py -i data/filtered_riboseq_done_260623.csv --db riboseqorg/db.sqlite3 -o data/riboseqorg_metadata.json -t data/Sample_Matching-Trips-Viz.csv -g data/Sample_Matching-GWIPS-Viz.csv -f data/collapsed_accessions.tsv -v data/verified.csv -c data/RiboSeqOrg_Vocabularies-Main_Name_Cleaning.csv \
     
     -r data/ribocrypt_metadata.csv \
 '''

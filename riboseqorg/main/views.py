@@ -203,7 +203,7 @@ def search_results(request: HttpRequest) -> render:
         Q(gwips_id__icontains=query) |
         Q(ribocrypt_id__icontains=query) |
         Q(readfile__icontains=query) |
-        # Q(BioProject__icontains=query) |
+        Q(BioProject__icontains=query) |
         Q(Run__icontains=query) |
         Q(spots__icontains=query) |
         Q(bases__icontains=query) |
@@ -242,8 +242,55 @@ def search_results(request: HttpRequest) -> render:
         Q(TIMEPOINT__icontains=query) |
         Q(TISSUE__icontains=query) |
         Q(CELL_LINE__icontains=query) |
-        Q(FRACTION__icontains=query)
+        Q(FRACTION__icontains=query) |
+        Q(ENA_first_public__icontains=query) |
+        Q(ENA_last_update__icontains=query) |
+        Q(INSDC_center_alias__icontains=query) |
+        Q(INSDC_center_name__icontains=query) |
+        Q(INSDC_first_public__icontains=query) |
+        Q(INSDC_last_update__icontains=query) |
+        Q(INSDC_status__icontains=query) |
+        Q(ENA_checklist__icontains=query) |
+        Q(GEO_Accession__icontains=query) |
+        Q(Experiment_Date__icontains=query) |
+        Q(date_sequenced__icontains=query) |
+        Q(submission_date__icontains=query) |
+        Q(date__icontains=query) |
+        Q(STAGE__icontains=query) |
+        Q(GENE__icontains=query) |
+        Q(Sex__icontains=query) |
+        Q(Strain__icontains=query) |
+        Q(Age__icontains=query) |
+        Q(Infected__icontains=query) |
+        Q(Disease__icontains=query) |
+        Q(Genotype__icontains=query) |
+        Q(Feeding__icontains=query) |
+        Q(Temperature__icontains=query) |
+        Q(SiRNA__icontains=query) |
+        Q(SgRNA__icontains=query) |
+        Q(ShRNA__icontains=query) |
+        Q(Plasmid__icontains=query) |
+        Q(Growth_Condition__icontains=query) |
+        Q(Stress__icontains=query) |
+        Q(Cancer__icontains=query) |
+        Q(microRNA__icontains=query) |
+        Q(Individual__icontains=query) |
+        Q(Antibody__icontains=query) |
+        Q(Ethnicity__icontains=query) |
+        Q(Dose__icontains=query) |
+        Q(Stimulation__icontains=query) |
+        Q(Host__icontains=query) |
+        Q(UMI__icontains=query) |
+        Q(Adapter__icontains=query) |
+        Q(Separation__icontains=query) |
+        Q(rRNA_depletion__icontains=query) |
+        Q(Barcode__icontains=query) |
+        Q(Monomosome_purification__icontains=query) |
+        Q(Nuclease__icontains=query) |
+        Q(Kit__icontains=query) |
+        Q(Info__icontains=query)
     )
+
 
     context = {
         'search_form': search_form,
@@ -711,7 +758,7 @@ def handle_trips_urls(query: Q) -> list:
     - query (Q): the query
 
     Returns:
-    - (dict): the required information to link those sample in trips
+    - (list): the required information to link those samples in trips (list of dicts)
     '''
     trips = []
     trips_entries = Trips.objects.filter(query)
@@ -738,6 +785,54 @@ def handle_trips_urls(query: Q) -> list:
 
     return trips
 
+
+# def handle_gwips_urls(request: HttpRequest) -> list:
+#     '''
+#     For a given query return the required information to link those sample in GWIPS-viz.
+
+#     Arguments:
+#     - request (HttpRequest): the HTTP request for the page
+ 
+
+#     Returns:
+#     - (list): the required information to link those samples in GWIPS-viz (list of dicts)
+#     '''
+#     gwips = []
+
+#     requested = dict(request.GET.lists())
+#     if 'run' in requested:
+#         samples = Sample.objects.filter(build_run_query(requested['run']))
+#         bioprojects = samples.values_list('BioProject', flat=True)
+
+#         for sample in samples.values():
+
+
+#     elif 'bioproject' in requested:
+#         bioprojects = requested['bioproject']
+
+#     for bioproject in bioprojects:
+#         samples = Sample.objects.filter(BioProject=bioproject)
+#         samples_df = pd.DataFrame(list(samples.values()))
+#         if samples_df['INHIBITOR'].unique().tolist() == [' ']:
+#         print(samples_df['INHIBITOR'].value_counts())
+#         if samples_df.empty:
+#             gwips.append(
+#                 {
+#                     'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+
+#                 }
+#             )
+#         # else:
+#         #     gwips_dict = {
+#         #         'bioproject': bioproject,
+#         #         'gwipsDB':
+#         #         'files': f"files={bioproject}",
+#         #     }
+#         print(bioproject)
+
+
+
+
 def links(request: HttpRequest) -> render:
     """
     Render the links page.
@@ -753,6 +848,7 @@ def links(request: HttpRequest) -> render:
     selected = dict(request.GET.lists())
     if 'run' in selected:
         sample_query = build_run_query(selected['run'])
+        print(sample_query)
         sample_entries = Sample.objects.filter(sample_query)
         paginator = Paginator(sample_entries, len(sample_entries))
         page_number = request.GET.get('page')
@@ -769,10 +865,11 @@ def links(request: HttpRequest) -> render:
         sample_page_obj = None
         sample_query = None
 
-    trips_dict = handle_trips_urls(sample_query)
-    print(trips_dict)
+    trips = handle_trips_urls(sample_query)
+    gwips = handle_gwips_urls(request)
+    print(gwips)
     return render(request, 'main/links.html', {
         'sample_results': sample_page_obj,
-        'trips': trips_dict
+        'trips': trips
         })
 
