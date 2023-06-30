@@ -98,7 +98,6 @@ def download_GSE_metadata_files(accession: str) -> dict:
     return information_dict
 
 
-
 def get_metainformation(accession: str, database) -> dict:
     '''
     Get study metainformation from public repositories given an accession 
@@ -119,7 +118,7 @@ def get_metainformation(accession: str, database) -> dict:
     
     study_id = record['IdList'][0]
     handle = Entrez.esummary(db=database, id=study_id)
-    record = Entrez.read(handle)
+    record = Entrez.read(handle, validate=False)
 
     return record if type(record) == dict or type(record) == Entrez.Parser.DictionaryElement else record
 

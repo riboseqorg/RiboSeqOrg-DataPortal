@@ -49,6 +49,9 @@
         var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
         
         for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                checkboxes[i].checked = false;
+            } else
             checkboxes[i].checked = true;
         }
     }
@@ -77,6 +80,43 @@
             }
         }
     }
+    function redirectToLink(element, url, field, value) {
+        // Get the current state of the toggle
+        const toggleState = element.checked;
+
+        // Construct the query string parameter for the toggle state
+        const toggleParam = `${field}=${encodeURIComponent(value)}`;
+
+        // Get the current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Update the toggle state in the URL parameters
+        if (toggleState) {
+            urlParams.set(field, value);
+        } else {
+            urlParams.delete(field);
+        }
+
+        // Construct the new URL with the updated toggle state
+        const newURL = `${url}?${urlParams.toString()}`;
+
+        // Redirect to the new URL
+        window.location.href = newURL;
+    }
+    function checkform() {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        var atleastOneChecked = false;
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                atleastOneChecked = true;
+                break;
+            }
+        }
+        document.getElementById('submit').disabled = !atleastOneChecked;
+    }
+
+    window.onload = checkform;
     </script>
     <section id="database">
         <div id="side-panel" style="padding-bottom: 5px;">
@@ -96,7 +136,50 @@
                                 <div class="d-flex justify-content-between mb-3">
                                     <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
                                 </div>
-                                    <div class="mb-3 accordion", id="filterAccordion">
+                                <div class="mb-3 accordion", id="filterAccordion">
+
+                                    <h2 class="accordion-header" id="toggle">
+                                        <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#toggle-collapse" aria-expanded="true" aria-controls="toggle-collapse">
+                                            Toggles
+                                        </button>
+                                    </h2>
+                                    <div id="toggle-collapse" class="accordion-collapse collapse show" aria-labelledby="toggle" data-bs-parent="#filterAccordion" data-live-search="true" style="width: 98%;">
+                                        <div class="accordion-body" style="padding: 0 0;">
+                                            <ul class="list-group overflow-auto" id="toggle-UL", style="list-style-type: none;">
+                                                <form>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="trips_id" {% if trips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'trips_id', 'on')">
+                                                        <label class="form-check-label" for="toggle1">Available on Trips-Viz</label>
+                                                    </div>
+                                                </form>
+                                                <form>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="gwips_id" {% if gwips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'gwips_id', 'on')">
+                                                        <label class="form-check-label" for="flexSwitchCheckChecked">Available on GWIPS-viz</label>
+                                                    </div>
+                                                </form>
+                                                <form>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="ribocrypt_id" {% if ribocrypt_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'ribocrypt_id', 'on')">
+                                                        <label class="form-check-label" for="flexSwitchCheckChecked">Available on RiboCrypt</label>
+                                                    </div>
+                                                </form>
+                                                <form>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="readfile" {% if readfile_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'readfile', 'on')">
+                                                        <label class="form-check-label" for="flexSwitchCheckChecked">Available on RiboCrypt</label>
+                                                    </div>
+                                                </form>
+                                                <form>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="verified" {% if verified_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'verified', 'on')">
+                                                        <label class="form-check-label" for="flexSwitchCheckChecked">Manually Verified</label>
+                                                    </div>
+                                                </form>
+                                            </ul>
+                                        </div>
+                                    </div>
+
                                     {% for field, options in param_options.items %}   
                                         <h2 class="accordion-header" id="{{ field }}">
                                             <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#{{ field }}-collapse" aria-expanded="false" aria-controls="{{ field }}-collapse">
@@ -147,7 +230,7 @@
                         </div>
                         <div class="fw-body">
                             <div class="content">
-                                <form action="{% url 'links' %}" method="get">
+                                <form action="{% url 'links' %}" method="get" name="sample_select">
                                     <table id="example" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
                                             <tr>
@@ -167,7 +250,7 @@
                                                 <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
                                                 <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
                                                 <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" name="run" value="{{ sample.Run }}"/></td>
+                                                <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" name="run" value="{{ sample.Run }}" onchange="checkform()"/></td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -183,8 +266,8 @@
                                             </tr>
                                         </tfoot>
                                     </table>
-                                    <button type="button" class="btn btn-secondary" onclick="selectAll()">Select All</button>
-                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                    <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
+                                    <button type="submit" class="btn btn-primary" id="submit">Submit</button>
                                 </form>
                             </div>
                         </div>
