@@ -1,7 +1,0 @@
-{
-     "model": "main.study",
-     "pk":319,
-     "fields": {
-         "Acession": "None"     }
- },
-

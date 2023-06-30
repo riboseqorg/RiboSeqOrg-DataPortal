@@ -87,6 +87,14 @@ th, td {
    hyphens: auto;
 }
 
+#links {
+   padding-left: 2%;
+   padding-top: 1%;
+   width: 90%;
+   display: inline-block;
+   word-break: break-word;
+}
+
 .search-container {
    display: flex;
    justify-content: right;

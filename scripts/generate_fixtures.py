@@ -216,6 +216,124 @@ def generate_open_column_sqlites(df: pd.DataFrame, sqlite_dir_path: str):
 
         group_df.to_sql(group, conn, if_exists="replace")
 
+def add_trips_booleans(df: pd.DataFrame, trips_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    If the sample is in the trips_df, add a boolean to the sample dataframe
+    
+    Inputs:
+        df: pandas dataframe
+        trips_df: pandas dataframe
+
+    Returns:
+        df: pandas dataframe
+    '''
+    df["trips_id"] = False
+    for idx, row in df.iterrows():
+        if row["Run"] in trips_df["Run"].tolist():
+            df.loc[idx, "trips_id"] = True
+    return df
+
+
+def add_gwips_booleans(df: pd.DataFrame, gwips_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    If the sample is in the gwips_df, add a boolean to the sample dataframe
+    
+    Inputs:
+        df: pandas dataframe
+        gwips_df: pandas dataframe
+
+    Returns:
+        df: pandas dataframe
+    '''
+    df["gwips_id"] = False
+    for idx, row in df.iterrows():
+        if row["BioProject"] in gwips_df["BioProject"].tolist():
+            df.loc[idx, "gwips_id"] = True
+    return df
+
+
+def add_ribocrypt_booleans(df: pd.DataFrame, ribocrypt_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    If the sample is in the ribocrypt_df, add a boolean to the sample dataframe
+    
+    Inputs:
+        df: pandas dataframe
+        ribocrypt_df: pandas dataframe
+
+    Returns:
+        df: pandas dataframe
+    '''
+    df["ribocrypt_id"] = False
+    for idx, row in df.iterrows():
+        if row["Run"] in ribocrypt_df["Run"].tolist():
+            df.loc[idx, "ribocrypt_id"] = True
+    return df
+
+
+def add_readfile_booleans(df: pd.DataFrame, readfile_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    If the sample is in the readfile_df, add a boolean to the sample dataframe
+    
+    Inputs:
+        df: pandas dataframe
+        readfile_df: pandas dataframe
+
+    Returns:
+        df: pandas dataframe
+    '''
+    df["readfile"] = False
+    for idx, row in df.iterrows():
+        if row["Run"] in readfile_df["Run"].tolist():
+            df.loc[idx, "readfile"] = True
+    return df
+
+
+def clean_column_content(df: pd.DataFrame, clean_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Clean values in the dataframe according to the clean_df
+
+    Inputs:
+        df: pandas dataframe
+        clean_df: pandas dataframe
+
+    Returns:
+        df: pandas dataframe
+    '''
+
+    clean_name_dict = {}
+    clean_df = pd.read_csv(args.clean)
+    for column, column_df in clean_df.groupby('Column'):
+        for idx, row in column_df.iterrows():
+            if column not in clean_name_dict:
+                clean_name_dict[column] = [(row['Main Name'], row["Clean Name"])]
+            else:
+                clean_name_dict[column].append((row['Main Name'], row["Clean Name"]))
+
+    for idx, row in df.iterrows():
+        for column in clean_name_dict:
+            if column in df.columns:
+                for main_name, clean_name in clean_name_dict[column]:
+                    if row[column] == main_name:
+                        df.loc[idx, column] = clean_name
+    return df
+
+
+def add_verification(df: pd.DataFrame, verified_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Add verification boolean to the dataframe
+
+    Inputs:
+        df: pandas dataframe
+        verified_df: pandas dataframe
+
+    Returns:
+        df: pandas dataframe    
+    '''
+    df["verified"] = False
+    for idx, row in df.iterrows():
+        if row["Run"] in verified_df["Run"].tolist():
+            df.loc[idx, "verified"] = True
+    return df
 
 
 def main(args):
@@ -232,7 +350,30 @@ def main(args):
 
     last_pk_sample = get_last_pk("main_sample", args.db)
 
-    print(df.head())
+    if args.trips:
+        trips_df = pd.read_csv(args.trips)
+        df = add_trips_booleans(df, trips_df)
+    
+    if args.gwips:
+        gwips_df = pd.read_csv(args.gwips)
+        df = add_gwips_booleans(df, gwips_df)
+
+    if args.ribocrypt:
+        ribocrypt_df = pd.read_csv(args.ribocrypt)
+        df = add_ribocrypt_booleans(df, ribocrypt_df)
+
+    if args.readfile:
+        readfile_df = pd.read_csv(args.readfile, sep="\t")
+        df = add_readfile_booleans(df, readfile_df)
+
+    if args.clean:
+        df = clean_column_content(df, args.clean)
+
+    if args.verified:
+        verified_df = pd.read_csv(args.verified)
+        df = add_verification(df, verified_df)
+
+
     print("generating sample fixtures")
     print("generating study fixtures")
     fixtures = "[\n"
@@ -255,9 +396,21 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert csv file to fixture file")
-    parser.add_argument("-i", "--input", help="Input csv file", required=True)
-    parser.add_argument("--db", help="Sqlite database", required=True)
+    parser.add_argument("-i", "--input", help="Input csv file", required=True) # filtered and standardized csv file containing sample metadata
+    parser.add_argument("-t", "--trips", help="Trips CSV", required=False) # trips csv file containing sample information for trips (generated with file_matching.ipynb)
+    parser.add_argument("-g", "--gwips", help="GWIPS CSV", required=False) # GWIPS csv file containing sample information for GWIPS manually generated https://docs.google.com/spreadsheets/d/1oQDNpkVTbKptdPksgpX9qg5dsp5f0NYcp20fppNGEjg/edit?usp=sharing
+    parser.add_argument("-r", "--ribocrypt", help="RiboCrypt CSV", required=False) # Yet to be designed 
+    parser.add_argument("-f", "--readfile", help="Readfile CSV", required=False) # File containing list of Run accessions that have been collapsed and are available 
+    parser.add_argument("-v", "--verified", help="Verified CSV - Manually checked", required=False) # CSV file containing manually checked samples (BioProject and Run columns important)
+    parser.add_argument("-c", "--clean", help="Clean Names file", required=False) # Csv showing metadata content clean names (eg RFP to Ribo-Seq)
+    parser.add_argument("--db", help="Sqlite database", required=True) # Sqlite database for Data Protal 
     parser.add_argument("-o", "--output", help="Output fixture file", required=True)
     args = parser.parse_args()
 
     main(args)
+
+'''
+python scripts/generate_fixtures.py -i data/filtered_riboseq_done_260623.csv --db riboseqorg/db.sqlite3 -o data/riboseqorg_metadata.json -t data/Sample_Matching-Trips-Viz.csv -g data/Sample_Matching-GWIPS-Viz.csv -f data/collapsed_accessions.tsv -v data/verified.csv -c data/RiboSeqOrg_Vocabularies-Main_Name_Cleaning.csv \
+    
+    -r data/ribocrypt_metadata.csv \
+'''
