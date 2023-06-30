@@ -410,7 +410,7 @@ def samples(request: HttpRequest) -> render:
     samples = Sample.objects.filter(query)
 
     # Paginate the studies
-    paginator = Paginator(samples, 1000)
+    paginator = Paginator(samples, len(samples))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -721,6 +721,7 @@ def handle_trips_urls(query: Q) -> list:
         trips.append(
             {
                 'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
+                'organism': 'None of the Selected Runs are available on Trips-Viz',
             }
         )
     else:
