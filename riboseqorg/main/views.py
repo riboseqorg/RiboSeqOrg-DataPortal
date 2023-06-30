@@ -115,6 +115,11 @@ def get_clean_names() -> dict:
     'Organism': 'Organism',
     'PMID': 'PubMed',
     'count':'count',
+    'verified':'verified',
+    'trips_id':'trips_id',
+    'gwips_id':'gwips_id',
+    'ribocrypt_id':'ribocrypt_id',
+    'readfile':'readfile',
     }
     return clean_names
 
@@ -319,6 +324,11 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
         options = request.GET.getlist(field)
         q_options = Q()
         for option in options:
+            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'readfile', 'verified']:
+                if option == 'on':
+                    option = True
+                else:
+                    option = False
             q_options |= Q(**{ get_original_name(field, clean_names): option})
         query &= q_options
     return query
@@ -417,52 +427,68 @@ def samples(request: HttpRequest) -> render:
         "Infected", 
         "Disease", 
         "Sex",
-        "Cancer",
+        "Cancer",        
         # "Growth_Condition",
         # "Stress",
         # "Genotype",
         # "Feeding",
         # "Temperature",
         ]
+    toggle_fields = [
+        'trips_id',
+        'gwips_id',
+        'ribocrypt_id',
+        'readfile',
+        'verified',
+    ]
     clean_names = get_clean_names()
     # Get all the query parameters from the request
     query_params = request.GET.lists()
-
     filtered_columns = [get_original_name(name, clean_names) for name, values in request.GET.lists()]
-
     # Get the unique values and counts for each parameter within the filtered queryset
     param_options = {}
     for field in Sample._meta.fields:
-        if field.get_internal_type() == 'CharField':
-            if field.name in filtered_columns:
-                # update query_params to remove the current field to ensure this field is not filtered by itself
-                query_params = [i for i in request.GET.lists() if get_original_name(i[0], clean_names) != field.name]
-                query = build_query(request, query_params, clean_names)
-                samples = Sample.objects.filter(query)
+        # if field.get_internal_type() == 'CharField':
+        if field.name in filtered_columns:
+            # update query_params to remove the current field to ensure this field is not filtered by itself
+            query_params = [i for i in request.GET.lists() if get_original_name(i[0], clean_names) != field.name]
+            query = build_query(request, query_params, clean_names)
+            samples = Sample.objects.filter(query)
 
-                filtered_samples = samples.values(field.name).annotate(count=Count(field.name)).order_by('-count')
-                param_options[field.name] = filtered_samples
-            else:
-                query = build_query(request, query_params, clean_names)
-                samples = Sample.objects.filter(query)
+            filtered_samples = samples.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+            param_options[field.name] = filtered_samples
+        else:
+            query_params = request.GET.lists()
+            query = build_query(request, query_params, clean_names)
+            samples = Sample.objects.filter(query)
 
-                values = samples.values(field.name).annotate(count=Count(field.name)).order_by('-count')
-                param_options[field.name] = values
+            values = samples.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+            param_options[field.name] = values
+        
 
 
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
     clean_results_dict.pop('count', None)
-    query_params = [(name, values) for name, values in request.GET.lists() if get_original_name(name, clean_names) in appropriate_fields]
+    query_params = [(name, values) for name, values in request.GET.lists() if get_original_name(name, clean_names) in appropriate_fields or name in toggle_fields]
     query = build_query(request, query_params, clean_names)
     samples = Sample.objects.filter(query)
-
+    samples = list(reversed(samples.order_by('LIBRARYTYPE', 'INHIBITOR')))
     # Paginate the studies
     paginator = Paginator(samples, len(samples))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    context = {
+        'page_obj': page_obj,
+        'param_options': clean_results_dict,
+        'trips_toggle_state': request.GET.get('trips_id', False),
+        'gwips_toggle_state': request.GET.get('gwips_id', False),
+        'ribocrypt_toggle_state': request.GET.get('ribocrypt_id', False),
+        'readfile_toggle_state': request.GET.get('readfile', False),
+        'verified_toggle_state': request.GET.get('verified', False),
+    }
     # Render the studies template with the filtered and paginated studies and the filter options
-    return render(request, 'main/samples.html', {'page_obj': page_obj, 'param_options': clean_results_dict})
+    return render(request, 'main/samples.html', context)
 
 
 def studies(request: HttpRequest) -> render:
@@ -761,6 +787,8 @@ def handle_trips_urls(query: Q) -> list:
     - (list): the required information to link those samples in trips (list of dicts)
     '''
     trips = []
+    if query == Q():
+        return trips
     trips_entries = Trips.objects.filter(query)
 
     trips_df = pd.DataFrame(list(trips_entries.values()))
@@ -846,9 +874,9 @@ def links(request: HttpRequest) -> render:
 
 
     selected = dict(request.GET.lists())
+
     if 'run' in selected:
         sample_query = build_run_query(selected['run'])
-        print(sample_query)
         sample_entries = Sample.objects.filter(sample_query)
         paginator = Paginator(sample_entries, len(sample_entries))
         page_number = request.GET.get('page')
@@ -865,9 +893,17 @@ def links(request: HttpRequest) -> render:
         sample_page_obj = None
         sample_query = None
 
-    trips = handle_trips_urls(sample_query)
-    gwips = handle_gwips_urls(request)
-    print(gwips)
+    if sample_query:
+        trips = handle_trips_urls(sample_query)
+    else:
+        trips = [
+                {
+                'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
+                'organism': 'None of the Selected Runs are available on Trips-Viz',
+            }
+        ]
+    # gwips = handle_gwips_urls(request)
+    # print(gwips)
     return render(request, 'main/links.html', {
         'sample_results': sample_page_obj,
         'trips': trips
