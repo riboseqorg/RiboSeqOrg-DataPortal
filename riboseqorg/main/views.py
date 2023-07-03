@@ -62,6 +62,7 @@ def get_clean_names() -> dict:
     'sample_title':'Sample Title',
     'ENA_first_public':'ENA First Public',
     'ENA_last_update':'ENA Last Update',
+    'INSDC_status': 'INSDC status',
     'INSDC_center_alias':'INSDC Center Alias',	
     'INSDC_center_name':'INSDC Center Name',
     'INSDC_first_public':'INSDC First Public',
@@ -203,11 +204,11 @@ def search_results(request: HttpRequest) -> render:
 
 
     sample_results = Sample.objects.filter(
-        Q(verified__icontains=query) |
-        Q(trips_id__icontains=query) |
-        Q(gwips_id__icontains=query) |
-        Q(ribocrypt_id__icontains=query) |
-        Q(readfile__icontains=query) |
+        # Q(verified__icontains=query) |
+        # Q(trips_id__icontains=query) |
+        # Q(gwips_id__icontains=query) |
+        # Q(ribocrypt_id__icontains=query) |
+        # Q(readfile__icontains=query) |
         Q(BioProject__icontains=query) |
         Q(Run__icontains=query) |
         Q(spots__icontains=query) |
@@ -290,7 +291,7 @@ def search_results(request: HttpRequest) -> render:
         Q(Separation__icontains=query) |
         Q(rRNA_depletion__icontains=query) |
         Q(Barcode__icontains=query) |
-        Q(Monomosome_purification__icontains=query) |
+        Q(Monosome_purification__icontains=query) |
         Q(Nuclease__icontains=query) |
         Q(Kit__icontains=query) |
         Q(Info__icontains=query)
