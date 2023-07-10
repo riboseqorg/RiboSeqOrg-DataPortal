@@ -23,23 +23,13 @@
     <script>
       $(document).ready(function() {
           var table = $('#example').DataTable({
-              dom: 'Plfrtip',
+              paging: false,
+            //   dom: 'Plfrtip',
               scrollY: '100vh',
                 // scrollX: true,
               scrollCollapse: true,
               fixedColumns: {
                   leftColumns: 1,
-              },
-              searchPanes: {
-                  threshold: 0.5,
-                  columns: [1,2,3,4,5,6,7],
-                  layout: 'columns-4',
-                  showCounts: true,
-                  dtOpts: {
-                      select: {
-                          style: 'multi'
-                      }
-                  }
               }
           });
       });
@@ -244,7 +234,7 @@
                                         </thead>
                                         <tbody>
                                             {% for sample in page_obj %}
-                                            <tr>
+                                            <tr style="word-wrap: break-word;">
                                                 <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
                                                 <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
                                                 <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
@@ -266,8 +256,25 @@
                                             </tr>
                                         </tfoot>
                                     </table>
-                                    <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
-                                    <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination">
+                                          {% if page_obj.has_previous %}
+                                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                          {% endif %}
+                                          <span class="current">
+                                            <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</a></li>
+                                          </span>
+                                          {% if page_obj.has_next %}
+                                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                                          {% endif %}
+                                          <li class="button-item">
+                                            <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
+                                            <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                          </li>
+                                        </ul>
+                                      </nav>
                                 </form>
                             </div>
                         </div>

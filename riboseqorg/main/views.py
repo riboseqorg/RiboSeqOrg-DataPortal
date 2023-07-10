@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest
 
 from django.db.models import Count
 
@@ -17,6 +17,9 @@ from .filters import StudyFilter, SampleFilter
 
 from django.db.models import Count
 
+<<<<<<< HEAD
+from .utilities import *
+=======
 
 from django import template
 
@@ -146,6 +149,7 @@ def column_selction(request: HttpRequest) -> render:
     return False
 
 
+>>>>>>> fbeba098b1c62b0a3d09c769628f21749045f303
 
 def index(request: HttpRequest) -> render:
     """
@@ -209,7 +213,11 @@ def search_results(request: HttpRequest) -> render:
         # Q(gwips_id__icontains=query) |
         # Q(ribocrypt_id__icontains=query) |
         # Q(readfile__icontains=query) |
+<<<<<<< HEAD
+        # Q(BioProject__icontains=query) |
+=======
         Q(BioProject__icontains=query) |
+>>>>>>> fbeba098b1c62b0a3d09c769628f21749045f303
         Q(Run__icontains=query) |
         Q(spots__icontains=query) |
         Q(bases__icontains=query) |
@@ -306,67 +314,6 @@ def search_results(request: HttpRequest) -> render:
     }
 
     return render(request, 'main/search_results.html', context)
-
-
-def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> Q:
-    """
-    Build a query based on the query parameters.
-
-    Arguments:
-    - query_params dict_itemiterator
-
-    Returns:
-    - (Q): the query
-    """
-    # Build the query for the studies based on the query parameters
-    query = Q()
-    #loop over unique keys in query_params
-    for field, values in query_params:
-        options = request.GET.getlist(field)
-        q_options = Q()
-        for option in options:
-            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'readfile', 'verified']:
-                if option == 'on':
-                    option = True
-                else:
-                    option = False
-            q_options |= Q(**{ get_original_name(field, clean_names): option})
-        query &= q_options
-    return query
-
-
-def handle_filter(
-        param_options: dict, 
-        appropriate_fields: list, 
-        clean_names: dict) -> dict:
-    '''
-    Get the filter options for each parameter in the query parameters.
-
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
-    - query_params (dict): the query parameters
-    - appropriate_fields (list): the list of fields that should be filtered
-    - clean_names (dict): the dictionary of clean names to original names
-
-    Returns:
-    - (dict): the filter options for each parameter
-    '''
-    clean_results_dict = {}
-    result_dict = {}
-
-    # Convert the values to a list of dictionaries for each parameter as I couldn't get the template to iterate over the values in the queryset
-    for name, queryset in param_options.items():
-        if name in appropriate_fields:
-            for obj in queryset:
-                for field_name in obj.keys():
-                    if field_name not in result_dict:
-                        result_dict[field_name] = []
-                        clean_results_dict[clean_names[field_name]] = []
-                    if obj[field_name] == '' or obj[field_name] == 'nan':
-                        obj[field_name] = 'None'
-                    result_dict[field_name].append({'value': obj[field_name], 'count': obj['count']})
-                    clean_results_dict[clean_names[field_name]].append({'value': obj[field_name], 'count': obj['count']})
-    return clean_results_dict
 
 
 def get_sample_filter_options(studies: list,
@@ -475,7 +422,7 @@ def samples(request: HttpRequest) -> render:
     samples = Sample.objects.filter(query)
     samples = list(reversed(samples.order_by('LIBRARYTYPE', 'INHIBITOR')))
     # Paginate the studies
-    paginator = Paginator(samples, len(samples))
+    paginator = Paginator(samples, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -744,75 +691,6 @@ class SampleListView(FilterView):
     template_name = 'sample_list.html'
     filterset_class = SampleFilter
 
-
-def build_run_query(run_list: list) -> Q:
-    '''
-    For a given run list return a query to filter the Sample model.
-
-    Arguments:
-    - run_list (list): the list of runs to filter  
-
-    Returns:
-    - (Q): the query
-    '''
-    query = Q()
-    for run in run_list:
-        query |= Q(Run=run)
-
-    return query
-
-def build_bioproject_query(run_list: list) -> Q:
-    '''
-    For a given run list return a query to filter the Sample model.
-
-    Arguments:
-    - run_list (list): the list of runs to filter  
-
-    Returns:
-    - (Q): the query
-    '''
-    query = Q()
-    for run in run_list:
-        query |= Q(BioProject=run)
-
-    return query
-
-def handle_trips_urls(query: Q) -> list:
-    '''
-    For a given query return the required information to link those sample in trips.
-
-    Arguments:
-    - query (Q): the query
-
-    Returns:
-    - (list): the required information to link those samples in trips (list of dicts)
-    '''
-    trips = []
-    if query == Q():
-        return trips
-    trips_entries = Trips.objects.filter(query)
-
-    trips_df = pd.DataFrame(list(trips_entries.values()))
-    if trips_df.empty:
-        trips.append(
-            {
-                'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
-                'organism': 'None of the Selected Runs are available on Trips-Viz',
-            }
-        )
-    else:
-        for transcriptome in trips_df['transcriptome'].unique():
-            organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
-            file_ids = [str(int(i)) for i in organism_df['Trips_id'].unique().tolist()]
-            trips_dict = {
-                'clean_organism': organism_df['organism'].unique()[0].replace('_', ' ').capitalize(),
-                'organism': organism_df['organism'].unique()[0],
-                'transcriptome': transcriptome,
-                'files': f"files={','.join(file_ids)}",
-            }
-            trips.append(trips_dict)
-
-    return trips
 
 
 # def handle_gwips_urls(request: HttpRequest) -> list:
