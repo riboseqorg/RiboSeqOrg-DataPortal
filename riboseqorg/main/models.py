@@ -124,7 +124,7 @@ class Sample(models.Model):
     Monosome_purification = models.CharField(max_length=200, blank=True)
     Nuclease = models.CharField(max_length=200, blank=True)
     Kit = models.CharField(max_length=200, blank=True)
-    Info = models.CharField(max_length=200, blank=True)
+    Info = models.TextField(blank=True)
 
     def __str__(self):
         return self.Run

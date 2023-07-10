@@ -17,7 +17,139 @@ from .filters import StudyFilter, SampleFilter
 
 from django.db.models import Count
 
+<<<<<<< HEAD
 from .utilities import *
+=======
+
+from django import template
+
+register = template.Library()
+
+def get_clean_names() -> dict:
+    '''
+    Return a dictionary of clean names to original names as in database
+    
+    Returns:
+        clean_names: dictionary
+    '''
+    clean_names = {
+    'Run':'Run Accession', 
+    'spots':'Total Number of Spots (Original file))', 
+    'bases':'Total Number of Bases (Original file)', 
+    'avgLength':'Average Read Length', 
+    'size_MB':'Original File Size (MB)', 
+    'LibraryName':'Library Name', 
+    'LibraryStrategy':'Library Strategy', 
+    'LibrarySelection':'Library Selection', 
+    'LibrarySource':'Library Source', 
+    'LibraryLayout':'Library Layout', 
+    'InsertSize':'Insert Size', 
+    'InsertDev':'Insert Deviation', 
+    'Platform':'Platform',	
+    'Model':'Model',	
+    'SRAStudy': 'SRA Project Accession (SRP)',	
+    'BioProject':'BioProject',
+    'Study_Pubmed_id':'PubMed ID',
+    'Sample':'Sample',
+    'BioSample':'BioSample',
+    'SampleType':'Sample Type',
+    'TaxID':'Organism TaxID',
+    'ScientificName':'Organism',
+    'SampleName':'Sample Name',
+    'CenterName':'Center Name',	
+    'Submission':'Submission',
+    'MONTH':'Month',
+    'YEAR':'Year',
+    'AUTHOR':'Author',
+    'sample_source':'Sample Source',
+    'sample_title':'Sample Title',
+    'ENA_first_public':'ENA First Public',
+    'ENA_last_update':'ENA Last Update',
+    'INSDC_status': 'INSDC status',
+    'INSDC_center_alias':'INSDC Center Alias',	
+    'INSDC_center_name':'INSDC Center Name',
+    'INSDC_first_public':'INSDC First Public',
+    'INSDC_last_update':'INSDC Last Update',
+    'GEO_Accession'	:'GEO Accession',
+    'Experiment_Date':'Date of Experiment',
+    'date_sequenced':'Date of Sequencing',
+    'submission_date':'Submission Date',
+    'date':'Date',
+    'Experiment':'Experiment ID',
+    'CELL_LINE':'Cell-Line',
+    'TISSUE':'Tissue',
+    'INHIBITOR':'Inhibitor',
+    'TIMEPOINT':'Timepoint',
+    'FRACTION':'Cellular-Compartment',
+    'REPLICATE':'Replicate-Number',
+    'CONDITION':'Condition',
+    'LIBRARYTYPE':'Library-Type',
+    'STAGE':'Stage',
+    'GENE':'Gene',
+    'Sex':'Sex',
+    'Strain':'Strain',
+    'Age':'Age',
+    'Infected':'Infected',
+    'Disease':'Disease',
+    'Genotype'	:'Genotype',
+    'Feeding':'Feeding',
+    'Temperature':'Temperature',
+    'SiRNA':'SiRNA',
+    'SgRNA':'SgRNA',
+    'ShRNA':'ShRNA',
+    'Plasmid':'Plasmid',
+    'Growth_Condition':'Growth-Condition',
+    'Stress':'Stress',
+    'Cancer':'Cancer',
+    'microRNA':'MicroRNA',
+    'Individual':'Individual',
+    'Antibody':'Antibody Used',
+    'Ethnicity':'Ethnicity',
+    'Dose':'Dose',
+    'Stimulation':'Stimulation',
+    'Host':'Host Organism',
+    'UMI':'Unique Molecular Identifier (UMI)',
+    'Adapter':'Adapter Sequence',
+    'Separation':'Mode of Separation',
+    'rRNA_depletion':'Mode of rRNA depletion',
+    'Barcode':'Barcode Information',
+    'Monosome_purification':'Mode of Purification',
+    'Nuclease':'Nucelase Used',
+    'Kit':'Kit Used',
+    'Organism': 'Organism',
+    'PMID': 'PubMed',
+    'count':'count',
+    'verified':'verified',
+    'trips_id':'trips_id',
+    'gwips_id':'gwips_id',
+    'ribocrypt_id':'ribocrypt_id',
+    'readfile':'readfile',
+    }
+    return clean_names
+
+def get_original_name(name: str, clean_names: dict) -> str:
+    """
+    Get the original name of a parameter from the clean name.
+
+    Arguments:
+    - name (str): the clean name of the parameter
+    - clean_names (dict): the dictionary of clean names to original names
+
+    Returns:
+    - (str): the original name of the parameter
+    """
+    for original_name, clean_name in clean_names.items():
+        if clean_name == name:
+            return original_name
+
+    return name
+
+
+def column_selction(request: HttpRequest) -> render:
+    return False
+
+
+>>>>>>> fbeba098b1c62b0a3d09c769628f21749045f303
 
 def index(request: HttpRequest) -> render:
     """
@@ -81,7 +213,11 @@ def search_results(request: HttpRequest) -> render:
         # Q(gwips_id__icontains=query) |
         # Q(ribocrypt_id__icontains=query) |
         # Q(readfile__icontains=query) |
+<<<<<<< HEAD
         # Q(BioProject__icontains=query) |
+=======
+        Q(BioProject__icontains=query) |
+>>>>>>> fbeba098b1c62b0a3d09c769628f21749045f303
         Q(Run__icontains=query) |
         Q(spots__icontains=query) |
         Q(bases__icontains=query) |
