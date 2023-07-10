@@ -154,3 +154,13 @@ th, td {
 #field-name {
    font-weight: bold;
 }
+
+.button-item {
+   margin-left: auto;
+   margin-right: 10%;
+   list-style: none;
+ }
+ 
+ .button-item button {
+   margin-left: 10px; /* Optional margin between the buttons */
+ }
