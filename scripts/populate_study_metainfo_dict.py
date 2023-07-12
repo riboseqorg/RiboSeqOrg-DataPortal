@@ -146,12 +146,11 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
         "Paper_abstract" :"",
         "Email":"",
     }
-    print(df['BioProject'])
     # Accession is the unique value by which this dataframe has been subsetted. [0] is used to get the value from the series
     record['BioProject'] = df['BioProject'].unique()[0]
 
     # Name assigned to the study. It is a combination of the author and the year. But Author and year can be overwritten from pubmed
-    if df['AUTHOR'].unique()[0] == 'nan':
+    if df['AUTHOR'].unique()[0] in ['nan', '']:
         record['Name'] = f"Unknown Author {df['YEAR'].unique()[0]}"
     
     else:
@@ -161,7 +160,10 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
     record['Samples'] = df.shape[0]
 
     # Organism is a ; separated list of all organisms in this study
-    record['Organism'] = ';'.join(list(df['ScientificName'].astype(str).unique()))
+    record['Organism'] = '; '.join(list(df['ScientificName'].astype(str).unique()))
+    if len(record['Organism']) < 2:
+        print(df['ScientificName'])
+        print(record['Organism'])
 
     # SRA is a ; separated list of all SRA studies (SRPs) in this study
     record['SRA'] = ';'.join(list(df['SRAStudy'].unique()))
@@ -210,7 +212,7 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
 
     else:
         raise ValueError(f"Accession {record['BioProject']} not recognized")
-    
+
     if record['PMID'] != '':
         print('Found PMID. Running search...')
         d = get_metainformation(record['PMID'], 'pubmed')
@@ -218,6 +220,3 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
         record['Paper_abstract'] = get_pubmed_abstract(record['PMID'])
 
     return record
-    
-
-

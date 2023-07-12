@@ -1,7 +1,7 @@
 from django.http import HttpRequest
 from django.db.models import Q
 from .models import Sample, Study, OpenColumns, Trips, GWIPS
-
+import pandas as pd
 
 
 
@@ -124,7 +124,6 @@ def get_original_name(name: str, clean_names: dict) -> str:
     return name
 
 
-
 def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> Q:
     """
     Build a query based on the query parameters.
@@ -188,7 +187,6 @@ def handle_filter(
     return clean_results_dict
 
 
-
 def build_run_query(run_list: list) -> Q:
     '''
     For a given run list return a query to filter the Sample model.
@@ -204,6 +202,7 @@ def build_run_query(run_list: list) -> Q:
         query |= Q(Run=run)
 
     return query
+
 
 def build_bioproject_query(run_list: list) -> Q:
     '''
@@ -221,6 +220,7 @@ def build_bioproject_query(run_list: list) -> Q:
 
     return query
 
+
 def handle_trips_urls(query: Q) -> list:
     '''
     For a given query return the required information to link those sample in trips.
@@ -232,8 +232,6 @@ def handle_trips_urls(query: Q) -> list:
     - (list): the required information to link those samples in trips (list of dicts)
     '''
     trips = []
-    if query == Q():
-        return trips
     trips_entries = Trips.objects.filter(query)
 
     trips_df = pd.DataFrame(list(trips_entries.values()))
@@ -257,3 +255,115 @@ def handle_trips_urls(query: Q) -> list:
             trips.append(trips_dict)
 
     return trips
+
+
+def handle_gwips_urls(request: HttpRequest, query=None) -> list:
+    '''
+    For a given query return the required information to link those sample in GWIPS-viz.
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+ 
+
+    Returns:
+    - (list): the required information to link those samples in GWIPS-viz (list of dicts)
+    '''
+    gwips = []
+
+    requested = dict(request.GET.lists())
+    if str(query) != '<Q: (AND: )>' and query is not None:
+        samples = Sample.objects.filter(query)
+    elif 'run' in requested:
+        runs = requested['run']
+        samples = Sample.objects.filter(build_run_query(runs))
+    elif 'bioproject' in requested:
+        bioprojects = requested['bioproject']
+        samples = Sample.objects.filter(BioProject__in=bioprojects)
+
+    samples_df = pd.DataFrame(list(samples.values()))
+    organisms = samples_df['ScientificName'].unique()
+
+    if 'run' in requested:
+        for organism in organisms:
+            organism_df = samples_df[samples_df['ScientificName'] == organism]
+            gwips_dict = {
+                'clean_organism': organism.replace('_', ' ').capitalize(),
+                'bioprojects': '',
+                'files': '',
+                'gwipsDB': '',
+            }
+            for idx, row in organism_df.iterrows():
+                gwips_entry = GWIPS.objects.filter(BioProject=row['BioProject_id'])
+                if gwips_entry:
+                    gwips_df = pd.DataFrame(list(gwips_entry.values()))
+                    if row['BioProject_id'] not in gwips_dict['bioprojects']:
+                        gwips_dict['bioprojects'] += f"{row['BioProject_id']}, "
+                    gwips_dict['gwipsDB'] = gwips_df['gwips_db'].unique()[0]
+
+                    if any(map(row['INHIBITOR'].__contains__, ['ltm', 'LTM', 'Lac', 'LAC', 'harr', 'Harr', 'HARR'])):
+                        suffix = gwips_df['GWIPS_Init_Suffix'].unique()[0]
+                    else:
+                        suffix = gwips_df['GWIPS_Elong_Suffix'].unique()[0]
+
+                    if gwips_dict['files'] != '' and f"{suffix}=full" not in gwips_dict['files']:
+                        gwips_dict['files'].append(f"{suffix}=full")
+                    elif f"{suffix}=full" not in gwips_dict['files']:
+                        gwips_dict['files'] = [f"{suffix}=full"]
+            gwips_dict['files'] = '&'.join(gwips_dict['files'])
+            gwips.append(gwips_dict)
+
+    elif 'bioproject' in requested or str(query) != '<Q: (AND: )>':
+        for organism in organisms:
+            organism_df = samples_df[samples_df['ScientificName'] == organism]
+            organism_df = organism_df[organism_df['gwips_id'] == True]
+            if organism_df.empty:
+                continue
+            gwips_dict = None
+            for bioproject in organism_df['BioProject_id'].unique():
+                gwips_entry = GWIPS.objects.filter(BioProject=bioproject)
+                if gwips_entry:
+                    gwips_df = pd.DataFrame(list(gwips_entry.values()))
+                    if gwips_df['Organism'].unique()[0] != organism:
+                        continue
+                    if not gwips_dict:
+                        gwips_dict = {
+                            'bioproject': bioproject,
+                            'clean_organism': organism.replace('_', ' ').capitalize(),
+                            'gwipsDB': gwips_df['gwips_db'].unique()[0],
+                            'files': [],
+                        }
+                    for col in ['GWIPS_Elong_Suffix', 'GWIPS_Init_Suffix']:
+                        if gwips_df[col].unique()[0] != '':
+                            if f"{gwips_df[col].unique()[0]}=full" not in gwips_dict['files']:
+                                gwips_dict['files'].append(f"{gwips_df[col].unique()[0]}=full")
+
+            if gwips_dict:
+                gwips_dict['files'] = '&'.join(gwips_dict['files'])
+                gwips.append(gwips_dict)
+
+    return gwips
+
+
+def select_all_query(query_string):
+    '''
+    Generate a query string to select all the samples in the database that were shown in the table
+
+    Arguments:
+    - query_string (str): the query string
+
+    Returns:
+    - (str): the query string to select all the samples in the database that were shown in the table
+    '''
+    query_string = query_string.replace('+', ' ')
+    query_list = [i.split("=") for i in query_string.split('&')]
+
+    query = Q()  # Initialize an empty query
+    if len(query_list[0]) != 1:
+        query_list = [[i[0], i[1].replace('on', 'True')] if i[1] == 'on' else i for i in query_list]
+        query_mappings = {
+            i[0]: get_original_name(i[0], get_clean_names()) for i in query_list
+        }
+
+        for model_key, value in query_list:
+            query &= Q(**{query_mappings[model_key]: value})
+    return query

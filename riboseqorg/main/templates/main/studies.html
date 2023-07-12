@@ -33,8 +33,15 @@
               }
           });
       });
+      $(document).ready(function() {
+          var table = $('#studies-table').DataTable({
+              paging: false,
+              scrollY: '100vh',
+              scrollCollapse: true,
+          });
+      });
       function selectAll() {
-        var table = $('#example').DataTable();
+        var table = $('#studies-table').DataTable();
         var checkboxes = table.column(8).nodes().to$().find('input[type="checkbox"]');
         
         for (var i = 0; i < checkboxes.length; i++) {
@@ -138,10 +145,11 @@
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'links' %}" method="get">
-                                    <table id="example" class="table table-striped nowrap" style="width:90%; margin-left:auto; margin-right:auto">
+                                    <table id="studies-table" class="table table-striped nowrap" style="width:90%; margin-left:auto; margin-right:auto">
                                         <thead>
                                         <tr>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">BioProject</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
@@ -154,6 +162,7 @@
                                         {% for study in page_obj %}
                                             <tr>
                                             <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a></td>
+                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/bioproject/?term={{ study.BioProject }}">{{ study.BioProject }}</a></td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Organism }}</td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Samples }}</td>
                                             <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Date_published }}</td>
@@ -166,6 +175,7 @@
                                         <tfoot>
                                         <tr>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
+                                            <th style="background-color: rgba(255, 255, 255, 1);">BioProject</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
@@ -175,8 +185,26 @@
                                         </tr>
                                         </tfoot>
                                     </table>
-                                    <button type="button" class="btn btn-secondary" onclick="selectAll()">Select All</button>
-                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination">
+                                          {% if page_obj.has_previous %}
+                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
+                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                          {% endif %}
+                                          <span class="current">
+                                            <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
+                                          </span>
+                                          {% if page_obj.has_next %}
+                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>
+                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                                          {% endif %}
+                                          <li class="button-item">
+                                            <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
+                                            <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
+                                            <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                          </li>
+                                        </ul>
+                                      </nav>
                                 </form>
 
                             </div>
