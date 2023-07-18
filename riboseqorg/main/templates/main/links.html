@@ -50,7 +50,10 @@
                             </div>
                         </div>                        
                         <div class="tab-pane fade" id="GWIPS-viz" role="tabpanel" aria-labelledby="GWIPS-viz-tab">
+                            {% for genome in gwips %}
+                            <br>
                             <div class="row">
+                                <h4>{{ genome.clean_organism }}</h4>
                                 <div class="col-sm-3">
                                     <div class="card">
                                         <img src="{% static 'images/GWIPS.png' %}" 
@@ -60,13 +63,14 @@
                                             max-height:750px;
                                             max-width:750px;">
                                         <div class="card-body">
-                                            <h5 class="card-title">Visualise</h5>
-                                            <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
-                                            <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db=hg38&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position=chr9%3A136849012%2D136852353&hgsid=540402_MelveM7DTidtvPutRdcAVIAszwUd" class="btn btn-primary">Genomic View</a>
+                                          <h5 class="card-title">Visualise</h5>
+                                          <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
+                                          <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db={{ genome.gwipsDB }}&{{ genome.files }}" class="btn btn-primary">Genomic View</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
                         <div class="tab-pane fade" id="Trips-Viz" role="tabpanel" aria-labelledby="Trips-Viz-tab">
                             {% for transcriptome in trips %}
@@ -123,7 +127,7 @@
                                 </div>
                             </div>
                         </div>
-                      </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,6 +135,7 @@
     <section id="database">
         <div class="fw-body">
             <div class="content">
+                <h1>All Selected Entries</h1>
                 <table class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                     <thead>
                         <tr>
@@ -145,8 +150,8 @@
                     <tbody>
                         {% for sample in sample_results %}
                             <tr>
-                                <td><a href="/Study/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                <td><a href="/Study/{{ study.BioProject }}">{{ sample.BioProject }}</a></td>
+                                <td><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
+                                <td><a href="/Study/{{ sample.BioProject }}">{{ sample.BioProject }}</a></td>
                                 <td>{{ sample.ScientificName }}</td>
                                 <td>{{ sample.LIBRARYTYPE }}</td>
                                 <td>{{ sample.INHIBITOR }}</td>
@@ -154,6 +159,21 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        {% if sample_results.has_previous %}
+                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
+                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                        <span class="current">
+                          <li class="page-item"><a class="page-link active">Page {{ sample_page_obj.number }} of {{ sample_results.paginator.num_pages }}</a></li>
+                        </span>
+                        {% if sample_results.has_next %}
+                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.next_page_number }}">Next</a></li>
+                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.paginator.num_pages }}">Last &raquo;</a></li>
+                        {% endif %}
+                      </ul>
+                  </nav>
             </div>
         </div>
 

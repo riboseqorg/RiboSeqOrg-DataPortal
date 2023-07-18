@@ -225,7 +225,7 @@
                                         <thead>
                                             <tr>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                                <th style="background-color: rgba(255, 255q, 255, 1);">Study Accession</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
@@ -258,22 +258,23 @@
                                     </table>
                                     <nav aria-label="Page navigation example">
                                         <ul class="pagination">
-                                          {% if page_obj.has_previous %}
-                                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
-                                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
-                                          {% endif %}
-                                          <span class="current">
-                                            <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</a></li>
-                                          </span>
-                                          {% if page_obj.has_next %}
-                                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-                                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
-                                          {% endif %}
-                                          <li class="button-item">
-                                            <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
-                                            <button type="submit" class="btn btn-primary" id="submit">Submit</button>
-                                          </li>
-                                        </ul>
+                                            {% if page_obj.has_previous %}
+                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
+                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                            {% endif %}
+                                            <span class="current">
+                                              <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
+                                            </span>
+                                            {% if page_obj.has_next %}
+                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>
+                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                                            {% endif %}
+                                            <li class="button-item">
+                                              <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All - Current View</button>
+                                              <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
+                                              <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                            </li>
+                                          </ul>
                                       </nav>
                                 </form>
                             </div>
