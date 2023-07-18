@@ -7,7 +7,7 @@
     <!-- Include Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
     <div class="container">
-        <form method="GET" action="{% url 'search_results' %}" id="results-searchbar">
+        <form method="GET" action="{% url 'search' %}" id="results-searchbar">
             {{ search_form.as_p }}
             <button type="submit">Search</button>
         </form>
