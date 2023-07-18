@@ -37,7 +37,7 @@ def index(request: HttpRequest) -> render:
     return render(request, "main/home.html", context)
 
 
-def search_results(request: HttpRequest) -> render:
+def search(request: HttpRequest) -> render:
     """
     Render the search results page based on the query parameters.
 
@@ -49,6 +49,25 @@ def search_results(request: HttpRequest) -> render:
     """
     query = request.GET.get('query', '')
     search_form = SearchForm(request.GET or None)
+
+    if query == '':
+        study_results = Study.objects.all()
+        paginator = Paginator(study_results, 10)
+        page_number = request.GET.get('page')
+        study_page_obj = paginator.get_page(page_number)
+
+        sample_results = Sample.objects.all()
+        paginator = Paginator(sample_results, 10)
+        page_number = request.GET.get('page')
+        sample_page_obj = paginator.get_page(page_number)
+
+        context = {
+            'search_form': search_form,
+            'sample_results': sample_page_obj,
+            'study_results': study_page_obj,
+            'query': query,
+        }
+        return render(request, 'main/search.html', context)
 
     # Search across all fields in Study model
     study_results = Study.objects.filter(
@@ -177,7 +196,7 @@ def search_results(request: HttpRequest) -> render:
         'query': query,
     }
 
-    return render(request, 'main/search_results.html', context)
+    return render(request, 'main/search.html', context)
 
 
 def get_sample_filter_options(studies: list,

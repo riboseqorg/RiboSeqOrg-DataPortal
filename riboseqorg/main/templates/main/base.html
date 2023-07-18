@@ -57,8 +57,7 @@
                     <a class="nav-link" href="https://forms.gle/K1HPrcWkgZAvo33M9">Feedback</a>
                   </li>
                 </ul>
-                <form action="{% url 'search_results' %}" method="GET" class="d-flex my-3" id="searchbar">
-                  {{ search_form.query }}
+                <form action="{% url 'search' %}" method="GET" class="d-flex my-3" id="searchbar">
                   <button type="submit" class="btn btn-primary ms-2">Search</button>
                 </form>
               </div>
