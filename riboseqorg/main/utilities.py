@@ -356,7 +356,7 @@ def select_all_query(query_string):
     '''
     query_string = query_string.replace('+', ' ')
     query_list = [i.split("=") for i in query_string.split('&')]
-
+    print(query_list)
     query = Q()  # Initialize an empty query
     if len(query_list[0]) != 1:
         query_list = [[i[0], i[1].replace('on', 'True')] if i[1] == 'on' else i for i in query_list]
@@ -365,5 +365,7 @@ def select_all_query(query_string):
         }
 
         for model_key, value in query_list:
+            if model_key in ['query']:
+                continue
             query &= Q(**{query_mappings[model_key]: value})
     return query
