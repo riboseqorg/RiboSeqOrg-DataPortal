@@ -187,14 +187,20 @@ def search(request: HttpRequest) -> render:
         Q(Kit__icontains=query) |
         Q(Info__icontains=query)
     )
+    paginator = Paginator(study_results, 10)
+    page_number = request.GET.get('study_page')
+    study_page_obj = paginator.get_page(page_number)
 
+    paginator = Paginator(sample_results, 10)
+    page_number = request.GET.get('sample_page')
+    sample_page_obj = paginator.get_page(page_number)
 
     context = {
-        'search_form': search_form,
-        'sample_results': list(sample_results),
-        'study_results': list(study_results),
-        'query': query,
-    }
+            'search_form': search_form,
+            'sample_results': sample_page_obj,
+            'study_results': study_page_obj,
+            'query': query,
+        }
 
     return render(request, 'main/search.html', context)
 
