@@ -590,19 +590,19 @@ def links(request: HttpRequest) -> render:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-    if 'query' in selected:
+
+    if 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
+    elif 'query' in selected:
+        print(selected['query'][0])
         sample_query = select_all_query(selected['query'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
         if not str(sample_query) == "(AND: )":
             sample_query = build_run_query(runs)
-
-    elif 'run' in selected:
-        sample_query = build_run_query(selected['run'])
-
-    elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
-
     else:
         sample_page_obj = None
         sample_query = None
