@@ -22,8 +22,9 @@
         type="text/css">
     <script>
       $(document).ready(function() {
-          var table = $('#example').DataTable({
+          var table = $('#sample-table').DataTable({
               paging: false,
+              searching: false,
             //   dom: 'Plfrtip',
               scrollY: '100vh',
                 // scrollX: true,
@@ -35,7 +36,7 @@
       });
 
       function selectAll() {
-        var table = $('#example').DataTable();
+        var table = $('#sample-table').DataTable();
         var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
         
         for (var i = 0; i < checkboxes.length; i++) {
@@ -120,7 +121,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="collapse show" id="side-panel-collapse">
-                    <div class="col-md-3 d-md-block order-1">
+                    <div class="col-md-3 d-md-block order-1" style="width: 250px; float: left;">
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-3">
@@ -221,7 +222,7 @@
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'links' %}" method="get" name="sample_select">
-                                    <table id="example" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                                    <table id="sample-table" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
                                             <tr>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
