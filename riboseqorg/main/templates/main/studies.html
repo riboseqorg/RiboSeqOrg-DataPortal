@@ -23,9 +23,11 @@
         type="text/css">
     <script>
       $(document).ready(function() {
-          var table = $('#example').DataTable({
+          var table = $('#studies-table').DataTable({
               dom: 'Plfrtip',
               scrollY: '100vh',
+              searching: false,
+              paging: false,
                 // scrollX: true,
               scrollCollapse: true,
               fixedColumns: {
@@ -86,7 +88,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="collapse show" id="side-panel-collapse">
-                    <div class="col-md-3 d-md-block order-1">
+                    <div class="col-md-3 d-md-block order-1" style="width: 250px; float: left;">
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-3">

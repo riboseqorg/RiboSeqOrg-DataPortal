@@ -141,14 +141,14 @@ th, td {
   float: left;
 }
 
-.col-md-3 {
+/* .col-md-3 {
    width: 250px;
    float: left;
 }
  .col-md-9 {
    width: calc(100% - 250px);
    float: right;
- }
+ } */
 
 
 #field-name {
