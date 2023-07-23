@@ -117,13 +117,16 @@
             <button type="submit" style="display: inline;">Search</button>
         </form>
     </div>
+    <br>
+
     <section id="search_results" style="padding-left: 2%;">
+        <h1>Search Results</h1>
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="studies-tab" data-bs-toggle="tab" data-bs-target="#studies-tab-target" type="button" role="tab" aria-controls="studies-tab-target" aria-selected="false">Studies</button>
+                <button class="nav-link active btn-bigger" id="studies-tab" data-bs-toggle="tab" data-bs-target="#studies-tab-target" type="button" role="tab" aria-controls="studies-tab-target" aria-selected="false">Studies</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="samples-tab" data-bs-toggle="tab" data-bs-target="#samples-tab-target" type="button" role="tab" aria-controls="samples-tab-target" aria-selected="true">Samples</button>
+                <button class="nav-link btn-bigger" id="samples-tab" data-bs-toggle="tab" data-bs-target="#samples-tab-target" type="button" role="tab" aria-controls="samples-tab-target" aria-selected="true">Samples</button>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
@@ -131,7 +134,6 @@
                 <div class="col-md-9 order-2">
                     <div class="fw-container" id="study-container">
                         <div class="fw-header">
-                            <h1>Study Results</h1>
                             <div class="nav-wrapper">
                                 <div class="nav-search">
                                     <div class="nav-item i-user">
@@ -145,7 +147,7 @@
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'links' %}" method="get">
-                                    <table id="studies-table" class="table table-striped nowrap" style="width:90%; margin-left:auto; margin-right:auto; overflow-x: auto">
+                                    <table id="studies-table" class="table table-striped" style="width:90%; margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
                                         <tr>
                                             <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
@@ -203,7 +205,6 @@
                                         </ul>
                                     </nav>
                                 </form>
-
                             </div>
                         </div>
                     </div>
@@ -213,7 +214,6 @@
                 <div class="col-md-9 order-2">
                     <div class="fw-container" id="sample-container">
                         <div class="fw-header">
-                            <h1>Sample Results</h1>
                             <div class="nav-wrapper">
                                 <div class="nav-search">
                                     <div class="nav-item i-user">
@@ -228,7 +228,7 @@
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'links' %}" method="get" name="sample_select">
-                                    <table id="samples-table" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                                    <table id="samples-table" class="table table-striped" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: clip">
                                         <thead>
                                             <tr>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
