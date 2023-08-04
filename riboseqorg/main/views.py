@@ -2,12 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpRequest
 
-from django.db.models import Count
-
-
-from django.db.models import Q
+from django.db.models import Q, Count
 from .models import Sample, Study, OpenColumns, Trips, GWIPS
-
 
 import pandas as pd
 from .forms import SearchForm
@@ -15,9 +11,37 @@ from .forms import SearchForm
 from django_filters.views import FilterView
 from .filters import StudyFilter, SampleFilter
 
-from django.db.models import Count
-
 from .utilities import *
+
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializers import SampleSerializer
+
+
+class SampleListView(generics.ListCreateAPIView):
+    queryset = Sample.objects.all()
+    serializer_class = SampleSerializer
+    filterset_fields = ['Run']  # This allows filtering by the 'name' field
+
+
+class SampleFileDownloadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]  # Optional: Set the required permissions
+
+    def get(self, request, pk):
+        try:
+            instance = Sample.objects.get(pk=pk)
+        except Sample.DoesNotExist:
+            return Response(status=404)
+
+        # Perform any additional checks or validations before allowing the download
+
+        file_path = instance.file.path  # Assuming 'file' is a FileField in YourModel
+        with open(file_path, 'rb') as file:
+            response = Response(file.read())
+            response['Content-Disposition'] = f'attachment; filename="{instance.file.name}"'
+            return response
+
 
 def index(request: HttpRequest) -> render:
     """

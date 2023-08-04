@@ -164,3 +164,7 @@ th, td {
  .button-item button {
    margin-left: 10px; /* Optional margin between the buttons */
  }
+
+.btn-bigger {
+   font-size: 100%; /* You can adjust this value to make the text bigger or smaller */
+}
