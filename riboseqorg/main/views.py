@@ -18,6 +18,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import SampleSerializer
 
+import csv
+from django.http import HttpResponse
+
 
 class SampleListView(generics.ListCreateAPIView):
     queryset = Sample.objects.all()
@@ -661,3 +664,39 @@ def links(request: HttpRequest) -> render:
         'gwips': gwips,
         })
 
+
+
+def generate_samples_csv(request) -> HttpResponse:
+    '''
+    Generate and return a csv file containing the metadata for the samples in the database based on the request
+    '''
+    selected = dict(request.GET.lists())
+
+    if 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
+    elif 'query' in selected:
+        sample_query = select_all_query(selected['query'][0])
+        sample_entries = Sample.objects.filter(sample_query)
+        runs = sample_entries.values_list('Run', flat=True)
+        if not str(sample_query) == "(AND: )":
+            sample_query = build_run_query(runs)
+    else:
+        sample_page_obj = None
+        sample_query = None
+    print(sample_query, selected)
+    queryset = Sample.objects.filter(sample_query)
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="data.csv"'
+
+    fields = [field.name for field in Sample._meta.get_fields()]
+    
+    writer = csv.writer(response)
+    writer.writerow(fields)  # Write header row
+
+    for item in queryset:
+        writer.writerow([getattr(item, field) for field in fields])  # Write data rows
+
+    return response

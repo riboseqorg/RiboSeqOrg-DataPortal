@@ -13,5 +13,7 @@ urlpatterns = [
     path('Sample/<str:query>/', views.sample_detail, name='sample'),
     path('search/', views.search, name='search'),
     path('links/', views.links, name='links'),
+    path("generate-csv/", views.generate_samples_csv, name="generate_samples_csv"),
+
 
 ]

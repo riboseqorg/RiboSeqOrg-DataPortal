@@ -273,7 +273,16 @@
                                             <li class="button-item">
                                               <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All - Current View</button>
                                               <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
-                                              <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                              <div class="btn-group">
+                                                <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li><a class="dropdown-item" href="{% url 'generate_samples_csv' %}">Download as CSV</a></li>
+                                                    <li><a class="dropdown-item" href="#">Download as JSON</a></li>
+                                                </ul>
+                                            </div>
                                             </li>
                                           </ul>
                                       </nav>
