@@ -2,7 +2,7 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='home'),
+    path('', views.recode, name='recode'),
     path('home', views.index, name='home'),
     path('samples', views.samples, name='samples'),
     path('studies', views.studies, name='studies'),
@@ -13,5 +13,7 @@ urlpatterns = [
     path('Sample/<str:query>/', views.sample_detail, name='sample'),
     path('search/', views.search, name='search'),
     path('links/', views.links, name='links'),
+    path("generate-csv/", views.generate_samples_csv, name="generate_samples_csv"),
+
 
 ]
