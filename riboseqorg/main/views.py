@@ -19,7 +19,10 @@ from rest_framework.views import APIView
 from .serializers import SampleSerializer
 
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
+from django.http import FileResponse
+from django.conf import settings
+import os
 
 
 class SampleListView(generics.ListCreateAPIView):
@@ -62,6 +65,16 @@ def recode(request: HttpRequest) -> render:
         'search_form': search_form,
     }
     return render(request, "main/recode.html", context)
+
+
+def download_recode_db(request):
+    file_path = os.path.join(settings.BASE_DIR, 'downloads', 'recode.zip')
+    if os.path.exists(file_path):
+        response = FileResponse(open(file_path, 'rb'), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="recode.zip"'
+        return response
+    else:
+        return HttpResponseNotFound("File not found")
 
 
 def index(request: HttpRequest) -> render:
