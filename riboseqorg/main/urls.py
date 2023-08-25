@@ -14,6 +14,7 @@ urlpatterns = [
     path('search/', views.search, name='search'),
     path('links/', views.links, name='links'),
     path("generate-csv/", views.generate_samples_csv, name="generate_samples_csv"),
+    path('download/recode-db/', views.download_recode_db, name='download_recode_db'),
 
 
 ]
