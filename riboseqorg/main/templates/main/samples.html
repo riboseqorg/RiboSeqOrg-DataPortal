@@ -222,6 +222,7 @@
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'links' %}" method="get" name="sample_select">
+                                    {% csrf_token %}
                                     <table id="sample-table" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
                                             <tr>
