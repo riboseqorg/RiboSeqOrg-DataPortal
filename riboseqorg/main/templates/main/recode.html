@@ -1,0 +1,21 @@
+{% extends 'main/base.html' %}
+{% block title %}RiboSeq.Org{% endblock %}
+{% load static %}
+{% block content %}
+    <!-- RiboSeq.org -->
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
+
+    <!-- Include Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
+    <div class="container mt-5">
+        <div class="alert alert-warning">
+            <h4 class="alert-heading">Important Notice</h4>
+            <p>The recode.ucc.ie website is no longer hosted here. We apologize for any inconvenience this may cause.</p>
+            <hr>
+            <p class="mb-0">For historical purposes, you can download the old recode database by clicking the button below.</p>
+        </div>
+        <a href="path_to_old_database.zip" class="btn btn-primary">Download Old Recode Database</a>
+    </div>
+    </div>
+{% endblock %}

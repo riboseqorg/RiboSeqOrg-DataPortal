@@ -46,6 +46,24 @@ class SampleFileDownloadView(APIView):
             return response
 
 
+def recode(request: HttpRequest) -> render:
+    """
+    Render the page that describes the fate of recode.ucc.ie
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """
+    search_form = SearchForm()
+
+    context = {
+        'search_form': search_form,
+    }
+    return render(request, "main/recode.html", context)
+
+
 def index(request: HttpRequest) -> render:
     """
     Render the homepage.
