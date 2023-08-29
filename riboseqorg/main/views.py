@@ -696,7 +696,6 @@ def links(request: HttpRequest) -> render:
         })
 
 
-
 def generate_samples_csv(request) -> HttpResponse:
     '''
     Generate and return a csv file containing the metadata for the samples in the database based on the request
@@ -716,18 +715,20 @@ def generate_samples_csv(request) -> HttpResponse:
     else:
         sample_page_obj = None
         sample_query = None
-    print(sample_query, selected)
-    queryset = Sample.objects.filter(sample_query)
+    if sample_query is not None:
+        queryset = Sample.objects.filter(sample_query)
 
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="data.csv"'
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="data.csv"'
 
-    fields = [field.name for field in Sample._meta.get_fields()]
-    
-    writer = csv.writer(response)
-    writer.writerow(fields)  # Write header row
+        fields = [field.name for field in Sample._meta.get_fields()]
+        
+        writer = csv.writer(response)
+        writer.writerow(fields)  # Write header row
 
-    for item in queryset:
-        writer.writerow([getattr(item, field) for field in fields])  # Write data rows
+        for item in queryset:
+            writer.writerow([getattr(item, field) for field in fields])  # Write data rows
 
-    return response
+        return response
+    else:
+        return HttpResponseNotFound("No Samples Selected")
