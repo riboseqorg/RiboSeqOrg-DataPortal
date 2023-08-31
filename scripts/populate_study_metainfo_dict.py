@@ -149,13 +149,6 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
     # Accession is the unique value by which this dataframe has been subsetted. [0] is used to get the value from the series
     record['BioProject'] = df['BioProject'].unique()[0]
 
-    # Name assigned to the study. It is a combination of the author and the year. But Author and year can be overwritten from pubmed
-    if df['AUTHOR'].unique()[0] in ['nan', '']:
-        record['Name'] = f"Unknown Author {df['YEAR'].unique()[0]}"
-    
-    else:
-        record['Name'] = f"{df['AUTHOR'].unique()[0]} et al. {df['YEAR'].unique()[0]}" 
-
     # Samples is the number of samples that share this study accession i.e the number of rows in this df
     record['Samples'] = df.shape[0]
 
@@ -192,7 +185,7 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
                 record['PMID'] += f";{i.split('.')[0]}"
 
     # Authors is a ; separated list of all authors in this study this will be overwritten from pubmed if possible
-    if list(df['AUTHOR'].unique()) != ['nan']:
+    if list(df['AUTHOR'].unique()) != ['nan'] or list(df['AUTHOR'].unique()) != ['Makar']:
         if len(list(df['AUTHOR'].unique())) == 1:
             record['Authors'] = list(df['AUTHOR'].unique())[0]
         else:
@@ -200,6 +193,11 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
     else:
         record['Authors'] = 'Unknown Author'
 
+    # Name assigned to the study. It is a combination of the author and the year. But Author and year can be overwritten from pubmed
+    if df['AUTHOR'].unique()[0] in ['nan', '']:
+        record['Name'] = f"Unknown Author {df['YEAR'].unique()[0]}"
+    else:
+        record['Name'] = f"{df['AUTHOR'].unique()[0]} et al. {df['YEAR'].unique()[0]}" 
 
     if record['BioProject'].startswith('PRJ'):
         print(f'Accession {record["BioProject"]} is from BioProject. Running search...')
