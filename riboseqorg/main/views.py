@@ -594,7 +594,7 @@ def sample_detail(request: HttpRequest, query: str) -> render:
         'rRNA_depletion',
         'Barcode',
         'Monosome_purification',
-        'Nuclease'
+        'Nuclease',
         'Kit',
         ]
 
