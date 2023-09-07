@@ -3,8 +3,20 @@ Python script to convert data from a csv file to a fixture file for a django app
 This script assumes that the csv file has a header row and that every other row is to be made into a fixture
 Each column in the csv file will be a field in the fixture file and the column name will be the field name
 
+This script creates all fixtures, samples, studies, and open columns and writes them to a fixture file
+
 Usage:
     python csv_to_sample_fixture.py -i <csv_file> --db <sqlite database> -o <fixture_file>
+
+Example:
+python scripts/generate_fixtures.py 
+    -i /home/jack/projects/RiboSeqOrg-DataPortal/data/Cleaned_Metadata_For_Upload.csv   -- Product of scripts/obtain_live_metadata_set.ipynb
+    --db riboseqorg/db.sqlite3                                                          -- Sqlite database for Data Protal
+    -o data/riboseqorg_metadata.json                                                    -- Output fixture file                      
+    -t data/Sample_Matching-Trips-Viz.csv -g data/Sample_Matching-GWIPS-Viz.csv         -- Trips and GWIPS csv files containing sample information for trips and GWIPS (generated with file_matching.ipynb)
+    -f data/collapsed_accessions.tsv                                                    -- File containing list of Run accessions that have been collapsed and are available
+    -v data/verified.csv                                                                -- CSV file containing manually checked samples (BioProject and Run columns important)
+    -c data/RiboSeqOrg_Vocabularies-Main_Name_Cleaning.csv                              -- Csv showing metadata content clean names (eg RFP to Ribo-Seq)
 
 """
 from populate_study_metainfo_dict import get_metainformation_dict

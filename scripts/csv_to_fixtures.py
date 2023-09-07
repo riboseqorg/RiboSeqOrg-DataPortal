@@ -1,6 +1,7 @@
 '''
 THis script is used to convert csv files to fixtures
 It is used to populate the Trips and GWIPS models in the database
+These need to be updated in line updates to these resources
 
 CSV columns must match the model fields
 
@@ -60,4 +61,5 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--model", help="model to convert to fixture (trips or gwips)")
     parser.add_argument("-o", "--output", help="output file name")
     args = parser.parse_args()
+
     main(args)
