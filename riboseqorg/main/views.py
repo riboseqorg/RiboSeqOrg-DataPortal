@@ -637,6 +637,24 @@ class SampleListView(FilterView):
     filterset_class = SampleFilter
 
 
+def sample_select_form(request: HttpRequest) -> render:
+    """
+    handle the samples selection form and either call links or download metadata
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """
+    selected = dict(request.GET.lists())
+
+    if links in selected:
+        return links(request)
+    elif 'metadata' in selected:
+        return generate_samples_csv(request)
+
+
 def links(request: HttpRequest) -> render:
     """
     Render the links page.
@@ -648,7 +666,6 @@ def links(request: HttpRequest) -> render:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-
     if 'run' in selected:
         sample_query = build_run_query(selected['run'])
 

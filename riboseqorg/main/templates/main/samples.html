@@ -105,6 +105,8 @@
             }
         }
         document.getElementById('submit').disabled = !atleastOneChecked;
+        document.getElementById('metadata').disabled = !atleastOneChecked;
+
     }
 
     window.onload = checkform;
@@ -221,7 +223,7 @@
                         </div>
                         <div class="fw-body">
                             <div class="content">
-                                <form action="{% url 'links' %}" method="get" name="sample_select">
+                                <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
                                     {% csrf_token %}
                                     <table id="sample-table" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
@@ -274,16 +276,8 @@
                                             <li class="button-item">
                                               <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All - Current View</button>
                                               <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
-                                              <div class="btn-group">
-                                                <button type="submit" class="btn btn-primary" id="submit">Submit</button>
-                                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <span class="visually-hidden">Toggle Dropdown</span>
-                                                </button>
-                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                    <li><a class="dropdown-item" href="{% url 'generate_samples_csv' %}">Download as CSV</a></li>
-                                                    <li><a class="dropdown-item" href="#">Download as JSON</a></li>
-                                                </ul>
-                                            </div>
+                                              <button type="submit" class="btn btn-primary" id="submit" name="links">Links</button>
+                                              <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
                                             </li>
                                           </ul>
                                       </nav>
