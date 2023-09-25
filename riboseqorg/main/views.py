@@ -653,6 +653,8 @@ def sample_select_form(request: HttpRequest) -> render:
         return links(request)
     elif 'metadata' in selected:
         return generate_samples_csv(request)
+    else:
+        return links(request)
 
 
 def links(request: HttpRequest) -> render:
@@ -736,7 +738,7 @@ def generate_samples_csv(request) -> HttpResponse:
         queryset = Sample.objects.filter(sample_query)
 
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="data.csv"'
+        response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
 
         fields = [field.name for field in Sample._meta.get_fields()]
         
