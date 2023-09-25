@@ -657,6 +657,7 @@ def sample_select_form(request: HttpRequest) -> render:
         return links(request)
 
 
+
 def links(request: HttpRequest) -> render:
     """
     Render the links page.
