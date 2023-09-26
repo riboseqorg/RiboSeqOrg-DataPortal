@@ -24,6 +24,7 @@ from django.http import FileResponse
 from django.conf import settings
 import os
 
+import zipfile
 
 class SampleListView(generics.ListCreateAPIView):
     queryset = Sample.objects.all()
@@ -750,3 +751,21 @@ def generate_samples_csv(request) -> HttpResponse:
         return response
     else:
         return HttpResponseNotFound("No Samples Selected")
+
+
+def download_all(request) -> HttpRequest:
+    '''
+    Download all corresponding files for the accessions in the request
+    '''
+    selected = dict(request.GET.lists())
+
+    with zipfile.ZipFile('RiboSeqOrg_DataFiles.zip', 'w') as zip_file:
+        for accession in selected['run']:
+            sample = Sample.objects.get(Run=accession)
+            file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_clipped_collapsed.fastq.gz"
+
+            zip_file.write(file_path)
+        zip_file.close()
+
+    response = HttpResponse(content_type="application/zip")
+    response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'

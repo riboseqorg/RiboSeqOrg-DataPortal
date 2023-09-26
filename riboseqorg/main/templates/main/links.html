@@ -41,9 +41,9 @@
                                                 max-height:60%;
                                                 max-width:60%;">
                                         <div class="card-body">
-                                            <h5 class="card-title">Download</h5>
-                                            <p class="card-text">Download collapsed read files for selected samples</p>
-                                            <a href="{{ MEDIA_URL }}collapsed_fastq/PRJNA193543/SRR1032182_clipped_collapsed.fastq.gz" class="btn btn-primary" download>Download</a>
+                                            <h5 class="card-title">Download All</h5>
+                                            <p class="card-text">Download available collapsed read files for all samples across all panels shown below</p>
+                                            <a href="{% url 'download_selected' %}" class="btn btn-primary" download>Download</a>
                                         </div>
                                     </div>
                                 </div>
@@ -159,9 +159,8 @@
                                     <td><a href="/Study/{{ sample.BioProject }}">{{ sample.BioProject }}</a></td>
                                     <td>{{ sample.ScientificName }}</td>
                                     <td>{{ sample.LIBRARYTYPE }}</td>
-                                    <td><a href="{{ MEDIA_URL }}collapsed_fastq/PRJNA193543/SRR1032182_clipped_collapsed.fastq.gz">FASTA</a></td>
+                                    <td><a href="{{ MEDIA_URL }}collapsed_fastq/{{ sample.BioProject}}/{{ sample.Run }}_clipped_collapsed.fastq.gz">FASTA</a></td>
                                     <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
-
                                 </tr>
                             {% endfor %}
                         </tbody>
