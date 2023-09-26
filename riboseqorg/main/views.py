@@ -25,6 +25,9 @@ from django.conf import settings
 import os
 
 import zipfile
+import tempfile
+import shutil
+import time
 
 class SampleListView(generics.ListCreateAPIView):
     queryset = Sample.objects.all()
@@ -753,19 +756,43 @@ def generate_samples_csv(request) -> HttpResponse:
         return HttpResponseNotFound("No Samples Selected")
 
 
+
+
 def download_all(request) -> HttpRequest:
     '''
     Download all corresponding files for the accessions in the request
     '''
     selected = dict(request.GET.lists())
 
-    with zipfile.ZipFile('RiboSeqOrg_DataFiles.zip', 'w') as zip_file:
-        for accession in selected['run']:
-            sample = Sample.objects.get(Run=accession)
-            file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_clipped_collapsed.fastq.gz"
+    # Create a temporary directory
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        zip_file_path = os.path.join(tmp_dir, 'RiboSeqOrg_DataFiles.zip')
 
-            zip_file.write(file_path)
-        zip_file.close()
+        with zipfile.ZipFile(zip_file_path, 'w') as zip_file:
+            for accession in selected['run']:
+                sample = Sample.objects.get(Run=accession)
+                file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_clipped_collapsed.fastq.gz"
 
-    response = HttpResponse(content_type="application/zip")
-    response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'
+                if os.path.exists(file_path):
+                    zip_file.write(file_path)
+                else:
+                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_1_clipped_collapsed.fastq.gz"
+                    if os.path.exists(file_path):
+                        zip_file.write(file_path)
+
+                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_2_clipped_collapsed.fastq.gz"
+                    if os.path.exists(file_path):
+                        zip_file.write(file_path)
+
+                        
+        response = HttpResponse(content_type="application/zip")
+        response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'
+
+        with open(zip_file_path, 'rb') as zip_file:
+            response.write(zip_file.read())
+
+    # 10 minute wait before deltion
+    time.sleep(600)
+    shutil.rmtree(tmp_dir)
+
+    return response
