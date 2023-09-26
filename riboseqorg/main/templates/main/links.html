@@ -131,49 +131,56 @@
                 </div>
             </div>
         </div>
-    </section>
-    <section id="database">
         <div class="fw-body">
-            <div class="content">
-                <h1>All Selected Entries</h1>
-                <table class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
-                    <thead>
-                        <tr>
-                            <th>Run Accession</th>
-                            <th>Study Accession</th>
-                            <th>Organism</th>
-                            <th>Library Type</th>
-                            <th>Inhibitor</th>
+            <div class="content" style="padding-top: 2%;">
+                <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
+                    {% csrf_token %}
+                    <div style="float: right;">
+                        <button type="submit" class="btn btn-primary" id="submit" name="links">Submit</button>
+                    </div>
+                    <h1>Selected Entries</h1>
 
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for sample in sample_results %}
+                    <!-- <button type="submit" class="btn btn-primary" id="submit" name="links">Submit</button> -->
+                    <table class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                        <thead>
                             <tr>
-                                <td><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                <td><a href="/Study/{{ sample.BioProject }}">{{ sample.BioProject }}</a></td>
-                                <td>{{ sample.ScientificName }}</td>
-                                <td>{{ sample.LIBRARYTYPE }}</td>
-                                <td>{{ sample.INHIBITOR }}</td>
+                                <th>Run Accession</th>
+                                <th>Study Accession</th>
+                                <th>Organism</th>
+                                <th>Library Type</th>
+                                <th>Download</th>
+                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination">
-                        {% if sample_results.has_previous %}
-                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
-                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.previous_page_number }}">Previous</a></li>
-                        {% endif %}
-                        <span class="current">
-                          <li class="page-item"><a class="page-link active">Page {{ sample_page_obj.number }} of {{ sample_results.paginator.num_pages }}</a></li>
-                        </span>
-                        {% if sample_results.has_next %}
-                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.next_page_number }}">Next</a></li>
-                          <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.paginator.num_pages }}">Last &raquo;</a></li>
-                        {% endif %}
-                      </ul>
-                  </nav>
+                        </thead>
+                        <tbody>
+                            {% for sample in sample_results %}
+                                <tr>
+                                    <td><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
+                                    <td><a href="/Study/{{ sample.BioProject }}">{{ sample.BioProject }}</a></td>
+                                    <td>{{ sample.ScientificName }}</td>
+                                    <td>{{ sample.LIBRARYTYPE }}</td>
+                                    <td><a href="{{ MEDIA_URL }}collapsed_fastq/PRJNA193543/SRR1032182_clipped_collapsed.fastq.gz">FASTA</a></td>
+                                    <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            {% if sample_results.has_previous %}
+                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.previous_page_number }}">Previous</a></li>
+                            {% endif %}
+                            <span class="current">
+                            <li class="page-item"><a class="page-link active">Page {{ sample_page_obj.number }} of {{ sample_results.paginator.num_pages }}</a></li>
+                            </span>
+                            {% if sample_results.has_next %}
+                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.next_page_number }}">Next</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.paginator.num_pages }}">Last &raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
             </div>
         </div>
 

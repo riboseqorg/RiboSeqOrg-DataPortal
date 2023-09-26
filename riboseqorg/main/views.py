@@ -649,13 +649,12 @@ def sample_select_form(request: HttpRequest) -> render:
     """
     selected = dict(request.GET.lists())
 
-    if links in selected:
+    if "links" in selected:
         return links(request)
     elif 'metadata' in selected:
         return generate_samples_csv(request)
     else:
         return links(request)
-
 
 
 def links(request: HttpRequest) -> render:
@@ -675,7 +674,6 @@ def links(request: HttpRequest) -> render:
     elif 'bioproject' in selected:
         sample_query = build_bioproject_query(selected['bioproject'])
     elif 'query' in selected:
-        print(selected['query'][0])
         sample_query = select_all_query(selected['query'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
