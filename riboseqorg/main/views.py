@@ -690,10 +690,10 @@ def generate_link(project, run, type="reads"):
     }
     project = str(project)
     run = str(run)
-    if os.path.exists(os.path.join(server_base, project, path_directories[type], run + path_suffixes[type])):
-        return str(os.path.join(project, path_directories[type], run + path_suffixes[type]))
-    elif os.path.exists(os.path.join(server_base, project, path_directories[type], run + "_1" + path_suffixes[type])):
-        return str(os.path.join(project, path_directories[type], run + "_1" + path_suffixes[type]))
+    if os.path.exists(os.path.join(server_base, path_directories[type], project, run + path_suffixes[type])):
+        return str(os.path.join(path_directories[type], project, run + path_suffixes[type]))
+    elif os.path.exists(os.path.join(server_base, path_directories[type], project, run + "_1" + path_suffixes[type])):
+        return str(os.path.join(path_directories[type], project, run + "_1" + path_suffixes[type]))
     else:
         return None
 
