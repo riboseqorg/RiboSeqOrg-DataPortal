@@ -3,6 +3,9 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest
 
 from django.db.models import Q, Count
+from django.db.models import Case, When, Value, CharField
+from django.db.models import F, Value
+
 from .models import Sample, Study, OpenColumns, Trips, GWIPS
 
 import pandas as pd
@@ -661,6 +664,52 @@ def sample_select_form(request: HttpRequest) -> render:
         return links(request)
 
 
+def generate_link(project, run, type="reads"):
+    """
+    Generate Link for a specific run of a given type (default is reads)
+    Ensure path is valid before returning link
+
+    Arguments:
+    - project (str): the project accession number
+    - run (str): the run accession number
+    - type (str): the type of link to generate (default is reads)
+
+    Returns:
+    - (str): the link to the file
+    OR
+    - (None): if the link is not valid
+    """
+    server_base = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"
+    path_suffixes = {
+        "reads": "_clipped_collapsed.fastq.gz",
+        "counts": "_counts.txt",
+    }
+    path_directories = {
+        "reads": "collapsed_fastq",
+        "counts": "counts",
+    }
+    project = str(project)
+    run = str(run)
+    if os.path.exists(os.path.join(server_base, project, path_directories[type], run + path_suffixes[type])):
+        return str(os.path.join(project, path_directories[type], run + path_suffixes[type]))
+    elif os.path.exists(os.path.join(server_base, project, path_directories[type], run + "_1" + path_suffixes[type])):
+        return str(os.path.join(project, path_directories[type], run + "_1" + path_suffixes[type]))
+    else:
+        return None
+
+def check_path_exists(path, server_base="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"):
+    """
+    Check if a given path exists
+
+    Arguments:
+    - path (str): the path to check
+
+    Returns:
+    - (bool): True if the path exists, False otherwise
+    """
+    return os.path.exists(server_base + "/" + path)
+
+
 def links(request: HttpRequest) -> render:
     """
     Render the links page.
@@ -707,6 +756,18 @@ def links(request: HttpRequest) -> render:
             }
         ]
     sample_entries = Sample.objects.filter(sample_query)
+
+    for entry in sample_entries:
+        link = generate_link(entry.BioProject, entry.Run)
+        if type(link) == str:
+            entry.link = f"/file-download/{link}" 
+            entry.link_type = "FASTA"
+        else:
+            entry.link = ""
+
+    #sort by link presence
+    sample_entries = sorted(sample_entries, key=lambda x: x.link == "", reverse=True)
+
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     sample_page_obj = paginator.get_page(page_number)
@@ -784,7 +845,7 @@ def download_all(request) -> HttpRequest:
                     if os.path.exists(file_path):
                         zip_file.write(file_path)
 
-                        
+
         response = HttpResponse(content_type="application/zip")
         response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'
 
