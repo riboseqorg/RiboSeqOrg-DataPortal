@@ -356,7 +356,8 @@ def select_all_query(query_string):
     '''
     query_string = query_string.replace('+', ' ')
     query_list = [i.split("=") for i in query_string.split('&')]
-    print(query_list)
+
+    query_list = [i for i in query_list if i[0] not in ['page']]
     query = Q()  # Initialize an empty query
     if len(query_list[0]) != 1:
         query_list = [[i[0], i[1].replace('on', 'True')] if i[1] == 'on' else i for i in query_list]
