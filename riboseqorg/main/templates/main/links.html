@@ -159,7 +159,7 @@
                                     <td><a href="/Study/{{ sample.BioProject }}">{{ sample.BioProject }}</a></td>
                                     <td>{{ sample.ScientificName }}</td>
                                     <td>{{ sample.LIBRARYTYPE }}</td>
-                                    <td><a href="/file-download/{{ sample.link }}">{{ sample.link_type }}</a></td>
+                                    <td><a href="{{ sample.link }}">{{ sample.link_type }}</a></td>
                                     <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
                                 </tr>
                             {% endfor %}
