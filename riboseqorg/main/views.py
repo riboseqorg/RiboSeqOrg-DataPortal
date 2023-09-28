@@ -317,8 +317,7 @@ def samples(request: HttpRequest) -> str:
     Returns:
     - (render): the rendered HTTP response for the page
     """
-
-    #fields to show in Filter Panel 
+    # fields to show in Filter Panel 
     appropriate_fields = [
         'CELL_LINE',
         'INHIBITOR', 
@@ -344,9 +343,12 @@ def samples(request: HttpRequest) -> str:
         'verified',
     ]
     clean_names = get_clean_names()
+
     # Get all the query parameters from the request
     query_params = request.GET.lists()
     filtered_columns = [get_original_name(name, clean_names) for name, values in request.GET.lists()]
+
+    # populate filter panel
     # Get the unique values and counts for each parameter within the filtered queryset
     param_options = {}
     for field in Sample._meta.fields:
@@ -366,15 +368,19 @@ def samples(request: HttpRequest) -> str:
 
             values = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
             param_options[field.name] = values
-        
-
 
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
     clean_results_dict.pop('count', None)
+
+    # build query - handle the original (as per db) to clean name conversion
     query_params = [(name, values) for name, values in request.GET.lists() if get_original_name(name, clean_names) in appropriate_fields or name in toggle_fields]
     query = build_query(request, query_params, clean_names)
+
+    # get entries to populate table
     sample_entries = Sample.objects.filter(query)
-    sample_entries = list(reversed(sample_entries.order_by('LIBRARYTYPE', 'INHIBITOR')))
+    sample_entries = list(reversed(sample_entries.order_by('INHIBITOR','LIBRARYTYPE')))
+
+
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
@@ -722,13 +728,15 @@ def links(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
+
+    # Parse query from request
     if 'run' in selected:
         sample_query = build_run_query(selected['run'])
 
     elif 'bioproject' in selected:
         sample_query = build_bioproject_query(selected['bioproject'])
+
     elif 'query' in selected:
-        print(selected)
         sample_query = select_all_query(selected['query'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
@@ -738,6 +746,7 @@ def links(request: HttpRequest) -> str:
         sample_page_obj = None
         sample_query = None
 
+    # generate GWIPS and Trips URLs
     if sample_query is not None:
         trips = handle_trips_urls(sample_query)
         if 'query' in selected:
@@ -757,15 +766,16 @@ def links(request: HttpRequest) -> str:
                 'organism': 'None of the Selected Runs are available on GWIPS-Viz',
             }
         ]
+
+    # Retrieve entries 
     sample_entries = Sample.objects.filter(sample_query)
 
-    #sort by link presence
-    # sample_entries = sorted(sample_entries, key=lambda x: x.link == "", reverse=True)
-
+    # Paginate 
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     sample_page_obj = paginator.get_page(page_number)
 
+    # get links for entries on page
     for entry in sample_page_obj:
         link = generate_link(entry.BioProject, entry.Run)
         if type(link) == str:
