@@ -56,7 +56,7 @@ class SampleFileDownloadView(APIView):
             return response
 
 
-def recode(request: HttpRequest) -> render:
+def recode(request: HttpRequest) -> str:
     """
     Render the page that describes the fate of recode.ucc.ie
 
@@ -84,7 +84,7 @@ def download_recode_db(request):
         return HttpResponseNotFound("File not found")
 
 
-def index(request: HttpRequest) -> render:
+def index(request: HttpRequest) -> str:
     """
     Render the homepage.
 
@@ -102,7 +102,7 @@ def index(request: HttpRequest) -> render:
     return render(request, "main/home.html", context)
 
 
-def search(request: HttpRequest) -> render:
+def search(request: HttpRequest) -> str:
     """
     Render the search results page based on the query parameters.
 
@@ -307,7 +307,7 @@ def get_sample_filter_options(studies: list,
     return sample_filter_options
 
 
-def samples(request: HttpRequest) -> render:
+def samples(request: HttpRequest) -> str:
     """
     Render a page of Sample objects.
 
@@ -393,7 +393,7 @@ def samples(request: HttpRequest) -> render:
     return render(request, 'main/samples.html', context)
 
 
-def studies(request: HttpRequest) -> render:
+def studies(request: HttpRequest) -> str:
     """
     Render a page of studies filtered by query parameters.
     
@@ -472,7 +472,7 @@ def studies(request: HttpRequest) -> render:
     return render(request, 'main/studies.html', {'page_obj': page_obj, 'param_options': clean_results_dict})
 
 
-def about(request: HttpRequest) -> render:
+def about(request: HttpRequest) -> str:
     """
     Render the about page.
     
@@ -485,7 +485,7 @@ def about(request: HttpRequest) -> render:
     return render(request, "main/about.html", {})
 
 
-def study_detail(request: HttpRequest, query: str) -> render:
+def study_detail(request: HttpRequest, query: str) -> str:
     """
     Render a page for a specific study.
     
@@ -507,7 +507,7 @@ def study_detail(request: HttpRequest, query: str) -> render:
     return render(request, 'main/study.html', context)
 
 
-def sample_detail(request: HttpRequest, query: str) -> render:
+def sample_detail(request: HttpRequest, query: str) -> str:
     """
     Render a page for a specific study.
 
@@ -644,7 +644,7 @@ class SampleListView(FilterView):
     filterset_class = SampleFilter
 
 
-def sample_select_form(request: HttpRequest) -> render:
+def sample_select_form(request: HttpRequest) -> str:
     """
     handle the samples selection form and either call links or download metadata
 
@@ -711,7 +711,7 @@ def check_path_exists(path, server_base="/home/DATA/RiboSeqOrg-DataPortal-Files/
     return os.path.exists(server_base + "/" + path)
 
 
-def links(request: HttpRequest) -> render:
+def links(request: HttpRequest) -> str:
     """
     Render the links page.
 
