@@ -292,7 +292,6 @@ def get_sample_filter_options(studies: list,
     clean_names = get_clean_names()
     samples = Sample.objects.filter(BioProject_id__in=bioprojects)
 
-    
     for field in sample_fields:
         values = samples.values(field).annotate(count=Count(field)).order_by('-count')
         for obj in values:
@@ -313,22 +312,22 @@ def samples(request: HttpRequest) -> str:
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """
     # fields to show in Filter Panel 
     appropriate_fields = [
         'CELL_LINE',
-        'INHIBITOR', 
-        'TISSUE', 
-        'LIBRARYTYPE', 
-        "ScientificName", 
-        "FRACTION", 
-        "Infected", 
-        "Disease", 
+        'INHIBITOR',
+        'TISSUE',
+        'LIBRARYTYPE',
+        "ScientificName",
+        "FRACTION",
+        "Infected",
+        "Disease",
         "Sex",
-        "Cancer",        
+        "Cancer",
         # "Growth_Condition",
         # "Stress",
         # "Genotype",
@@ -380,7 +379,6 @@ def samples(request: HttpRequest) -> str:
     sample_entries = Sample.objects.filter(query)
     sample_entries = list(reversed(sample_entries.order_by('INHIBITOR','LIBRARYTYPE')))
 
-
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
@@ -392,7 +390,7 @@ def samples(request: HttpRequest) -> str:
         'trips_toggle_state': request.GET.get('trips_id', False),
         'gwips_toggle_state': request.GET.get('gwips_id', False),
         'ribocrypt_toggle_state': request.GET.get('ribocrypt_id', False),
-        'read_file_toggle_state': request.GET.get('read_file', False),
+        'FASTA_file_toggle_state': request.GET.get('FASTA_file', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
     # Render the studies template with the filtered and paginated studies and the filter options

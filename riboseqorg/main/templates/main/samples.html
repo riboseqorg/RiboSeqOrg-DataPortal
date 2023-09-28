@@ -1,8 +1,9 @@
 {% extends 'main/base.html' %}
-{% block title %}Samples{% endblock %}
-{% block content %}
 {% load static %}
 
+{% block title %}Samples{% endblock %}
+
+{% block head_static %}
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
@@ -111,6 +112,8 @@
 
     window.onload = checkform;
     </script>
+{% endblock %}
+{% block content %}
     <section id="database">
         <div id="side-panel" style="padding-bottom: 5px;">
             <a class="btn btn-primary" data-bs-toggle="collapse" href="#side-panel-collapse" role="button" aria-expanded="false" aria-controls="side-panel-collapse">
@@ -150,7 +153,7 @@
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Available on RiboCrypt</label>
                                                     </div>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="read_file" {% if read_file_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'read_file', 'on')">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="FASTA_file" {% if FASTA_file_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'FASTA_file', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Pre-Processed Read file Available</label>
                                                     </div>
                                                     <div class="form-check form-switch">
@@ -277,5 +280,6 @@
                 </div>
             </div>
         </div>
+        
     </section>
 {% endblock %}
