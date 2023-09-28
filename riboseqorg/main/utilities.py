@@ -271,6 +271,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
     gwips = []
 
     requested = dict(request.GET.lists())
+
     if str(query) != '<Q: (AND: )>' and query is not None:
         samples = Sample.objects.filter(query)
     elif 'run' in requested:
@@ -282,7 +283,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
 
     samples_df = pd.DataFrame(list(samples.values()))
     organisms = samples_df['ScientificName'].unique()
-
     if 'run' in requested:
         for organism in organisms:
             organism_df = samples_df[samples_df['ScientificName'] == organism]
@@ -293,7 +293,9 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 'gwipsDB': '',
             }
             for idx, row in organism_df.iterrows():
+                print(row['BioProject_id'])
                 gwips_entry = GWIPS.objects.filter(BioProject=row['BioProject_id'])
+                print("gwips: ", gwips_entry)
                 if gwips_entry:
                     gwips_df = pd.DataFrame(list(gwips_entry.values()))
                     if row['BioProject_id'] not in gwips_dict['bioprojects']:

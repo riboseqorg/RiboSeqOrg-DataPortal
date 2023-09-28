@@ -699,7 +699,7 @@ def generate_link(project, run, type="reads"):
     elif os.path.exists(os.path.join(server_base, path_directories[type], project, run + "_1" + path_suffixes[type])):
         return str(os.path.join(path_directories[type], project, run + "_1" + path_suffixes[type]))
     else:
-        print("Failed: " + os.path.join(server_base, path_directories[type], project, run + path_suffixes[type]) + " or " + os.path.join(server_base, path_directories[type], project, run + "_1" + path_suffixes[type]) + " does not exist")
+        # print("Failed: " + os.path.join(server_base, path_directories[type], project, run + path_suffixes[type]) + " or " + os.path.join(server_base, path_directories[type], project, run + "_1" + path_suffixes[type]) + " does not exist")
         return None
 
 def check_path_exists(path, server_base="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"):
