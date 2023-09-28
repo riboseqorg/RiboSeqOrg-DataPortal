@@ -102,7 +102,7 @@ def get_clean_names() -> dict:
         'trips_id': 'trips_id',
         'gwips_id': 'gwips_id',
         'ribocrypt_id': 'ribocrypt_id',
-        'readfile': 'readfile',
+        'FASTA_file': 'FASTA_file',
     }
     return clean_names
 
@@ -144,7 +144,7 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
         options = request.GET.getlist(field)
         q_options = Q()
         for option in options:
-            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'readfile', 'verified']:
+            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified']:
                 if option == 'on':
                     option = True
                 else:

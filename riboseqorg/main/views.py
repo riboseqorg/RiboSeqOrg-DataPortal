@@ -338,7 +338,7 @@ def samples(request: HttpRequest) -> str:
         'trips_id',
         'gwips_id',
         'ribocrypt_id',
-        'readfile',
+        'FASTA_file',
         'verified',
     ]
     clean_names = get_clean_names()
