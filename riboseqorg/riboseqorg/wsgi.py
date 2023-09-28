@@ -7,7 +7,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/4.1/howto/deployment/wsgi/
 """
 # Added by Anmol
-# import os, sys, subprocess
+import os, sys, subprocess
 # PROJECT_DIR = '/home/DATA/www/RiboSeqOrg-DataPortal/riboseqorg'
 # sys.path.insert(0, PROJECT_DIR)
 # def execfile(filename):
