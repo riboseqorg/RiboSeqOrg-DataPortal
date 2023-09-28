@@ -392,7 +392,7 @@ def samples(request: HttpRequest) -> str:
         'trips_toggle_state': request.GET.get('trips_id', False),
         'gwips_toggle_state': request.GET.get('gwips_id', False),
         'ribocrypt_toggle_state': request.GET.get('ribocrypt_id', False),
-        'readfile_toggle_state': request.GET.get('readfile', False),
+        'read_file_toggle_state': request.GET.get('read_file', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
     # Render the studies template with the filtered and paginated studies and the filter options
