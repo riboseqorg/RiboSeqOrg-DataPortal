@@ -759,20 +759,20 @@ def links(request: HttpRequest) -> render:
         ]
     sample_entries = Sample.objects.filter(sample_query)
 
-    for entry in sample_entries:
-        link = generate_link(entry.BioProject, entry.Run)
-        if type(link) == str:
-            entry.link = f"/file-download/{link}" 
-            entry.link_type = "FASTA"
-        else:
-            entry.link = ""
-
     #sort by link presence
-    sample_entries = sorted(sample_entries, key=lambda x: x.link == "", reverse=True)
+    # sample_entries = sorted(sample_entries, key=lambda x: x.link == "", reverse=True)
 
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     sample_page_obj = paginator.get_page(page_number)
+
+    for entry in sample_page_obj:
+        link = generate_link(entry.BioProject, entry.Run)
+        if type(link) == str:
+            entry.link = f"/file-download/{link}"
+            entry.link_type = "FASTA"
+        else:
+            entry.link = ""
 
     return render(request, 'main/links.html', {
         'sample_results': sample_page_obj,
