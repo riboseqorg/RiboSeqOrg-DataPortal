@@ -30,6 +30,7 @@
         <title>
             {% block title %}RiboSeq.Org{% endblock %}
         </title>
+        {% block head_static %}{% endblock %}
     </head>
     <body>
         <!-- Image and text -->
@@ -64,7 +65,7 @@
             </div>
           </nav>
         <!-- Navbar -->
-        <div id="content", name="content">
+        <div id="content" name="content">
             {% block content %}{% endblock %}
         </div>
         <!-- MDB -->
@@ -72,37 +73,36 @@
         <!-- Custom scripts -->
         <script type="text/javascript"></script>
     </body>
-    <footer>
-      <footer class="text-center text-white" style="background-color: #f1f1f1;">
-        <!-- Grid container -->
-        <div class="container pt-4">
-          <!-- Section: Social media -->
-          <section class="mb-4">
-            <!-- Twitter -->
-            <a
-              class="btn btn-link btn-floating btn-lg text-dark m-1"
-              href="https://twitter.com/riboseqorg"
-              role="button"
-              data-mdb-ripple-color="dark"
-              ><i class="fab fa-twitter"></i
-            ></a>
-            <!-- Github -->
-            <a
-              class="btn btn-link btn-floating btn-lg text-dark m-1"
-              href="https://github.com/riboseqorg/RiboSeqOrg-DataPortal"
-              role="button"
-              data-mdb-ripple-color="dark"
-              ><i class="fab fa-github"></i
-            ></a>
-          </section>
-          <!-- Section: Social media -->
-        </div>
-        <!-- Grid container -->
-      
-        <!-- Copyright -->
-        <div class="text-center text-dark p-3" style="background-color: rgba(0, 0, 0, 0.063);">
-          RiboSeq.Org
-        </div>
-        <!-- Copyright -->
-      </footer>    </footer>
+    <footer class="text-center text-white" style="background-color: #f1f1f1;">
+      <!-- Grid container -->
+      <div class="container pt-4">
+        <!-- Section: Social media -->
+        <section class="mb-4">
+          <!-- Twitter -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="https://twitter.com/riboseqorg"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-twitter"></i
+          ></a>
+          <!-- Github -->
+          <a
+            class="btn btn-link btn-floating btn-lg text-dark m-1"
+            href="https://github.com/riboseqorg/RiboSeqOrg-DataPortal"
+            role="button"
+            data-mdb-ripple-color="dark"
+            ><i class="fab fa-github"></i
+          ></a>
+        </section>
+        <!-- Section: Social media -->
+      </div>
+      <!-- Grid container -->
+    
+      <!-- Copyright -->
+      <div class="text-center text-dark p-3" style="background-color: rgba(0, 0, 0, 0.063);">
+        RiboSeq.Org
+      </div>
+      <!-- Copyright -->
+    </footer>
 </html>

@@ -292,7 +292,6 @@ def get_sample_filter_options(studies: list,
     clean_names = get_clean_names()
     samples = Sample.objects.filter(BioProject_id__in=bioprojects)
 
-    
     for field in sample_fields:
         values = samples.values(field).annotate(count=Count(field)).order_by('-count')
         for obj in values:
@@ -313,23 +312,23 @@ def samples(request: HttpRequest) -> str:
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """
 
-    #fields to show in Filter Panel 
+    # fields to show in Filter Panel
     appropriate_fields = [
         'CELL_LINE',
-        'INHIBITOR', 
-        'TISSUE', 
-        'LIBRARYTYPE', 
-        "ScientificName", 
-        "FRACTION", 
-        "Infected", 
-        "Disease", 
+        'INHIBITOR',
+        'TISSUE',
+        'LIBRARYTYPE',
+        "ScientificName",
+        "FRACTION",
+        "Infected",
+        "Disease",
         "Sex",
-        "Cancer",        
+        "Cancer",
         # "Growth_Condition",
         # "Stress",
         # "Genotype",
@@ -344,10 +343,10 @@ def samples(request: HttpRequest) -> str:
         'verified',
     ]
     clean_names = get_clean_names()
-    # Get all the query parameters from the request
+
     query_params = request.GET.lists()
     filtered_columns = [get_original_name(name, clean_names) for name, values in request.GET.lists()]
-    # Get the unique values and counts for each parameter within the filtered queryset
+
     param_options = {}
     for field in Sample._meta.fields:
         # if field.get_internal_type() == 'CharField':
@@ -366,15 +365,16 @@ def samples(request: HttpRequest) -> str:
 
             values = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
             param_options[field.name] = values
-        
 
-
+    # get 
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
     clean_results_dict.pop('count', None)
     query_params = [(name, values) for name, values in request.GET.lists() if get_original_name(name, clean_names) in appropriate_fields or name in toggle_fields]
     query = build_query(request, query_params, clean_names)
+
     sample_entries = Sample.objects.filter(query)
     sample_entries = list(reversed(sample_entries.order_by('LIBRARYTYPE', 'INHIBITOR')))
+
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
