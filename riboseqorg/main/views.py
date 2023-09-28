@@ -368,7 +368,6 @@ def samples(request: HttpRequest) -> str:
             values = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
             param_options[field.name] = values
 
-    # get 
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
     clean_results_dict.pop('count', None)
 
@@ -391,7 +390,7 @@ def samples(request: HttpRequest) -> str:
         'trips_toggle_state': request.GET.get('trips_id', False),
         'gwips_toggle_state': request.GET.get('gwips_id', False),
         'ribocrypt_toggle_state': request.GET.get('ribocrypt_id', False),
-        'read_file_toggle_state': request.GET.get('read_file', False),
+        'FASTA_file_toggle_state': request.GET.get('FASTA_file', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
     # Render the studies template with the filtered and paginated studies and the filter options
