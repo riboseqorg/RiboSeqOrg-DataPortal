@@ -292,7 +292,6 @@ def get_sample_filter_options(studies: list,
     clean_names = get_clean_names()
     samples = Sample.objects.filter(BioProject_id__in=bioprojects)
 
-    
     for field in sample_fields:
         values = samples.values(field).annotate(count=Count(field)).order_by('-count')
         for obj in values:
@@ -313,22 +312,22 @@ def samples(request: HttpRequest) -> str:
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """
     # fields to show in Filter Panel 
     appropriate_fields = [
         'CELL_LINE',
-        'INHIBITOR', 
-        'TISSUE', 
-        'LIBRARYTYPE', 
-        "ScientificName", 
-        "FRACTION", 
-        "Infected", 
-        "Disease", 
+        'INHIBITOR',
+        'TISSUE',
+        'LIBRARYTYPE',
+        "ScientificName",
+        "FRACTION",
+        "Infected",
+        "Disease",
         "Sex",
-        "Cancer",        
+        "Cancer",
         # "Growth_Condition",
         # "Stress",
         # "Genotype",
@@ -369,6 +368,7 @@ def samples(request: HttpRequest) -> str:
             values = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
             param_options[field.name] = values
 
+    # get 
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
     clean_results_dict.pop('count', None)
 
@@ -379,7 +379,6 @@ def samples(request: HttpRequest) -> str:
     # get entries to populate table
     sample_entries = Sample.objects.filter(query)
     sample_entries = list(reversed(sample_entries.order_by('INHIBITOR','LIBRARYTYPE')))
-
 
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
