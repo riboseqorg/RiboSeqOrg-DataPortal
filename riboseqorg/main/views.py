@@ -355,16 +355,16 @@ def samples(request: HttpRequest) -> render:
             # update query_params to remove the current field to ensure this field is not filtered by itself
             query_params = [i for i in request.GET.lists() if get_original_name(i[0], clean_names) != field.name]
             query = build_query(request, query_params, clean_names)
-            samples = Sample.objects.filter(query)
+            sample_entries = Sample.objects.filter(query)
 
-            filtered_samples = samples.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+            filtered_samples = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
             param_options[field.name] = filtered_samples
         else:
             query_params = request.GET.lists()
             query = build_query(request, query_params, clean_names)
-            samples = Sample.objects.filter(query)
+            sample_entries = Sample.objects.filter(query)
 
-            values = samples.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+            values = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
             param_options[field.name] = values
         
 
@@ -373,10 +373,10 @@ def samples(request: HttpRequest) -> render:
     clean_results_dict.pop('count', None)
     query_params = [(name, values) for name, values in request.GET.lists() if get_original_name(name, clean_names) in appropriate_fields or name in toggle_fields]
     query = build_query(request, query_params, clean_names)
-    samples = Sample.objects.filter(query)
-    samples = list(reversed(samples.order_by('LIBRARYTYPE', 'INHIBITOR')))
+    sample_entries = Sample.objects.filter(query)
+    sample_entries = list(reversed(sample_entries.order_by('LIBRARYTYPE', 'INHIBITOR')))
     # Paginate the studies
-    paginator = Paginator(samples, 10)
+    paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -457,14 +457,14 @@ def studies(request: HttpRequest) -> render:
     # rebuild query to populate table
     query_params = [(name, values) for name, values in request.GET.lists() if name in appropriate_fields or name in boolean_fields]
     query = build_query(request, query_params, clean_names)
-    studies = Study.objects.filter(query)
-    sample_filter_options = get_sample_filter_options(studies)
+    study_entries = Study.objects.filter(query)
+    sample_filter_options = get_sample_filter_options(study_entries)
     clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
     clean_results_dict = {**clean_results_dict, **boolenan_param_options}#, **sample_filter_options}
     clean_results_dict.pop('count', None)
-    
+
     # Paginate the studies
-    paginator = Paginator(studies, 10)
+    paginator = Paginator(study_entries, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -728,6 +728,7 @@ def links(request: HttpRequest) -> render:
     elif 'bioproject' in selected:
         sample_query = build_bioproject_query(selected['bioproject'])
     elif 'query' in selected:
+        print(selected)
         sample_query = select_all_query(selected['query'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
