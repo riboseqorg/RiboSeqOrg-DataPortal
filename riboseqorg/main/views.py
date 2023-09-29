@@ -481,24 +481,24 @@ def studies(request: HttpRequest) -> str:
 def about(request: HttpRequest) -> str:
     """
     Render the about page.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
-    """ 
+    """
     return render(request, "main/about.html", {})
 
 
 def study_detail(request: HttpRequest, query: str) -> str:
     """
     Render a page for a specific study.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
     - query (str): the study accession number
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """ 
