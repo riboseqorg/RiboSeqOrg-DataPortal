@@ -749,8 +749,11 @@ def links(request: HttpRequest) -> str:
         trips = handle_trips_urls(sample_query)
         if 'query' in selected:
             gwips = handle_gwips_urls(request, sample_query)
+            ribocrypt = handle_ribocrypt_urls(request, sample_query)
         else:
             gwips = handle_gwips_urls(request)
+            ribocrypt = handle_ribocrypt_urls(request)
+
     else:
         trips = [
                 {
@@ -762,6 +765,12 @@ def links(request: HttpRequest) -> str:
                 {
                 'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
                 'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+            }
+        ]
+        ribocrypt = [
+                {
+                'clean_organism': 'None of the Selected Runs are available on Ribocrypt',
+                'organism': 'None of the Selected Runs are available on Ribocrypt',
             }
         ]
 
@@ -786,6 +795,7 @@ def links(request: HttpRequest) -> str:
         'sample_results': sample_page_obj,
         'trips': trips,
         'gwips': gwips,
+        'ribocrypt': ribocrypt,
         })
 
 

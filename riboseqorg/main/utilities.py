@@ -293,9 +293,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 'gwipsDB': '',
             }
             for idx, row in organism_df.iterrows():
-                print(row['BioProject_id'])
                 gwips_entry = GWIPS.objects.filter(BioProject=row['BioProject_id'])
-                print("gwips: ", gwips_entry)
                 if gwips_entry:
                     gwips_df = pd.DataFrame(list(gwips_entry.values()))
                     if row['BioProject_id'] not in gwips_dict['bioprojects']:
@@ -344,6 +342,47 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 gwips.append(gwips_dict)
 
     return gwips
+
+
+def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
+    '''
+    For a given query return the required information to link those sample in ribocrypt.
+
+    RiboCrypt samples can only be accessed within projects. Therefore, the BioProject information is required to access the samples.
+    If just a bioproject is provided in the query then use all
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    - query (Q): the query
+
+    Returns:
+    - (list): the required information to link those samples in ribocrypt (list of dicts)
+    '''
+    ribocrypt = []
+
+    requested = dict(request.GET.lists())
+
+    if str(query) != '<Q: (AND: )>' and query is not None:
+        samples = Sample.objects.filter(query)
+
+    elif 'run' in requested:
+        runs = requested['run']
+        samples = Sample.objects.filter(build_run_query(runs))
+    elif 'bioproject' in requested:
+        bioprojects = requested['bioproject']
+        samples = Sample.objects.filter(BioProject__in=bioprojects)
+
+    samples_df = pd.DataFrame(list(samples.values()))
+    samples_df = samples_df.groupby(['BioProject_id', 'ScientificName'])
+
+    for (bioproject, organism), df in samples_df:
+        ribocrypt_dict = {
+            'dff': f"{bioproject}-{organism.replace(' ', '_').lower()}",
+            'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {bioproject}",
+            'files': ','.join(df['Run'].unique()),
+        }
+        ribocrypt.append(ribocrypt_dict)
+    return ribocrypt
 
 
 def select_all_query(query_string):
