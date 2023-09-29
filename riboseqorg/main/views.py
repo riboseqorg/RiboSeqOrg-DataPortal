@@ -13,7 +13,9 @@ from .filters import StudyFilter, SampleFilter
 
 from .utilities import get_clean_names, get_original_name,\
     build_query, handle_filter, handle_gwips_urls,\
-    handle_trips_urls, handle_ribocrypt_urls\
+    handle_trips_urls, handle_ribocrypt_urls,\
+    build_run_query, build_bioproject_query,\
+    select_all_query
 
 
 from rest_framework import generics, permissions
@@ -159,7 +161,6 @@ def search(request: HttpRequest) -> str:
         Q(Email__icontains=query)
     )
 
-
     sample_results = Sample.objects.filter(
         # Q(verified__icontains=query) |
         # Q(trips_id__icontains=query) |
@@ -272,7 +273,7 @@ def search(request: HttpRequest) -> str:
 
 
 def get_sample_filter_options(studies: list,
-                              sample_fields: list=[
+                              sample_fields: list = [
                                 'CELL_LINE',
                                 'INHIBITOR',
                                 'TISSUE',
