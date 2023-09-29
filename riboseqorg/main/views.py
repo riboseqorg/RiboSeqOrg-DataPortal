@@ -506,10 +506,51 @@ def study_detail(request: HttpRequest, query: str) -> str:
 
     # return all results from Study where Accession=query
     ls = Sample.objects.filter(BioProject=query)
-    open_columns = OpenColumns.objects.filter(bioproject=query)
 
+    query = Q(BioProject=query)
+    if query is not None:
+        trips = handle_trips_urls(query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            bioproject_trips_link = "https://trips.ucc.ie/"
+            bioproject_trips_name = "Not Available"
+        else:
+            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            bioproject_trips_name = "Visit Trips-Viz"
+
+        gwips = handle_gwips_urls(request, query=query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            bioproject_gwips_link = "https://gwips.ucc.ie/"
+            bioproject_gwips_name = "Not Available"
+        else:
+            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            bioproject_gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            bioproject_ribocrypt_link = "https://ribocrypt.org/"
+            bioproject_ribocrypt_name = "Not Available"
+        else:
+            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            bioproject_ribocrypt_name = "Visit RiboCrypt"
+
+    for entry in ls:
+        link = generate_link(entry.BioProject, entry.Run)
+        if type(link) == str:
+            entry.link = f"/file-download/{link}"
+            entry.link_type = "FASTA"
+        else:
+            entry.link = ""
     # Return all results from Sample and query the sqlite too and add this to the table
-    context = {'Study': study_model, 'ls': ls}
+    context = {
+        'Study': study_model,
+        'ls': ls,
+        'bioproject_trips_link': bioproject_trips_link,
+        'bioproject_trips_name': bioproject_trips_name,
+        'bioproject_gwips_link': bioproject_gwips_link,
+        'bioproject_gwips_name': bioproject_gwips_name,
+        'bioproject_ribocrypt_link': bioproject_ribocrypt_link,
+        'bioproject_ribocrypt_name': bioproject_ribocrypt_name,
+        }
     return render(request, 'main/study.html', context)
 
 
