@@ -3,18 +3,18 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest
 
 from django.db.models import Q, Count
-from django.db.models import Case, When, Value, CharField
-from django.db.models import F, Value
 
-from .models import Sample, Study, OpenColumns, Trips, GWIPS
+from .models import Sample, Study, OpenColumns
 
-import pandas as pd
 from .forms import SearchForm
 
 from django_filters.views import FilterView
 from .filters import StudyFilter, SampleFilter
 
-from .utilities import *
+from .utilities import get_clean_names, get_original_name,\
+    build_query, handle_filter, handle_gwips_urls,\
+    handle_trips_urls, handle_ribocrypt_urls\
+
 
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -31,6 +31,7 @@ import zipfile
 import tempfile
 import shutil
 import time
+
 
 class SampleListView(generics.ListCreateAPIView):
     queryset = Sample.objects.all()
@@ -621,12 +622,49 @@ def sample_detail(request: HttpRequest, query: str) -> str:
                 ks.append(
                     (clean_names[key], value)
                 )
+    sample_query = Q(Run=query)
+
+    # generate GWIPS and Trips URLs
+    if query is not None:
+        trips = handle_trips_urls(sample_query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            trips_link = "https://trips.ucc.ie/"
+            trips_name = "Not Available"
+        else:
+            trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            trips_name = "Visit Trips-Viz"
+
+        gwips = handle_gwips_urls(request, query=sample_query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            gwips_link = "https://gwips.ucc.ie/"
+            gwips_name = "Not Available"
+        else:
+            gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=sample_query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            ribocrypt_link = "https://ribocrypt.org/"
+            ribocrypt_name = "Not Available"
+        else:
+            ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            ribocrypt_name = "Visit RiboCrypt"
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    context = {'Sample': sample_model, 'ls': page_obj, 'ks': ks}
+    context = {
+        'Sample': sample_model,
+        'ls': page_obj,
+        'ks': ks,
+        'trips': trips_link,
+        'trips_name': trips_name,
+        'gwips': gwips_link,
+        'gwips_name': gwips_name,
+        'ribocrypt': ribocrypt_link,
+        'ribocrypt_name': ribocrypt_name,
+        }
     return render(request, 'main/sample.html', context)
 
 
