@@ -109,7 +109,9 @@
                             {% endfor %}
                         </div>
                         <div class="tab-pane fade" id="RiboCrypt" role="tabpanel" aria-labelledby="RiboCrypt-tab">
+                            {% for project in ribocrypt %}
                             <div class="row">
+                                <h4>{{ project.clean_organism }}</h4>
                                 <div class="col-sm-3">
                                     <div class="card">
                                         <img src="{% static 'images/RiboCrypt.svg' %}" 
@@ -121,11 +123,12 @@
                                         <div class="card-body">
                                           <h5 class="card-title">Visualise</h5>
                                           <p class="card-text">Visualise selected datasets in RiboCrypt</p>
-                                          <a href="#" class="btn btn-primary">Genomic View</a>
+                                          <a href="https://ribocrypt.org/?dff={{ project.dff }}&library={{ project.files }}" class="btn btn-primary">Genomic View</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>

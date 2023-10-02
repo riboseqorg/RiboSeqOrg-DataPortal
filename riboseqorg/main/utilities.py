@@ -8,103 +8,104 @@ import pandas as pd
 def get_clean_names() -> dict:
     '''
     Return a dictionary of clean names to original names as in database
-    
+
     Returns:
         clean_names: dictionary
     '''
     clean_names = {
-    'Run':'Run Accession', 
-    'spots':'Total Number of Spots (Original file))', 
-    'bases':'Total Number of Bases (Original file)', 
-    'avgLength':'Average Read Length', 
-    'size_MB':'Original File Size (MB)', 
-    'LibraryName':'Library Name', 
-    'LibraryStrategy':'Library Strategy', 
-    'LibrarySelection':'Library Selection', 
-    'LibrarySource':'Library Source', 
-    'LibraryLayout':'Library Layout', 
-    'InsertSize':'Insert Size', 
-    'InsertDev':'Insert Deviation', 
-    'Platform':'Platform',	
-    'Model':'Model',	
-    'SRAStudy': 'SRA Project Accession (SRP)',	
-    'BioProject':'BioProject',
-    'Study_Pubmed_id':'PubMed ID',
-    'Sample':'Sample',
-    'BioSample':'BioSample',
-    'SampleType':'Sample Type',
-    'TaxID':'Organism TaxID',
-    'ScientificName':'Organism',
-    'SampleName':'Sample Name',
-    'CenterName':'Center Name',	
-    'Submission':'Submission',
-    'MONTH':'Month',
-    'YEAR':'Year',
-    'AUTHOR':'Author',
-    'sample_source':'Sample Source',
-    'sample_title':'Sample Title',
-    'ENA_first_public':'ENA First Public',
-    'ENA_last_update':'ENA Last Update',
-    'INSDC_center_alias':'INSDC Center Alias',	
-    'INSDC_center_name':'INSDC Center Name',
-    'INSDC_first_public':'INSDC First Public',
-    'INSDC_last_update':'INSDC Last Update',
-    'GEO_Accession'	:'GEO Accession',
-    'Experiment_Date':'Date of Experiment',
-    'date_sequenced':'Date of Sequencing',
-    'submission_date':'Submission Date',
-    'date':'Date',
-    'Experiment':'Experiment ID',
-    'CELL_LINE':'Cell-Line',
-    'TISSUE':'Tissue',
-    'INHIBITOR':'Inhibitor',
-    'TIMEPOINT':'Timepoint',
-    'FRACTION':'Cellular-Compartment',
-    'REPLICATE':'Replicate-Number',
-    'CONDITION':'Condition',
-    'LIBRARYTYPE':'Library-Type',
-    'STAGE':'Stage',
-    'GENE':'Gene',
-    'Sex':'Sex',
-    'Strain':'Strain',
-    'Age':'Age',
-    'Infected':'Infected',
-    'Disease':'Disease',
-    'Genotype'	:'Genotype',
-    'Feeding':'Feeding',
-    'Temperature':'Temperature',
-    'SiRNA':'SiRNA',
-    'SgRNA':'SgRNA',
-    'ShRNA':'ShRNA',
-    'Plasmid':'Plasmid',
-    'Growth_Condition':'Growth-Condition',
-    'Stress':'Stress',
-    'Cancer':'Cancer',
-    'microRNA':'MicroRNA',
-    'Individual':'Individual',
-    'Antibody':'Antibody Used',
-    'Ethnicity':'Ethnicity',
-    'Dose':'Dose',
-    'Stimulation':'Stimulation',
-    'Host':'Host Organism',
-    'UMI':'Unique Molecular Identifier (UMI)',
-    'Adapter':'Adapter Sequence',
-    'Separation':'Mode of Separation',
-    'rRNA_depletion':'Mode of rRNA depletion',
-    'Barcode':'Barcode Information',
-    'Monosome_purification':'Mode of Purification',
-    'Nuclease':'Nucelase Used',
-    'Kit':'Kit Used',
-    'Organism': 'Organism',
-    'PMID': 'PubMed',
-    'count':'count',
-    'verified':'verified',
-    'trips_id':'trips_id',
-    'gwips_id':'gwips_id',
-    'ribocrypt_id':'ribocrypt_id',
-    'readfile':'readfile',
+        'Run':'Run Accession',
+        'spots':'Total Number of Spots (Original file))',
+        'bases':'Total Number of Bases (Original file)',
+        'avgLength':'Average Read Length',
+        'size_MB':'Original File Size (MB)',
+        'LibraryName':'Library Name',
+        'LibraryStrategy':'Library Strategy',
+        'LibrarySelection': 'Library Selection',
+        'LibrarySource': 'Library Source',
+        'LibraryLayout': 'Library Layout',
+        'InsertSize': 'Insert Size',
+        'InsertDev': 'Insert Deviation',
+        'Platform': 'Platform',
+        'Model': 'Model',
+        'SRAStudy':  'SRA Project Accession (SRP)',
+        'BioProject': 'BioProject',
+        'Study_Pubmed_id': 'PubMed ID',
+        'Sample': 'Sample',
+        'BioSample': 'BioSample',
+        'SampleType': 'Sample Type',
+        'TaxID': 'Organism TaxID',
+        'ScientificName': 'Organism',
+        'SampleName': 'Sample Name',
+        'CenterName': 'Center Name',
+        'Submission': 'Submission',
+        'MONTH': 'Month',
+        'YEAR': 'Year',
+        'AUTHOR': 'Author',
+        'sample_source': 'Sample Source',
+        'sample_title': 'Sample Title',
+        'ENA_first_public': 'ENA First Public',
+        'ENA_last_update': 'ENA Last Update',
+        'INSDC_center_alias': 'INSDC Center Alias',	
+        'INSDC_center_name': 'INSDC Center Name',
+        'INSDC_first_public': 'INSDC First Public',
+        'INSDC_last_update': 'INSDC Last Update',
+        'GEO_Accession'	: 'GEO Accession',
+        'Experiment_Date': 'Date of Experiment',
+        'date_sequenced': 'Date of Sequencing',
+        'submission_date': 'Submission Date',
+        'date': 'Date',
+        'Experiment': 'Experiment ID',
+        'CELL_LINE': 'Cell-Line',
+        'TISSUE': 'Tissue',
+        'INHIBITOR': 'Inhibitor',
+        'TIMEPOINT': 'Timepoint',
+        'FRACTION': 'Cellular-Compartment',
+        'REPLICATE': 'Replicate-Number',
+        'CONDITION': 'Condition',
+        'LIBRARYTYPE': 'Library-Type',
+        'STAGE': 'Stage',
+        'GENE': 'Gene',
+        'Sex': 'Sex',
+        'Strain': 'Strain',
+        'Age': 'Age',
+        'Infected': 'Infected',
+        'Disease': 'Disease',
+        'Genotype'	: 'Genotype',
+        'Feeding': 'Feeding',
+        'Temperature': 'Temperature',
+        'SiRNA': 'SiRNA',
+        'SgRNA': 'SgRNA',
+        'ShRNA': 'ShRNA',
+        'Plasmid': 'Plasmid',
+        'Growth_Condition': 'Growth-Condition',
+        'Stress': 'Stress',
+        'Cancer': 'Cancer',
+        'microRNA': 'MicroRNA',
+        'Individual': 'Individual',
+        'Antibody': 'Antibody Used',
+        'Ethnicity': 'Ethnicity',
+        'Dose': 'Dose',
+        'Stimulation': 'Stimulation',
+        'Host': 'Host Organism',
+        'UMI': 'Unique Molecular Identifier (UMI)',
+        'Adapter': 'Adapter Sequence',
+        'Separation': 'Mode of Separation',
+        'rRNA_depletion': 'Mode of rRNA depletion',
+        'Barcode': 'Barcode Information',
+        'Monosome_purification': 'Mode of Purification',
+        'Nuclease': 'Nucelase Used',
+        'Kit': 'Kit Used',
+        'Organism': 'Organism',
+        'PMID': 'PubMed',
+        'count': 'count',
+        'verified': 'verified',
+        'trips_id': 'trips_id',
+        'gwips_id': 'gwips_id',
+        'ribocrypt_id': 'ribocrypt_id',
+        'FASTA_file': 'FASTA_file',
     }
     return clean_names
+
 
 def get_original_name(name: str, clean_names: dict) -> str:
     """
@@ -136,14 +137,14 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
     """
     # Build the query for the studies based on the query parameters
     query = Q()
-    #loop over unique keys in query_params
+    # loop over unique keys in query_params
     for field, values in query_params:
         if field in ['page']:
             continue
         options = request.GET.getlist(field)
         q_options = Q()
         for option in options:
-            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'readfile', 'verified']:
+            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified']:
                 if option == 'on':
                     option = True
                 else:
@@ -154,8 +155,8 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
 
 
 def handle_filter(
-        param_options: dict, 
-        appropriate_fields: list, 
+        param_options: dict,
+        appropriate_fields: list,
         clean_names: dict) -> dict:
     '''
     Get the filter options for each parameter in the query parameters.
@@ -263,7 +264,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
- 
 
     Returns:
     - (list): the required information to link those samples in GWIPS-viz (list of dicts)
@@ -282,7 +282,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
 
     samples_df = pd.DataFrame(list(samples.values()))
     organisms = samples_df['ScientificName'].unique()
-
     if 'run' in requested:
         for organism in organisms:
             organism_df = samples_df[samples_df['ScientificName'] == organism]
@@ -340,8 +339,62 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
             if gwips_dict:
                 gwips_dict['files'] = '&'.join(gwips_dict['files'])
                 gwips.append(gwips_dict)
-
+        else:
+            gwips.append(
+                {
+                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                }
+            )
+    else:
+        gwips.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+            }
+        )
     return gwips
+
+
+def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
+    '''
+    For a given query return the required information to link those sample in ribocrypt.
+
+    RiboCrypt samples can only be accessed within projects. Therefore, the BioProject information is required to access the samples.
+    If just a bioproject is provided in the query then use all
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    - query (Q): the query
+
+    Returns:
+    - (list): the required information to link those samples in ribocrypt (list of dicts)
+    '''
+    ribocrypt = []
+
+    requested = dict(request.GET.lists())
+
+    if str(query) != '<Q: (AND: )>' and query is not None:
+        samples = Sample.objects.filter(query)
+
+    elif 'run' in requested:
+        runs = requested['run']
+        samples = Sample.objects.filter(build_run_query(runs))
+    elif 'bioproject' in requested:
+        bioprojects = requested['bioproject']
+        samples = Sample.objects.filter(BioProject__in=bioprojects)
+
+    samples_df = pd.DataFrame(list(samples.values()))
+    samples_df = samples_df.groupby(['BioProject_id', 'ScientificName'])
+
+    for (bioproject, organism), df in samples_df:
+        ribocrypt_dict = {
+            'dff': f"{bioproject}-{organism.replace(' ', '_').lower()}",
+            'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {bioproject}",
+            'files': ','.join(df['Run'].unique()),
+        }
+        ribocrypt.append(ribocrypt_dict)
+    return ribocrypt
 
 
 def select_all_query(query_string):

@@ -1,6 +1,6 @@
 
 {% extends 'main/base.html' %}
-{% block title %}Samples{% endblock %}
+{% block title %}Studies{% endblock %}
 {% block content %}
 {% load static %}
 
@@ -38,6 +38,8 @@
       $(document).ready(function() {
           var table = $('#studies-table').DataTable({
               paging: false,
+              searching: false,
+              info: false,
               scrollY: '100vh',
               scrollCollapse: true,
           });
