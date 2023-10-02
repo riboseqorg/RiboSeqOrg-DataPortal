@@ -868,7 +868,7 @@ def links(request: HttpRequest) -> str:
                 'query'][0]:
             sample_entries = Sample.objects.filter(
                 BioProject__PMID__length__gt=0)
-        # sample_entries = Sample.objects.filter(sample_query)
+        sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
         if not str(sample_query) == "(AND: )":
             sample_query = build_run_query(runs)
