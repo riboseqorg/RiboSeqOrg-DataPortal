@@ -271,7 +271,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
     gwips = []
 
     requested = dict(request.GET.lists())
-
+    print("REQUESTED: ", requested)
     if str(query) != '<Q: (AND: )>' and query is not None:
         samples = Sample.objects.filter(query)
     elif 'run' in requested:
@@ -314,6 +314,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
 
     elif 'bioproject' in requested or str(query) != '<Q: (AND: )>':
         for organism in organisms:
+            print(organism)
             organism_df = samples_df[samples_df['ScientificName'] == organism]
             organism_df = organism_df[organism_df['gwips_id'] == True]
             if organism_df.empty:
@@ -340,7 +341,21 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
             if gwips_dict:
                 gwips_dict['files'] = '&'.join(gwips_dict['files'])
                 gwips.append(gwips_dict)
-
+        else:
+            gwips.append(
+                {
+                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                }
+            )
+    else:
+        gwips.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+            }
+        )
+    print("GWIPS", gwips)
     return gwips
 
 

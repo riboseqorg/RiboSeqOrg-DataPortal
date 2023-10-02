@@ -3,18 +3,20 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest
 
 from django.db.models import Q, Count
-from django.db.models import Case, When, Value, CharField
-from django.db.models import F, Value
 
-from .models import Sample, Study, OpenColumns, Trips, GWIPS
+from .models import Sample, Study, OpenColumns
 
-import pandas as pd
 from .forms import SearchForm
 
 from django_filters.views import FilterView
 from .filters import StudyFilter, SampleFilter
 
-from .utilities import *
+from .utilities import get_clean_names, get_original_name,\
+    build_query, handle_filter, handle_gwips_urls,\
+    handle_trips_urls, handle_ribocrypt_urls,\
+    build_run_query, build_bioproject_query,\
+    select_all_query
+
 
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -31,6 +33,7 @@ import zipfile
 import tempfile
 import shutil
 import time
+
 
 class SampleListView(generics.ListCreateAPIView):
     queryset = Sample.objects.all()
@@ -158,7 +161,6 @@ def search(request: HttpRequest) -> str:
         Q(Email__icontains=query)
     )
 
-
     sample_results = Sample.objects.filter(
         # Q(verified__icontains=query) |
         # Q(trips_id__icontains=query) |
@@ -271,7 +273,7 @@ def search(request: HttpRequest) -> str:
 
 
 def get_sample_filter_options(studies: list,
-                              sample_fields: list=[
+                              sample_fields: list = [
                                 'CELL_LINE',
                                 'INHIBITOR',
                                 'TISSUE',
@@ -479,24 +481,24 @@ def studies(request: HttpRequest) -> str:
 def about(request: HttpRequest) -> str:
     """
     Render the about page.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
-    """ 
+    """
     return render(request, "main/about.html", {})
 
 
 def study_detail(request: HttpRequest, query: str) -> str:
     """
     Render a page for a specific study.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
     - query (str): the study accession number
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """ 
@@ -504,10 +506,51 @@ def study_detail(request: HttpRequest, query: str) -> str:
 
     # return all results from Study where Accession=query
     ls = Sample.objects.filter(BioProject=query)
-    open_columns = OpenColumns.objects.filter(bioproject=query)
 
+    query = Q(BioProject=query)
+    if query is not None:
+        trips = handle_trips_urls(query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            bioproject_trips_link = "https://trips.ucc.ie/"
+            bioproject_trips_name = "Not Available"
+        else:
+            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            bioproject_trips_name = "Visit Trips-Viz"
+
+        gwips = handle_gwips_urls(request, query=query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            bioproject_gwips_link = "https://gwips.ucc.ie/"
+            bioproject_gwips_name = "Not Available"
+        else:
+            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            bioproject_gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            bioproject_ribocrypt_link = "https://ribocrypt.org/"
+            bioproject_ribocrypt_name = "Not Available"
+        else:
+            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            bioproject_ribocrypt_name = "Visit RiboCrypt"
+
+    for entry in ls:
+        link = generate_link(entry.BioProject, entry.Run)
+        if type(link) == str:
+            entry.link = f"/file-download/{link}"
+            entry.link_type = "FASTA"
+        else:
+            entry.link = ""
     # Return all results from Sample and query the sqlite too and add this to the table
-    context = {'Study': study_model, 'ls': ls}
+    context = {
+        'Study': study_model,
+        'ls': ls,
+        'bioproject_trips_link': bioproject_trips_link,
+        'bioproject_trips_name': bioproject_trips_name,
+        'bioproject_gwips_link': bioproject_gwips_link,
+        'bioproject_gwips_name': bioproject_gwips_name,
+        'bioproject_ribocrypt_link': bioproject_ribocrypt_link,
+        'bioproject_ribocrypt_name': bioproject_ribocrypt_name,
+        }
     return render(request, 'main/study.html', context)
 
 
@@ -621,12 +664,49 @@ def sample_detail(request: HttpRequest, query: str) -> str:
                 ks.append(
                     (clean_names[key], value)
                 )
+    sample_query = Q(Run=query)
+
+    # generate GWIPS and Trips URLs
+    if query is not None:
+        trips = handle_trips_urls(sample_query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            trips_link = "https://trips.ucc.ie/"
+            trips_name = "Not Available"
+        else:
+            trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            trips_name = "Visit Trips-Viz"
+
+        gwips = handle_gwips_urls(request, query=sample_query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            gwips_link = "https://gwips.ucc.ie/"
+            gwips_name = "Not Available"
+        else:
+            gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=sample_query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            ribocrypt_link = "https://ribocrypt.org/"
+            ribocrypt_name = "Not Available"
+        else:
+            ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            ribocrypt_name = "Visit RiboCrypt"
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    context = {'Sample': sample_model, 'ls': page_obj, 'ks': ks}
+    context = {
+        'Sample': sample_model,
+        'ls': page_obj,
+        'ks': ks,
+        'trips': trips_link,
+        'trips_name': trips_name,
+        'gwips': gwips_link,
+        'gwips_name': gwips_name,
+        'ribocrypt': ribocrypt_link,
+        'ribocrypt_name': ribocrypt_name,
+        }
     return render(request, 'main/sample.html', context)
 
 
