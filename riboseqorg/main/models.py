@@ -35,7 +35,7 @@ class Sample(models.Model):
     trips_id = models.BooleanField(default=False)
     gwips_id = models.BooleanField(default=False)
     ribocrypt_id = models.BooleanField(default=False)
-    readfile = models.BooleanField(default=False)
+    FASTA_file = models.BooleanField(default=False)
 
     BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', related_name="sample", blank=True, null=True)
     Run = models.CharField(max_length=200, blank=True)

@@ -17,7 +17,7 @@ import os, sys, subprocess
 # activate_this = os.path.join( PROJECT_DIR, '../riboseq_venv/bin', 'activate_this.py' )
 # execfile( activate_this )
 
-# # End
+# End
 
 from django.core.wsgi import get_wsgi_application
 

@@ -5,18 +5,20 @@ from django.db.models import CharField
 from django.db.models.functions import Length
 
 from django.db.models import Q, Count
-from django.db.models import Case, When, Value, CharField
-from django.db.models import F, Value
 
-from .models import Sample, Study, OpenColumns, Trips, GWIPS
+from .models import Sample, Study, OpenColumns
 
-import pandas as pd
 from .forms import SearchForm
 
 from django_filters.views import FilterView
 from .filters import StudyFilter, SampleFilter
 
-from .utilities import *
+from .utilities import get_clean_names, get_original_name,\
+    build_query, handle_filter, handle_gwips_urls,\
+    handle_trips_urls, handle_ribocrypt_urls,\
+    build_run_query, build_bioproject_query,\
+    select_all_query
+
 
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -63,7 +65,7 @@ class SampleFileDownloadView(APIView):
             return response
 
 
-def recode(request: HttpRequest) -> render:
+def recode(request: HttpRequest) -> str:
     """
     Render the page that describes the fate of recode.ucc.ie
 
@@ -92,7 +94,7 @@ def download_recode_db(request):
         return HttpResponseNotFound("File not found")
 
 
-def index(request: HttpRequest) -> render:
+def index(request: HttpRequest) -> str:
     """
     Render the homepage.
 
@@ -110,7 +112,7 @@ def index(request: HttpRequest) -> render:
     return render(request, "main/home.html", context)
 
 
-def search(request: HttpRequest) -> render:
+def search(request: HttpRequest) -> str:
     """
     Render the search results page based on the query parameters.
 
@@ -279,13 +281,13 @@ def get_sample_filter_options(
     return sample_filter_options
 
 
-def samples(request: HttpRequest) -> render:
+def samples(request: HttpRequest) -> str:
     """
     Render a page of Sample objects.
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """
@@ -312,16 +314,18 @@ def samples(request: HttpRequest) -> render:
         'trips_id',
         'gwips_id',
         'ribocrypt_id',
-        'readfile',
+        'FASTA_file',
         'verified',
     ]
     clean_names = get_clean_names()
+
     # Get all the query parameters from the request
     query_params = request.GET.lists()
     filtered_columns = [
         get_original_name(name, clean_names)
         for name, values in request.GET.lists()
     ]
+
     # Get the unique values and counts for each parameter within the filtered queryset
     param_options = {}
     for field in Sample._meta.fields:
@@ -356,9 +360,12 @@ def samples(request: HttpRequest) -> render:
         or name in toggle_fields
     ]
     query = build_query(request, query_params, clean_names)
+
+    # get entries to populate table
     sample_entries = Sample.objects.filter(query)
     sample_entries = list(
         reversed(sample_entries.order_by('LIBRARYTYPE', 'INHIBITOR')))
+
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
@@ -370,14 +377,14 @@ def samples(request: HttpRequest) -> render:
         'trips_toggle_state': request.GET.get('trips_id', False),
         'gwips_toggle_state': request.GET.get('gwips_id', False),
         'ribocrypt_toggle_state': request.GET.get('ribocrypt_id', False),
-        'readfile_toggle_state': request.GET.get('readfile', False),
+        'FASTA_file_toggle_state': request.GET.get('FASTA_file', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
     # Render the studies template with the filtered and paginated studies and the filter options
     return render(request, 'main/samples.html', context)
 
 
-def studies(request: HttpRequest) -> render:
+def studies(request: HttpRequest) -> str:
     """
     Render a page of studies filtered by query parameters.
     
@@ -487,27 +494,27 @@ def studies(request: HttpRequest) -> render:
     })
 
 
-def about(request: HttpRequest) -> render:
+def about(request: HttpRequest) -> str:
     """
     Render the about page.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """
     return render(request, "main/about.html", {})
 
 
-def study_detail(request: HttpRequest, query: str) -> render:
+def study_detail(request: HttpRequest, query: str) -> str:
     """
     Render a page for a specific study.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
     - query (str): the study accession number
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """
@@ -515,14 +522,55 @@ def study_detail(request: HttpRequest, query: str) -> render:
 
     # return all results from Study where Accession=query
     ls = Sample.objects.filter(BioProject=query)
-    open_columns = OpenColumns.objects.filter(bioproject=query)
 
+    query = Q(BioProject=query)
+    if query is not None:
+        trips = handle_trips_urls(query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            bioproject_trips_link = "https://trips.ucc.ie/"
+            bioproject_trips_name = "Not Available"
+        else:
+            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            bioproject_trips_name = "Visit Trips-Viz"
+
+        gwips = handle_gwips_urls(request, query=query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            bioproject_gwips_link = "https://gwips.ucc.ie/"
+            bioproject_gwips_name = "Not Available"
+        else:
+            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            bioproject_gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            bioproject_ribocrypt_link = "https://ribocrypt.org/"
+            bioproject_ribocrypt_name = "Not Available"
+        else:
+            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            bioproject_ribocrypt_name = "Visit RiboCrypt"
+
+    for entry in ls:
+        link = generate_link(entry.BioProject, entry.Run)
+        if type(link) == str:
+            entry.link = f"/file-download/{link}"
+            entry.link_type = "FASTA"
+        else:
+            entry.link = ""
     # Return all results from Sample and query the sqlite too and add this to the table
-    context = {'Study': study_model, 'ls': ls}
+    context = {
+        'Study': study_model,
+        'ls': ls,
+        'bioproject_trips_link': bioproject_trips_link,
+        'bioproject_trips_name': bioproject_trips_name,
+        'bioproject_gwips_link': bioproject_gwips_link,
+        'bioproject_gwips_name': bioproject_gwips_name,
+        'bioproject_ribocrypt_link': bioproject_ribocrypt_link,
+        'bioproject_ribocrypt_name': bioproject_ribocrypt_name,
+        }
     return render(request, 'main/study.html', context)
 
 
-def sample_detail(request: HttpRequest, query: str) -> render:
+def sample_detail(request: HttpRequest, query: str) -> str:
     """
     Render a page for a specific study.
 
@@ -629,13 +677,52 @@ def sample_detail(request: HttpRequest, query: str) -> render:
     for key, value in ls.values()[0].items():
         if value not in ['nan', '']:
             if key in appropriate_fields:
-                ks.append((clean_names[key], value))
+                ks.append(
+                    (clean_names[key], value)
+                )
+    sample_query = Q(Run=query)
+
+    # generate GWIPS and Trips URLs
+    if query is not None:
+        trips = handle_trips_urls(sample_query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            trips_link = "https://trips.ucc.ie/"
+            trips_name = "Not Available"
+        else:
+            trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            trips_name = "Visit Trips-Viz"
+
+        gwips = handle_gwips_urls(request, query=sample_query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            gwips_link = "https://gwips.ucc.ie/"
+            gwips_name = "Not Available"
+        else:
+            gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=sample_query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            ribocrypt_link = "https://ribocrypt.org/"
+            ribocrypt_name = "Not Available"
+        else:
+            ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            ribocrypt_name = "Visit RiboCrypt"
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    context = {'Sample': sample_model, 'ls': page_obj, 'ks': ks}
+    context = {
+        'Sample': sample_model,
+        'ls': page_obj,
+        'ks': ks,
+        'trips': trips_link,
+        'trips_name': trips_name,
+        'gwips': gwips_link,
+        'gwips_name': gwips_name,
+        'ribocrypt': ribocrypt_link,
+        'ribocrypt_name': ribocrypt_name,
+        }
     return render(request, 'main/sample.html', context)
 
 
@@ -657,7 +744,7 @@ class SampleListView(FilterView):
     filterset_class = SampleFilter
 
 
-def sample_select_form(request: HttpRequest) -> render:
+def sample_select_form(request: HttpRequest) -> str:
     """
     handle the samples selection form and either call links or download metadata
 
@@ -668,8 +755,12 @@ def sample_select_form(request: HttpRequest) -> render:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-
-    if "links" in selected:
+    print(selected)
+    if 'download-metadata' in selected:
+        return generate_samples_csv(request)
+    elif 'link-all' in selected:
+        return links(request)
+    elif "links" in selected:
         return links(request)
     elif 'metadata' in selected:
         return generate_samples_csv(request)
@@ -721,6 +812,7 @@ def generate_link(project, run, type="reads"):
                            path_suffixes[type]) + " or " +
               os.path.join(server_base, path_directories[type], project, run +
                            "_1" + path_suffixes[type]) + " does not exist")
+
         return None
 
 
@@ -738,7 +830,7 @@ def check_path_exists(
     return os.path.exists(server_base + "/" + path)
 
 
-def links(request: HttpRequest) -> render:
+def links(request: HttpRequest) -> str:
     """
     Render the links page.
 
@@ -749,13 +841,9 @@ def links(request: HttpRequest) -> render:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-    if 'run' in selected:
-        sample_query = build_run_query(selected['run'])
 
-    elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
-    elif 'query' in selected:
-        print(selected)
+    # Parse query from request
+    if 'query' in selected:
         sample_query = select_all_query(selected['query'][0])
         if "PubMed" in selected['query'][0] and "Available" in selected[
                 'query'][0]:
@@ -765,16 +853,27 @@ def links(request: HttpRequest) -> render:
         runs = sample_entries.values_list('Run', flat=True)
         if not str(sample_query) == "(AND: )":
             sample_query = build_run_query(runs)
+
+    elif 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
+
     else:
         sample_page_obj = None
         sample_query = None
 
+    # generate GWIPS and Trips URLs
     if sample_query is not None:
         trips = handle_trips_urls(sample_query)
         if 'query' in selected:
             gwips = handle_gwips_urls(request, sample_query)
+            ribocrypt = handle_ribocrypt_urls(request, sample_query)
         else:
             gwips = handle_gwips_urls(request)
+            ribocrypt = handle_ribocrypt_urls(request)
+
     else:
         trips = [{
             'clean_organism':
@@ -790,13 +889,16 @@ def links(request: HttpRequest) -> render:
         }]
     sample_entries = Sample.objects.filter(sample_query)
 
-    #sort by link presence
-    # sample_entries = sorted(sample_entries, key=lambda x: x.link == "", reverse=True)
 
+    # Retrieve entries 
+    sample_entries = Sample.objects.filter(sample_query)
+
+    # Paginate 
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     sample_page_obj = paginator.get_page(page_number)
 
+    # get links for entries on page
     for entry in sample_page_obj:
         link = generate_link(entry.BioProject, entry.Run)
         if type(link) == str:
@@ -809,7 +911,8 @@ def links(request: HttpRequest) -> render:
         'sample_results': sample_page_obj,
         'trips': trips,
         'gwips': gwips,
-    })
+        'ribocrypt': ribocrypt,
+        })
 
 
 def generate_samples_csv(request) -> HttpResponse:
@@ -818,19 +921,20 @@ def generate_samples_csv(request) -> HttpResponse:
     '''
     selected = dict(request.GET.lists())
 
-    if 'run' in selected:
-        sample_query = build_run_query(selected['run'])
-    elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
-    elif 'query' in selected:
-        sample_query = select_all_query(selected['query'][0])
+    if 'download-metadata' in selected:
+        sample_query = select_all_query(selected['download-metadata'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
         if not str(sample_query) == "(AND: )":
             sample_query = build_run_query(runs)
+    elif 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
     else:
         sample_page_obj = None
         sample_query = None
+
     if sample_query is not None:
         queryset = Sample.objects.filter(sample_query)
 

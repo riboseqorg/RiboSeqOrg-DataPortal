@@ -1,8 +1,9 @@
 {% extends 'main/base.html' %}
-{% block title %}Samples{% endblock %}
-{% block content %}
 {% load static %}
 
+{% block title %}Samples{% endblock %}
+
+{% block head_static %}
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
@@ -25,6 +26,7 @@
           var table = $('#sample-table').DataTable({
               paging: false,
               searching: false,
+              info: false,
             //   dom: 'Plfrtip',
               scrollY: '100vh',
                 // scrollX: true,
@@ -95,7 +97,8 @@
         window.location.href = newURL;
     }
     function checkform() {
-        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        var table = document.getElementById('sample-table'); // Get the table element by ID
+        var checkboxes = table.querySelectorAll('input[type="checkbox"]'); 
         var atleastOneChecked = false;
 
         for (var i = 0; i < checkboxes.length; i++) {
@@ -106,11 +109,12 @@
         }
         document.getElementById('submit').disabled = !atleastOneChecked;
         document.getElementById('metadata').disabled = !atleastOneChecked;
-
     }
 
     window.onload = checkform;
     </script>
+{% endblock %}
+{% block content %}
     <section id="database">
         <div id="side-panel" style="padding-bottom: 5px;">
             <a class="btn btn-primary" data-bs-toggle="collapse" href="#side-panel-collapse" role="button" aria-expanded="false" aria-controls="side-panel-collapse">
@@ -138,29 +142,21 @@
                                             <ul class="list-group overflow-auto" id="toggle-UL", style="list-style-type: none;">
                                                 <form>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="trips_id" {% if trips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'trips_id', 'on')">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="trips_id" {% if trips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'trips_id', 'on');">
                                                         <label class="form-check-label" for="toggle1">Available on Trips-Viz</label>
                                                     </div>
-                                                </form>
-                                                <form>
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="toggle2" name="gwips_id" {% if gwips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'gwips_id', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Available on GWIPS-viz</label>
                                                     </div>
-                                                </form>
-                                                <form>
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="toggle2" name="ribocrypt_id" {% if ribocrypt_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'ribocrypt_id', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Available on RiboCrypt</label>
                                                     </div>
-                                                </form>
-                                                <form>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="readfile" {% if readfile_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'readfile', 'on')">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="FASTA_file" {% if FASTA_file_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'FASTA_file', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Pre-Processed Read file Available</label>
                                                     </div>
-                                                </form>
-                                                <form>
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="toggle2" name="verified" {% if verified_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'verified', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Manually Verified</label>
@@ -205,23 +201,16 @@
                 <!-- Table column -->
                 <div class="col-md-9 order-2">
                     <div class="fw-container">
-                        <div class="fw-header">
-                            <h1>Samples</h1>
-                            <div class="nav-wrapper">
-                                <div class="nav-search">
-                                    <div class="nav-item i-user">
-                                        <div class="account"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="nav-ad">
-                                <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
-                            </div>
-                        </div>
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
                                     {% csrf_token %}
+                                    <div class="fw-header d-flex align-items-center">
+                                        <h1 class="flex-grow-1">Samples</h1>
+                                        <li class="button-item">
+                                          <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
+                                        </li>
+                                    </div>                                      
                                     <table id="sample-table" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
                                             <tr>
@@ -257,27 +246,57 @@
                                             </tr>
                                         </tfoot>
                                     </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination">
-                                            {% if page_obj.has_previous %}
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
-                                            {% endif %}
-                                            <span class="current">
-                                              <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
-                                            </span>
-                                            {% if page_obj.has_next %}
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
-                                            {% endif %}
-                                            <li class="button-item">
-                                              <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All - Current View</button>
-                                              <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
-                                              <button type="submit" class="btn btn-primary" id="submit" name="links">Links</button>
-                                              <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
-                                            </li>
-                                          </ul>
-                                      </nav>
+                                    <div class="d-flex justify-content-between">
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination">
+                                                {% if page_obj.has_previous %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                                {% endif %}
+                                                <span class="current">
+                                                <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
+                                                </span>
+                                                {% if page_obj.has_next %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                                                {% endif %}
+                                            </ul>
+                                        </nav>
+                                        <div class="d-flex justify-content-end">                               
+                                            <div class="btn-group">
+                                                <button type="submit" class="btn btn-primary" id="submit" name="links">
+                                                    Generate Links</button>
+                                                <button type="button" class="btn btn-primary 
+                                                    dropdown-toggle dropdown-toggle-split"
+                                                    data-bs-toggle="dropdown">
+                                                    <span class="visually-hidden">
+                                                        Generate Links
+                                                    </span>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Links - All Views</button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button type="submit" class="btn btn-primary" id="metadata" name="metadata">
+                                                    Download Metadata</button>
+                                                <button type="button" class="btn btn-primary 
+                                                    dropdown-toggle dropdown-toggle-split"
+                                                    data-bs-toggle="dropdown">
+                                                    <span class="visually-hidden">
+                                                        Download Metadata
+                                                    </span>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <button type="submit" class="btn btn-secondary" name="download-metadata" value="{{ request.GET.urlencode }}">Download Metadata - All Views</button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -285,5 +304,6 @@
                 </div>
             </div>
         </div>
+        
     </section>
 {% endblock %}
