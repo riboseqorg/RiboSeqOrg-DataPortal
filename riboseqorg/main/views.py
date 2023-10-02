@@ -814,22 +814,22 @@ def generate_link(project, run, type="reads"):
     project = str(project)
     run = str(run)
     if os.path.exists(
-            os.path.join(server_base, path_directories[type], project,
+            os.path.join(server_base, path_directories[type],
                          run + path_suffixes[type])):
         return str(
-            os.path.join(path_directories[type], project,
+            os.path.join(path_directories[type],
                          run + path_suffixes[type]))
     elif os.path.exists(
-            os.path.join(server_base, path_directories[type], project,
+            os.path.join(server_base, path_directories[type],
                          run + "_1" + path_suffixes[type])):
         return str(
-            os.path.join(path_directories[type], project,
+            os.path.join(path_directories[type],
                          run + "_1" + path_suffixes[type]))
     else:
         print("Failed: " +
-              os.path.join(server_base, path_directories[type], project, run +
+              os.path.join(server_base, path_directories[type], run +
                            path_suffixes[type]) + " or " +
-              os.path.join(server_base, path_directories[type], project, run +
+              os.path.join(server_base, path_directories[type], run +
                            "_1" + path_suffixes[type]) + " does not exist")
 
         return None
