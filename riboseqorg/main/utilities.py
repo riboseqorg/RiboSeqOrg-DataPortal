@@ -45,10 +45,11 @@ def get_clean_names() -> dict:
         'sample_title': 'Sample Title',
         'ENA_first_public': 'ENA First Public',
         'ENA_last_update': 'ENA Last Update',
-        'INSDC_center_alias': 'INSDC Center Alias',	
+        'INSDC_center_alias': 'INSDC Center Alias',
         'INSDC_center_name': 'INSDC Center Name',
         'INSDC_first_public': 'INSDC First Public',
         'INSDC_last_update': 'INSDC Last Update',
+        'INSDC_status': 'INSDC Status',
         'GEO_Accession'	: 'GEO Accession',
         'Experiment_Date': 'Date of Experiment',
         'date_sequenced': 'Date of Sequencing',
@@ -271,7 +272,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
     gwips = []
 
     requested = dict(request.GET.lists())
-
     if str(query) != '<Q: (AND: )>' and query is not None:
         samples = Sample.objects.filter(query)
     elif 'run' in requested:
@@ -340,7 +340,20 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
             if gwips_dict:
                 gwips_dict['files'] = '&'.join(gwips_dict['files'])
                 gwips.append(gwips_dict)
-
+        else:
+            gwips.append(
+                {
+                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                }
+            )
+    else:
+        gwips.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+            }
+        )
     return gwips
 
 

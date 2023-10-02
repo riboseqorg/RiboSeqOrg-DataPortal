@@ -129,9 +129,9 @@
                                     <td>{{ sample.CELL_LINE }}</td>
                                     <td>{{ sample.LIBRARYTYPE }}</td>
                                     <td>{{ sample.INHIBITOR }}</td>
-                                    <td><a href="http://trips.ucc.ie">Trips-Viz</a></td>
-                                    <td><a href="http://gwips.ucc.ie">GWIPS-viz</a></td>
-                                    <td><a href="http://RiboCrypt.org">RiboCrypt</a></td>
+                                    <td><a href="{{ trips }}">{{ trips_name }}</a></td>
+                                    <td><a href="{{ gwips }}">{{ gwips_name }}</a></td>
+                                    <td><a href="{{ ribocrypt }}">{{ ribocrypt_name }}</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

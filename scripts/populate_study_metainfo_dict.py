@@ -163,7 +163,7 @@ def get_metainformation_dict(df: pd.DataFrame) -> dict:
 
     # Release date is the date of the first publication of this data. It is a combination of the month and year. But date can be overwritten from GSE/BioProject
     # 00 is used to make sure that the date is in the correct format as the date is not known only month and year
-    record['Release_Date'] = '/'.join(['00', str(df['MONTH'].unique()[0]), str(df['YEAR'].unique()[0])])
+    record['Release_Date'] = '/'.join([str(df['YEAR'].unique()[0]), str(df['MONTH'].unique()[0]), '00', '00:00'])
 
     # Seq_types is a ; separated list of all sequencing types in this study (Ribo-Seq, RNA-Seq, etc.)
     if list(df['LIBRARYTYPE'].unique()) == ['nan']:
