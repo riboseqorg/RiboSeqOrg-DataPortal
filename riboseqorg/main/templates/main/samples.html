@@ -98,7 +98,7 @@
     }
     function checkform() {
         var table = document.getElementById('sample-table'); // Get the table element by ID
-        var checkboxes = table.querySelectorAll('input[type="checkbox"]'); // Find checkboxes within the table
+        var checkboxes = table.querySelectorAll('input[type="checkbox"]'); 
         var atleastOneChecked = false;
 
         for (var i = 0; i < checkboxes.length; i++) {
@@ -201,23 +201,16 @@
                 <!-- Table column -->
                 <div class="col-md-9 order-2">
                     <div class="fw-container">
-                        <div class="fw-header">
-                            <h1>Samples</h1>
-                            <div class="nav-wrapper">
-                                <div class="nav-search">
-                                    <div class="nav-item i-user">
-                                        <div class="account"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="nav-ad">
-                                <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
-                            </div>
-                        </div>
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
                                     {% csrf_token %}
+                                    <div class="fw-header d-flex align-items-center">
+                                        <h1 class="flex-grow-1">Samples</h1>
+                                        <li class="button-item">
+                                          <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
+                                        </li>
+                                    </div>                                      
                                     <table id="sample-table" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
                                             <tr>
@@ -253,27 +246,57 @@
                                             </tr>
                                         </tfoot>
                                     </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination">
-                                            {% if page_obj.has_previous %}
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
-                                            {% endif %}
-                                            <span class="current">
-                                              <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
-                                            </span>
-                                            {% if page_obj.has_next %}
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>
-                                              <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
-                                            {% endif %}
-                                            <li class="button-item">
-                                              <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All - Current View</button>
-                                              <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
-                                              <button type="submit" class="btn btn-primary" id="submit" name="links">Links</button>
-                                              <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
-                                            </li>
-                                          </ul>
-                                      </nav>
+                                    <div class="d-flex justify-content-between">
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination">
+                                                {% if page_obj.has_previous %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                                {% endif %}
+                                                <span class="current">
+                                                <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
+                                                </span>
+                                                {% if page_obj.has_next %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                                                {% endif %}
+                                            </ul>
+                                        </nav>
+                                        <div class="d-flex justify-content-end">                               
+                                            <div class="btn-group">
+                                                <button type="submit" class="btn btn-primary" id="submit" name="links">
+                                                    Generate Links</button>
+                                                <button type="button" class="btn btn-primary 
+                                                    dropdown-toggle dropdown-toggle-split"
+                                                    data-bs-toggle="dropdown">
+                                                    <span class="visually-hidden">
+                                                        Generate Links
+                                                    </span>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Links - All Views</button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button type="submit" class="btn btn-primary" id="metadata" name="metadata">
+                                                    Download Metadata</button>
+                                                <button type="button" class="btn btn-primary 
+                                                    dropdown-toggle dropdown-toggle-split"
+                                                    data-bs-toggle="dropdown">
+                                                    <span class="visually-hidden">
+                                                        Download Metadata
+                                                    </span>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <button type="submit" class="btn btn-secondary" name="download-metadata" value="{{ request.GET.urlencode }}">Download Metadata - All Views</button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>

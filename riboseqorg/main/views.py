@@ -340,7 +340,7 @@ def samples(request: HttpRequest) -> str:
         'trips_id',
         'gwips_id',
         'ribocrypt_id',
-        'readfile',
+        'FASTA_file',
         'verified',
     ]
     clean_names = get_clean_names()
@@ -739,8 +739,12 @@ def sample_select_form(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-
-    if "links" in selected:
+    print(selected)
+    if 'download-metadata' in selected:
+        return generate_samples_csv(request)
+    elif 'link-all' in selected:
+        return links(request)
+    elif "links" in selected:
         return links(request)
     elif 'metadata' in selected:
         return generate_samples_csv(request)
@@ -808,18 +812,19 @@ def links(request: HttpRequest) -> str:
     selected = dict(request.GET.lists())
 
     # Parse query from request
-    if 'run' in selected:
-        sample_query = build_run_query(selected['run'])
-
-    elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
-
-    elif 'query' in selected:
+    if 'query' in selected:
         sample_query = select_all_query(selected['query'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
         if not str(sample_query) == "(AND: )":
             sample_query = build_run_query(runs)
+
+    elif 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
+
     else:
         sample_page_obj = None
         sample_query = None
@@ -885,19 +890,20 @@ def generate_samples_csv(request) -> HttpResponse:
     '''
     selected = dict(request.GET.lists())
 
-    if 'run' in selected:
-        sample_query = build_run_query(selected['run'])
-    elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
-    elif 'query' in selected:
-        sample_query = select_all_query(selected['query'][0])
+    if 'download-metadata' in selected:
+        sample_query = select_all_query(selected['download-metadata'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
         if not str(sample_query) == "(AND: )":
             sample_query = build_run_query(runs)
+    elif 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
     else:
         sample_page_obj = None
         sample_query = None
+
     if sample_query is not None:
         queryset = Sample.objects.filter(sample_query)
 
