@@ -102,7 +102,7 @@ def get_clean_names() -> dict:
         'trips_id': 'trips_id',
         'gwips_id': 'gwips_id',
         'ribocrypt_id': 'ribocrypt_id',
-        'readfile': 'readfile',
+        'FASTA_file': 'FASTA_file',
     }
     return clean_names
 
@@ -144,7 +144,7 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
         options = request.GET.getlist(field)
         q_options = Q()
         for option in options:
-            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'readfile', 'verified']:
+            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified']:
                 if option == 'on':
                     option = True
                 else:
@@ -271,7 +271,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
     gwips = []
 
     requested = dict(request.GET.lists())
-    print("REQUESTED: ", requested)
     if str(query) != '<Q: (AND: )>' and query is not None:
         samples = Sample.objects.filter(query)
     elif 'run' in requested:
@@ -314,7 +313,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
 
     elif 'bioproject' in requested or str(query) != '<Q: (AND: )>':
         for organism in organisms:
-            print(organism)
             organism_df = samples_df[samples_df['ScientificName'] == organism]
             organism_df = organism_df[organism_df['gwips_id'] == True]
             if organism_df.empty:
@@ -355,7 +353,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 'organism': 'None of the Selected Runs are available on GWIPS-Viz',
             }
         )
-    print("GWIPS", gwips)
     return gwips
 
 
