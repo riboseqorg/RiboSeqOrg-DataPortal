@@ -11,6 +11,7 @@ from django.db.models import F, Value
 from .models import Sample, Study, OpenColumns, Trips, GWIPS
 
 import pandas as pd
+from datetime import datetime
 from .forms import SearchForm
 
 from django_filters.views import FilterView
@@ -466,6 +467,22 @@ def studies(request: HttpRequest) -> render:
                     if name in appropriate_fields or name in boolean_fields]
     query = build_query(request, query_params, clean_names)
     study_entries = Study.objects.filter(query)
+    for i, obj in enumerate(study_entries):
+        date_string = obj.Release_Date
+        try:
+            date_obj = datetime.strptime(date_string,
+                                         "%Y/%m/%d %H:%M").strftime("%m/%d/%Y")
+            # Update the object in the database with the date object if needed
+        except ValueError:
+            print(obj.BioProject, date_string)
+            # NOTE: For eeror associated dates
+            date_obj = "01/01/2001"
+        study_entries[i].Release_Date = date_obj
+
+
+# study_entries.save()
+# Handle invalid date strings if necessary
+
     sample_filter_options = get_sample_filter_options(study_entries)
     clean_results_dict = handle_filter(param_options, appropriate_fields,
                                        clean_names)
