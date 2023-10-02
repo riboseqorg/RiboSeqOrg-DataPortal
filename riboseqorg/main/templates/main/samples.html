@@ -109,7 +109,6 @@
         }
         document.getElementById('submit').disabled = !atleastOneChecked;
         document.getElementById('metadata').disabled = !atleastOneChecked;
-
     }
 
     window.onload = checkform;
@@ -143,7 +142,7 @@
                                             <ul class="list-group overflow-auto" id="toggle-UL", style="list-style-type: none;">
                                                 <form>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="trips_id" {% if trips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'trips_id', 'on')">
+                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="trips_id" {% if trips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'trips_id', 'on');">
                                                         <label class="form-check-label" for="toggle1">Available on Trips-Viz</label>
                                                     </div>
                                                     <div class="form-check form-switch">
