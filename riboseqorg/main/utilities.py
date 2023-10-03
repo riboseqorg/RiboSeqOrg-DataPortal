@@ -483,7 +483,7 @@ def select_all_query(query_string):
     return query
 
 
-def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastp"):
+def get_fastp_report_link(run: str, base_path="fastp"):
     '''
     Return path to fastp report file for given run
 
@@ -509,7 +509,7 @@ def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-
                 return None
 
 
-def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastqc"):
+def get_fastqc_report_link(run: str, base_path="fastqc"):
     '''
     Return path to fastp report file for given run
 
