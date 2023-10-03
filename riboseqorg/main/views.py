@@ -20,7 +20,8 @@ from .utilities import get_clean_names, get_original_name,\
     build_query, handle_filter, handle_gwips_urls,\
     handle_trips_urls, handle_ribocrypt_urls,\
     build_run_query, build_bioproject_query,\
-    select_all_query, handle_urls_for_query
+    select_all_query, handle_urls_for_query,\
+    get_fastp_report_link, get_fastqc_report_link
 
 
 from rest_framework import generics, permissions
@@ -706,6 +707,8 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         'gwips_name': urls['gwips_name'],
         'ribocrypt': urls['ribocrypt_link'],
         'ribocrypt_name': urls['ribocrypt_name'],
+        'fastp': get_fastp_report_link(sample_model.Run),
+        'fastqc': get_fastqc_report_link(sample_model.Run),
         }
     return render(request, 'main/sample.html', context)
 
