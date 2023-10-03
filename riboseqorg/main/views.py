@@ -953,16 +953,16 @@ def download_all(request) -> HttpRequest:
         with zipfile.ZipFile(zip_file_path, 'w') as zip_file:
             for accession in selected['run']:
                 sample = Sample.objects.get(Run=accession)
-                file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_clipped_collapsed.fastq.gz"
+                file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_clipped_collapsed.fastq.gz"
 
                 if os.path.exists(file_path):
                     zip_file.write(file_path)
                 else:
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_1_clipped_collapsed.fastq.gz"
+                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_1_clipped_collapsed.fastq.gz"
                     if os.path.exists(file_path):
                         zip_file.write(file_path)
 
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_2_clipped_collapsed.fastq.gz"
+                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_2_clipped_collapsed.fastq.gz"
                     if os.path.exists(file_path):
                         zip_file.write(file_path)
 
