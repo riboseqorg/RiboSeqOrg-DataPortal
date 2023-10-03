@@ -33,12 +33,13 @@ import csv
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http import FileResponse
 from django.conf import settings
-import os
 
-import zipfile
+import os
+import uuid
+
 import tempfile
-import shutil
-import time
+
+
 
 CharField.register_lookup(Length, 'length')
 
@@ -968,29 +969,19 @@ def download_all(request) -> HttpRequest:
     Download all corresponding files for the accessions in the request
     '''
     selected = dict(request.GET.lists())
+    filename = str(uuid.uuid4())
 
-    # Create a temporary directory
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        zip_file_path = os.path.join(tmp_dir, 'RiboSeqOrg_DataFiles.zip')
+    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/"
 
-        with zipfile.ZipFile(zip_file_path, 'w') as zip_file:
-            for accession in selected['run']:
-                sample = Sample.objects.get(Run=accession)
-                file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_clipped_collapsed.fastq.gz"
+    file_content = []
 
-                if os.path.exists(file_path):
-                    zip_file.write(file_path)
-                else:
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_1_clipped_collapsed.fastq.gz"
-                    if os.path.exists(file_path):
-                        zip_file.write(file_path)
+    with open(f"{static_base_path}RiboSeqOrg_Download_{filename}.sh", 'w') as f:
+        for accession in selected['run']:
+            link = generate_link(accession, accession)
+            if link:
+                f.write(link + '\n')
+                file_content.append(link + '\n')
 
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_2_clipped_collapsed.fastq.gz"
-                    if os.path.exists(file_path):
-                        zip_file.write(file_path)
-
-            response = HttpResponse(zip_file, content_type='application/force-download')
-        response[
-            "Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'
-
+    response = HttpResponse(file_content, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(f"RiboSeqOrg_Download_{filename}.sh")}"'
     return response
