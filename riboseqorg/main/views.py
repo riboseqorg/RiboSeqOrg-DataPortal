@@ -893,12 +893,12 @@ def links(request: HttpRequest) -> str:
             entry.link_type = "FASTA"
         else:
             entry.link = ""
-
     return render(request, 'main/links.html', {
         'sample_results': sample_page_obj,
         'trips': trips,
         'gwips': gwips,
         'ribocrypt': ribocrypt,
+        'current_url': request.get_full_path(),
         })
 
 
