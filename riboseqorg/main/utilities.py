@@ -1,8 +1,9 @@
 from django.http import HttpRequest
 from django.db.models import Q
-from .models import Sample, Study, OpenColumns, Trips, GWIPS
+from .models import Sample, Trips, GWIPS
 import pandas as pd
 
+import os
 
 
 def get_clean_names() -> dict:
@@ -480,3 +481,55 @@ def select_all_query(query_string):
                 continue
             query &= Q(**{query_mappings[model_key]: value})
     return query
+
+
+def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastp"):
+    '''
+    Return path to fastp report file for given run
+
+
+    Arguments:
+    - run (str): the run to get the report for
+
+    Returns:
+    - (str): the path to the report file
+    '''
+    path = f"{base_path}/{run}.html"
+    if os.path.exists(path):
+        return path
+    else:
+        path = f"{base_path}/{run}_1.html"
+        if os.path.exists(path):
+            return path
+        else:
+            path = f"{base_path}/{run}_2.html"
+            if os.path.exists(path):
+                return path
+            else:
+                return None
+
+
+def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastqc"):
+    '''
+    Return path to fastp report file for given run
+
+
+    Arguments:
+    - run (str): the run to get the report for
+
+    Returns:
+    - (str): the path to the report file
+    '''
+    path = f"{base_path}/{run}_fastqc.html"
+    if os.path.exists(path):
+        return path
+    else:
+        path = f"{base_path}/{run}_1_fastqc.html"
+        if os.path.exists(path):
+            return path
+        else:
+            path = f"{base_path}/{run}_2_fastqc.html"
+            if os.path.exists(path):
+                return path
+            else:
+                return None
