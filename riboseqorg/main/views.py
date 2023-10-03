@@ -973,15 +973,16 @@ def download_all(request) -> HttpRequest:
 
     static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/"
 
-    file_content = []
+    file_content = ["#!/usr/bin/env bash\n", "wget  "]
 
     with open(f"{static_base_path}RiboSeqOrg_Download_{filename}.sh", 'w') as f:
         for accession in selected['run']:
             link = generate_link(accession, accession)
             if link:
                 f.write(link + '\n')
-                file_content.append(link + '\n')
+                file_content.append(f"https://recode.ucc.ie/{link} \ \n")
 
     response = HttpResponse(file_content, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="{os.path.basename(f"RiboSeqOrg_Download_{filename}.sh")}"'
     return response
+
