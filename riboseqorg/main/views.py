@@ -784,15 +784,18 @@ def generate_link(project, run, type="reads"):
     if os.path.exists(
             os.path.join(server_base, path_directories[type],
                          run + path_suffixes[type])):
-        return str(
-            os.path.join(path_directories[type],
-                         run + path_suffixes[type]))
+        # return str(
+        #     os.path.join(path_directories[type],
+        #                  run + path_suffixes[type]))
+        return f"/static2/{path_directories[type]}/{run + path_suffixes[type]}" 
+
     elif os.path.exists(
             os.path.join(server_base, path_directories[type],
                          run + "_1" + path_suffixes[type])):
-        return str(
-            os.path.join(path_directories[type],
-                         run + "_1" + path_suffixes[type]))
+        return f"/static2/{path_directories[type]}/{run}_1{path_suffixes[type]}"
+        # return str(
+        #     os.path.join(path_directories[type],
+        #                  run + "_1" + path_suffixes[type]))
     else:
         print("Failed: " +
               os.path.join(server_base, path_directories[type], run +
@@ -800,7 +803,7 @@ def generate_link(project, run, type="reads"):
               os.path.join(server_base, path_directories[type], run +
                            "_1" + path_suffixes[type]) + " does not exist")
 
-        return None
+    return None
 
 
 def check_path_exists(
@@ -989,8 +992,5 @@ def download_all(request) -> HttpRequest:
             response = HttpResponse(zip_file, content_type='application/force-download')
         response[
             "Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'
-
-        # with open(zip_file_path, 'rb') as zip_file:
-        #     response.write(zip_file.read())
 
     return response
