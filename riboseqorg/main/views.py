@@ -20,7 +20,8 @@ from .utilities import get_clean_names, get_original_name,\
     build_query, handle_filter, handle_gwips_urls,\
     handle_trips_urls, handle_ribocrypt_urls,\
     build_run_query, build_bioproject_query,\
-    select_all_query
+    select_all_query, handle_urls_for_query,\
+    get_fastp_report_link, get_fastqc_report_link
 
 
 from rest_framework import generics, permissions
@@ -543,48 +544,36 @@ def study_detail(request: HttpRequest, query: str) -> str:
     ls = Sample.objects.filter(BioProject=query)
 
     query = Q(BioProject=query)
-    if query is not None:
-        trips = handle_trips_urls(query)[0]
-        if len(trips['clean_organism'].split(" ")) > 5:
-            bioproject_trips_link = "https://trips.ucc.ie/"
-            bioproject_trips_name = "Not Available"
-        else:
-            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
-            bioproject_trips_name = "Visit Trips-Viz"
-
-        gwips = handle_gwips_urls(request, query=query)[0]
-        if len(gwips['clean_organism'].split(" ")) > 5:
-            bioproject_gwips_link = "https://gwips.ucc.ie/"
-            bioproject_gwips_name = "Not Available"
-        else:
-            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
-            bioproject_gwips_name = "Visit GWIPS-viz"
-
-        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
-        if len(ribocrypt['clean_organism'].split(" ")) > 5:
-            bioproject_ribocrypt_link = "https://ribocrypt.org/"
-            bioproject_ribocrypt_name = "Not Available"
-        else:
-            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
-            bioproject_ribocrypt_name = "Visit RiboCrypt"
+    urls = handle_urls_for_query(request, query)
 
     for entry in ls:
+        query = Q(Run=entry.Run)
+        urls = handle_urls_for_query(request, query)
+        entry.trips_link = urls['trips_link']
+        entry.trips_name = urls['trips_name']
+        entry.gwips_link = urls['gwips_link']
+        entry.gwips_name = urls['gwips_name']
+        entry.ribocrypt_link = urls['ribocrypt_link']
+        entry.ribocrypt_name = urls['ribocrypt_name']
+        # get download link
         link = generate_link(entry.BioProject, entry.Run)
         if type(link) == str:
             entry.link = f"/file-download/{link}"
             entry.link_type = "FASTA"
         else:
             entry.link = ""
+            entry.link_type = "Not Available"
+
     # Return all results from Sample and query the sqlite too and add this to the table
     context = {
         'Study': study_model,
         'ls': ls,
-        'bioproject_trips_link': bioproject_trips_link,
-        'bioproject_trips_name': bioproject_trips_name,
-        'bioproject_gwips_link': bioproject_gwips_link,
-        'bioproject_gwips_name': bioproject_gwips_name,
-        'bioproject_ribocrypt_link': bioproject_ribocrypt_link,
-        'bioproject_ribocrypt_name': bioproject_ribocrypt_name,
+        'bioproject_trips_link': urls['trips_link'],
+        'bioproject_trips_name': urls['trips_name'],
+        'bioproject_gwips_link': urls['gwips_link'],
+        'bioproject_gwips_name': urls['gwips_name'],
+        'bioproject_ribocrypt_link': urls['ribocrypt_link'],
+        'bioproject_ribocrypt_name': urls['ribocrypt_name'],
         }
     return render(request, 'main/study.html', context)
 
@@ -702,30 +691,7 @@ def sample_detail(request: HttpRequest, query: str) -> str:
     sample_query = Q(Run=query)
 
     # generate GWIPS and Trips URLs
-    if query is not None:
-        trips = handle_trips_urls(sample_query)[0]
-        if len(trips['clean_organism'].split(" ")) > 5:
-            trips_link = "https://trips.ucc.ie/"
-            trips_name = "Not Available"
-        else:
-            trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
-            trips_name = "Visit Trips-Viz"
-
-        gwips = handle_gwips_urls(request, query=sample_query)[0]
-        if len(gwips['clean_organism'].split(" ")) > 5:
-            gwips_link = "https://gwips.ucc.ie/"
-            gwips_name = "Not Available"
-        else:
-            gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
-            gwips_name = "Visit GWIPS-viz"
-
-        ribocrypt = handle_ribocrypt_urls(request, query=sample_query)[0]
-        if len(ribocrypt['clean_organism'].split(" ")) > 5:
-            ribocrypt_link = "https://ribocrypt.org/"
-            ribocrypt_name = "Not Available"
-        else:
-            ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
-            ribocrypt_name = "Visit RiboCrypt"
+    urls = handle_urls_for_query(request, sample_query)
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
@@ -735,12 +701,14 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         'Sample': sample_model,
         'ls': page_obj,
         'ks': ks,
-        'trips': trips_link,
-        'trips_name': trips_name,
-        'gwips': gwips_link,
-        'gwips_name': gwips_name,
-        'ribocrypt': ribocrypt_link,
-        'ribocrypt_name': ribocrypt_name,
+        'trips': urls['trips_link'],
+        'trips_name': urls['trips_name'],
+        'gwips': urls['gwips_link'],
+        'gwips_name': urls['gwips_name'],
+        'ribocrypt': urls['ribocrypt_link'],
+        'ribocrypt_name': urls['ribocrypt_name'],
+        'fastp': get_fastp_report_link(sample_model.Run),
+        'fastqc': get_fastqc_report_link(sample_model.Run),
         }
     return render(request, 'main/sample.html', context)
 
@@ -988,16 +956,16 @@ def download_all(request) -> HttpRequest:
         with zipfile.ZipFile(zip_file_path, 'w') as zip_file:
             for accession in selected['run']:
                 sample = Sample.objects.get(Run=accession)
-                file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_clipped_collapsed.fastq.gz"
+                file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_clipped_collapsed.fastq.gz"
 
                 if os.path.exists(file_path):
                     zip_file.write(file_path)
                 else:
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_1_clipped_collapsed.fastq.gz"
+                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_1_clipped_collapsed.fastq.gz"
                     if os.path.exists(file_path):
                         zip_file.write(file_path)
 
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_2_clipped_collapsed.fastq.gz"
+                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.Run}_2_clipped_collapsed.fastq.gz"
                     if os.path.exists(file_path):
                         zip_file.write(file_path)
 

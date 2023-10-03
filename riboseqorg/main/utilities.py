@@ -1,8 +1,9 @@
 from django.http import HttpRequest
 from django.db.models import Q
-from .models import Sample, Study, OpenColumns, Trips, GWIPS
+from .models import Sample, Trips, GWIPS
 import pandas as pd
 
+import os
 
 
 def get_clean_names() -> dict:
@@ -398,6 +399,62 @@ def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
     return ribocrypt
 
 
+def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
+    '''
+    generate gwips trips and ribocrypt urls for a given query
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    - query (Q): the query
+
+    Returns:
+    - (dict): the urls for the query
+    '''
+    if query is not None:
+        trips = handle_trips_urls(query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            bioproject_trips_link = "https://trips.ucc.ie/"
+            bioproject_trips_name = "Not Available"
+        else:
+            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            bioproject_trips_name = "Visit Trips-Viz"
+
+        gwips = handle_gwips_urls(request, query=query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            bioproject_gwips_link = "https://gwips.ucc.ie/"
+            bioproject_gwips_name = "Not Available"
+        else:
+            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            bioproject_gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            bioproject_ribocrypt_link = "https://ribocrypt.org/"
+            bioproject_ribocrypt_name = "Not Available"
+        else:
+            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            bioproject_ribocrypt_name = "Visit RiboCrypt"
+
+        return {
+            'trips_link': bioproject_trips_link,
+            'trips_name': bioproject_trips_name,
+            'gwips_link': bioproject_gwips_link,
+            'gwips_name': bioproject_gwips_name,
+            'ribocrypt_link': bioproject_ribocrypt_link,
+            'ribocrypt_name': bioproject_ribocrypt_name,
+        }
+
+    else:
+        return {
+            'trips_link': "https://trips.ucc.ie/",
+            'trips_name': "Not Available",
+            'gwips_link': "https://gwips.ucc.ie/",
+            'gwips_name': "Not Available",
+            'ribocrypt_link': "https://ribocrypt.org/",
+            'ribocrypt_name': "Not Available",
+        }
+
+
 def select_all_query(query_string):
     '''
     Generate a query string to select all the samples in the database that were shown in the table
@@ -424,3 +481,55 @@ def select_all_query(query_string):
                 continue
             query &= Q(**{query_mappings[model_key]: value})
     return query
+
+
+def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastp"):
+    '''
+    Return path to fastp report file for given run
+
+
+    Arguments:
+    - run (str): the run to get the report for
+
+    Returns:
+    - (str): the path to the report file
+    '''
+    path = f"{base_path}/{run}.html"
+    if os.path.exists(path):
+        return path
+    else:
+        path = f"{base_path}/{run}_1.html"
+        if os.path.exists(path):
+            return path
+        else:
+            path = f"{base_path}/{run}_2.html"
+            if os.path.exists(path):
+                return path
+            else:
+                return None
+
+
+def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastqc"):
+    '''
+    Return path to fastp report file for given run
+
+
+    Arguments:
+    - run (str): the run to get the report for
+
+    Returns:
+    - (str): the path to the report file
+    '''
+    path = f"{base_path}/{run}_fastqc.html"
+    if os.path.exists(path):
+        return path
+    else:
+        path = f"{base_path}/{run}_1_fastqc.html"
+        if os.path.exists(path):
+            return path
+        else:
+            path = f"{base_path}/{run}_2_fastqc.html"
+            if os.path.exists(path):
+                return path
+            else:
+                return None
