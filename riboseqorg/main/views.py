@@ -943,6 +943,23 @@ def generate_samples_csv(request) -> HttpResponse:
         return HttpResponseNotFound("No Samples Selected")
 
 
+def reports(request, query) -> str:
+    '''
+    Generate reports page
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+
+    Returns:
+    - (render): the rendered HTTP response for the page
+    '''
+
+    return render(request, 'main/reports.html', {
+        'fastp': get_fastp_report_link(query),
+        'fastqc': get_fastqc_report_link(query),
+        })
+
+
 def download_all(request) -> HttpRequest:
     '''
     Download all corresponding files for the accessions in the request
