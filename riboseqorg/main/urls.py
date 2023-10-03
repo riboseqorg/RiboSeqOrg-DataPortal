@@ -17,4 +17,5 @@ urlpatterns = [
     path("generate-csv/", views.generate_samples_csv, name="generate_samples_csv"),
     path('download/recode-db/', views.download_recode_db, name='download_recode_db'),
     path('downlaod_all/', views.download_all, name='download_all'),
-]
+    path('reports/<str:query>', views.reports, name='reports'),
+    ]
