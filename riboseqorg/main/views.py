@@ -690,30 +690,7 @@ def sample_detail(request: HttpRequest, query: str) -> str:
     sample_query = Q(Run=query)
 
     # generate GWIPS and Trips URLs
-    if query is not None:
-        trips = handle_trips_urls(sample_query)[0]
-        if len(trips['clean_organism'].split(" ")) > 5:
-            trips_link = "https://trips.ucc.ie/"
-            trips_name = "Not Available"
-        else:
-            trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
-            trips_name = "Visit Trips-Viz"
-
-        gwips = handle_gwips_urls(request, query=sample_query)[0]
-        if len(gwips['clean_organism'].split(" ")) > 5:
-            gwips_link = "https://gwips.ucc.ie/"
-            gwips_name = "Not Available"
-        else:
-            gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
-            gwips_name = "Visit GWIPS-viz"
-
-        ribocrypt = handle_ribocrypt_urls(request, query=sample_query)[0]
-        if len(ribocrypt['clean_organism'].split(" ")) > 5:
-            ribocrypt_link = "https://ribocrypt.org/"
-            ribocrypt_name = "Not Available"
-        else:
-            ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
-            ribocrypt_name = "Visit RiboCrypt"
+    urls = handle_urls_for_query(request, sample_query)
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
@@ -723,12 +700,12 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         'Sample': sample_model,
         'ls': page_obj,
         'ks': ks,
-        'trips': trips_link,
-        'trips_name': trips_name,
-        'gwips': gwips_link,
-        'gwips_name': gwips_name,
-        'ribocrypt': ribocrypt_link,
-        'ribocrypt_name': ribocrypt_name,
+        'trips': urls['trips_link'],
+        'trips_name': urls['trips_name'],
+        'gwips': urls['gwips_link'],
+        'gwips_name': urls['gwips_name'],
+        'ribocrypt': urls['ribocrypt_link'],
+        'ribocrypt_name': urls['ribocrypt_name'],
         }
     return render(request, 'main/sample.html', context)
 
