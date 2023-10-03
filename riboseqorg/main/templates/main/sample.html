@@ -20,6 +20,7 @@
     <section id="study">
         <h1>{{ Sample.Run }} (<a href="/Study/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a>)</h1>
         <h4>General Details</h4>
+        <p><a href="/reports/{{ Sample.Run }}" >View quality reports</a></p>
         <table class="table table-bordered" id="study-general">
             <tr>
                 <th>Sample Name</th>
@@ -34,18 +35,6 @@
                 <td>{{ Sample.MONTH }}/{{ Sample.YEAR }}</td>
             </tr>
         </table>
-        <ul>
-            <li><a href="#fastp">FASTP Report</a></li>
-            <li><a href="#fastqc">FASTQC Report</a></li>
-        </ul>
-    
-        <div id="fastp" class="tab-content">
-            <iframe src="{{ fastp }}" width="100%" height="500"></iframe>
-        </div>
-    
-        <div id="fastqc" class="tab-content">
-            <iframe src="{{ fastqc }}" width="100%" height="500"></iframe>
-        </div>
         <h4>Sample Links</h4>
         <table class="table table-bordered" id="study-links">
             <tr>
