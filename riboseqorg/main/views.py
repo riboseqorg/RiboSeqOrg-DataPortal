@@ -986,11 +986,11 @@ def download_all(request) -> HttpRequest:
                     if os.path.exists(file_path):
                         zip_file.write(file_path)
 
-        response = HttpResponse(content_type="application/zip")
+            response = HttpResponse(zip_file, content_type='application/force-download')
         response[
             "Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'
 
-        with open(zip_file_path, 'rb') as zip_file:
-            response.write(zip_file.read())
+        # with open(zip_file_path, 'rb') as zip_file:
+        #     response.write(zip_file.read())
 
     return response
