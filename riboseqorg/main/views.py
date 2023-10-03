@@ -993,8 +993,4 @@ def download_all(request) -> HttpRequest:
         with open(zip_file_path, 'rb') as zip_file:
             response.write(zip_file.read())
 
-    # 10 minute wait before deltion
-    time.sleep(600)
-    shutil.rmtree(tmp_dir)
-
     return response
