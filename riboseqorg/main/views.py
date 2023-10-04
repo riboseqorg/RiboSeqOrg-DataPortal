@@ -551,6 +551,7 @@ def study_detail(request: HttpRequest, query: str) -> str:
     for entry in ls:
         query = Q(Run=entry.Run)
         urls = handle_urls_for_query(request, query)
+        print(urls)
         entry.trips_link = urls['trips_link']
         entry.trips_name = urls['trips_name']
         entry.gwips_link = urls['gwips_link']
@@ -881,6 +882,15 @@ def links(request: HttpRequest) -> str:
     # get links for entries on page
     for entry in sample_page_obj:
         link = generate_link(entry.BioProject, entry.Run)
+        query = Q(Run=entry.Run)
+        urls = handle_urls_for_query(request, query)
+        print(urls)
+        entry.trips_link = urls['trips_link']
+        entry.trips_name = urls['trips_name']
+        entry.gwips_link = urls['gwips_link']
+        entry.gwips_name = urls['gwips_name']
+        entry.ribocrypt_link = urls['ribocrypt_link']
+        entry.ribocrypt_name = urls['ribocrypt_name']
         if type(link) == str:
             entry.link = f"/file-download/{link}"
             entry.link_type = "FASTA"
