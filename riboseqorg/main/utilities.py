@@ -1,6 +1,6 @@
 from django.http import HttpRequest
 from django.db.models import Q
-from .models import Sample, Trips, GWIPS
+from .models import Sample, Trips, GWIPS, RiboCrypt
 import pandas as pd
 
 import os
@@ -377,23 +377,25 @@ def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
     requested = dict(request.GET.lists())
 
     if str(query) != '<Q: (AND: )>' and query is not None:
-        samples = Sample.objects.filter(query)
+        samples = RiboCrypt.objects.filter(query)
 
     elif 'run' in requested:
         runs = requested['run']
-        samples = Sample.objects.filter(build_run_query(runs))
+        samples = RiboCrypt.objects.filter(run__in=runs)
     elif 'bioproject' in requested:
         bioprojects = requested['bioproject']
-        samples = Sample.objects.filter(BioProject__in=bioprojects)
+        samples = RiboCrypt.objects.filter(BioProject__in=bioprojects)
 
     samples_df = pd.DataFrame(list(samples.values()))
-    samples_df = samples_df.groupby(['BioProject_id', 'ScientificName'])
+    samples_df = samples_df.groupby(['ribocrypt_id', 'Organism'])
 
-    for (bioproject, organism), df in samples_df:
+    for (ribocrypt_id, organism), df in samples_df:
+        print(ribocrypt_id, organism)
+        print(df)
         ribocrypt_dict = {
-            'dff': f"{bioproject}-{organism.replace(' ', '_').lower()}",
-            'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {bioproject}",
-            'files': ','.join(df['Run'].unique()),
+            'dff': f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}",
+            'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {ribocrypt_id}",
+            'files': ','.join(df['run'].unique()),
         }
         ribocrypt.append(ribocrypt_dict)
     return ribocrypt
