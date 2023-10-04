@@ -971,7 +971,7 @@ def download_all(request) -> HttpRequest:
     selected = dict(request.GET.lists())
     filename = str(uuid.uuid4())
 
-    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/"
+    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
 
     file_content = ["#!/usr/bin/env bash\n", "wget  "]
 
@@ -979,10 +979,13 @@ def download_all(request) -> HttpRequest:
         for accession in selected['run']:
             link = generate_link(accession, accession)
             if link:
-                f.write(link + '\n')
                 file_content.append(f"https://recode.ucc.ie/{link} \ \n")
+
+        if file_content == ["#!/usr/bin/env bash\n", "wget  "]:
+            file_content.append("echo 'No files Available for download'")
+
+        f.writelines(file_content)
 
     response = HttpResponse(file_content, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="{os.path.basename(f"RiboSeqOrg_Download_{filename}.sh")}"'
     return response
-
