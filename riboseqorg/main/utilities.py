@@ -141,7 +141,7 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
     query = Q()
     # loop over unique keys in query_params
     for field, values in query_params:
-        if field in ['page']:
+        if field in ['page', 'csrfmiddlewaretoken']:
             continue
         options = request.GET.getlist(field)
         q_options = Q()
@@ -465,10 +465,11 @@ def select_all_query(query_string):
     Returns:
     - (str): the query string to select all the samples in the database that were shown in the table
     '''
-    query_string = query_string.replace('+', ' ')
+    query_string = query_string.replace('+', ' ').replace("run", "Run")
+
     query_list = [i.split("=") for i in query_string.split('&')]
 
-    query_list = [i for i in query_list if i[0] not in ['page']]
+    query_list = [i for i in query_list if i[0] not in ['page', 'csrfmiddlewaretoken', 'links']]
     query = Q()  # Initialize an empty query
     if len(query_list[0]) != 1:
         query_list = [[i[0], i[1].replace('on', 'True')] if i[1] == 'on' else i for i in query_list]
