@@ -139,11 +139,11 @@
                 <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
                     {% csrf_token %}
                     <div style="float: right;">
-                        <button type="submit" class="btn btn-primary" id="submit" name="links">Submit</button>
+                        <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
+                        <button type="submit" class="btn btn-primary" id="submit" name="links">Subset</button>
                     </div>
                     <h1>Selected Entries</h1>
 
-                    <!-- <button type="submit" class="btn btn-primary" id="submit" name="links">Submit</button> -->
                     <table class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                         <thead>
                             <tr>
