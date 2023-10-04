@@ -390,8 +390,6 @@ def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
     samples_df = samples_df.groupby(['ribocrypt_id', 'Organism'])
 
     for (ribocrypt_id, organism), df in samples_df:
-        print(ribocrypt_id, organism)
-        print(df)
         ribocrypt_dict = {
             'dff': f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}",
             'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {ribocrypt_id}",
