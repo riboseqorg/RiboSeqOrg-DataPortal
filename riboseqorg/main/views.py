@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.db.models import CharField
 from django.db.models.functions import Length
+import mimetypes
 
 from django.db.models import Q, Count
 
@@ -973,19 +974,22 @@ def download_all(request) -> HttpRequest:
 
     static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
 
-    file_content = ["#!/usr/bin/env bash\n", "wget  "]
+    file_content = ["#!/usr/bin/env bash\n", "wget -c "]
+    filepath = f"{static_base_path}RiboSeqOrg_Download_{filename}.sh"
 
-    with open(f"{static_base_path}RiboSeqOrg_Download_{filename}.sh", 'w') as f:
+    with open(filepath, 'w') as f:
         for accession in selected['run']:
             link = generate_link(accession, accession)
             if link:
                 file_content.append(f"https://recode.ucc.ie/{link} \ \n")
 
-        if file_content == ["#!/usr/bin/env bash\n", "wget  "]:
+        if file_content == ["#!/usr/bin/env bash\n", "wget -c "]:
             file_content.append("echo 'No files Available for download'")
 
         f.writelines(file_content)
 
-    response = HttpResponse(file_content, content_type='text/plain')
-    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(f"RiboSeqOrg_Download_{filename}.sh")}"'
+    path = open(filepath, "r")
+    mime_type, _ = mimetypes.guess_type(filepath)
+    response = HttpResponse(path, content_type=mime_type)
+    response["Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
     return response
