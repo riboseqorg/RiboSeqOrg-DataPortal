@@ -370,7 +370,7 @@ def samples(request: HttpRequest) -> str:
     # get entries to populate table
     sample_entries = Sample.objects.filter(query)
     sample_entries = list(
-        reversed(sample_entries.order_by('LIBRARYTYPE', 'INHIBITOR')))
+        reversed(sample_entries.order_by('INHIBITOR', 'LIBRARYTYPE')))
 
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
