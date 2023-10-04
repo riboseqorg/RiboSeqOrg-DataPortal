@@ -381,21 +381,29 @@ def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
 
     elif 'run' in requested:
         runs = requested['run']
-        samples = RiboCrypt.objects.filter(run__in=runs)
+        samples = RiboCrypt.objects.filter(Run__in=runs)
     elif 'bioproject' in requested:
         bioprojects = requested['bioproject']
         samples = RiboCrypt.objects.filter(BioProject__in=bioprojects)
 
-    samples_df = pd.DataFrame(list(samples.values()))
-    samples_df = samples_df.groupby(['ribocrypt_id', 'Organism'])
+    if samples:
+        samples_df = pd.DataFrame(list(samples.values()), columns=['BioProject', 'Organism', 'ribocrypt_id', 'Run'])
+        samples_df = samples_df.groupby(['ribocrypt_id', 'Organism'])
 
-    for (ribocrypt_id, organism), df in samples_df:
-        ribocrypt_dict = {
-            'dff': f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}",
-            'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {ribocrypt_id}",
-            'files': ','.join(df['run'].unique()),
-        }
-        ribocrypt.append(ribocrypt_dict)
+        for (ribocrypt_id, organism), df in samples_df:
+            ribocrypt_dict = {
+                'dff': f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}",
+                'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {ribocrypt_id}",
+                'files': ','.join(df['Run'].unique()),
+            }
+            ribocrypt.append(ribocrypt_dict)
+    else:
+        ribocrypt.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on RiboCrypt',
+                'organism': 'None of the Selected Runs are available on RiboCrypt',
+            }
+        )
     return ribocrypt
 
 

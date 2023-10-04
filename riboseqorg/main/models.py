@@ -169,7 +169,7 @@ class RiboCrypt(models.Model):
     BioProject = models.CharField(max_length=100)
     Organism = models.CharField(max_length=100)
     ribocrypt_id = models.CharField(max_length=100)
-    run = models.CharField(max_length=100)
+    Run = models.CharField(max_length=100)
 
     def __str__(self):
         return f"RiboCrypt {self.pk}: {self.ribocrypt_id}"
