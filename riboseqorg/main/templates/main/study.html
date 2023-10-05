@@ -147,10 +147,27 @@
                                     <td>{{ sample.CELL_LINE }}</td>
                                     <td>{{ sample.LIBRARYTYPE }}</td>
                                     <td>{{ sample.INHIBITOR }}</td>
-                                    <td><a href="{{ sample.gwips_link }}">{{ sample.gwips_name }}</a></td>
-                                    <td><a href="{{ sample.trips_link }}">{{ sample.trips_name }}</a></td>
-                                    <td><a href="{{ sample.ribocrypt_link }}">{{ sample.ribocrypt_name }}</a></td>
-                                    <td><a href="{{ sample.link }}">{{ sample.link_type }}</a></td>
+                                    {% if sample.gwips_name == "Visit GWIPS-viz" %}
+                                        <td><a href="{{ sample.gwips_link }}"><img src="{% static 'images/GWIPS-viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/GWIPS-viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.trips_name == "Visit Trips-Viz" %}
+                                        <td><a href="{{ sample.trips_link }}"><img src="{% static 'images/Trips-Viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
+                                        <td><a href="{{ sample.ribocrypt_link }}"><img src="{% static 'images/RiboCrypt-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.link_type == "FASTA" %}
+                                        <td><a href="{{ sample.link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
                             {% endfor %}
                         </tbody>
                         <tfoot>

@@ -130,6 +130,7 @@
                                 <th>Trips-Viz</th>
                                 <th>GWIPS-viz</th>
                                 <th>RiboCrypt</th>
+                                <th>Download</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -143,9 +144,27 @@
                                     <td>{{ sample.CELL_LINE }}</td>
                                     <td>{{ sample.LIBRARYTYPE }}</td>
                                     <td>{{ sample.INHIBITOR }}</td>
-                                    <td><a href="{{ trips }}">{{ trips_name }}</a></td>
-                                    <td><a href="{{ gwips }}">{{ gwips_name }}</a></td>
-                                    <td><a href="{{ ribocrypt }}">{{ ribocrypt_name }}</a></td>
+                                    {% if sample.gwips_name == "Visit GWIPS-viz" %}
+                                        <td><a href="{{ sample.gwips }}"><img src="{% static 'images/GWIPS-viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/GWIPS-viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.trips_name == "Visit Trips-Viz" %}
+                                        <td><a href="{{ sample.trips }}"><img src="{% static 'images/Trips-Viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
+                                        <td><a href="{{ sample.ribocrypt }}"><img src="{% static 'images/RiboCrypt-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.link_type == "FASTA" %}
+                                        <td><a href="{{ sample.link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -162,6 +181,7 @@
                                 <th>Trips-Viz</th>
                                 <th>GWIPS-viz</th>
                                 <th>RiboCrypt</th>
+                                <th>Download</th>
                             </tr>
                         </tfoot>
                     </table>
