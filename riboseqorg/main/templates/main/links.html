@@ -51,87 +51,94 @@
                             </div>
                         </div>                        
                         <div class="tab-pane fade" id="GWIPS-viz" role="tabpanel" aria-labelledby="GWIPS-viz-tab">
-                            {% for genome in gwips %}
-                            <br>
-                            <div class="row">
-                                <h4>{{ genome.clean_organism }}</h4>
-                                <div class="col-sm-3">
-                                    <div class="card">
-                                        <img src="{% static 'images/GWIPS.png' %}" 
+                            <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
+                                {% for genome in gwips %}
+                                <br>
+                                <div class="row">
+                                    <h4>{{ genome.clean_organism }}</h4>
+                                    <div class="col-sm-3">
+                                        <div class="card">
+                                            <img src="{% static 'images/GWIPS.png' %}" 
+                                                class="card-img-top" 
+                                                alt="Example image of a view in GWIPS-Viz"
+                                                style="
+                                                max-height:750px;
+                                                max-width:750px;">
+                                            <div class="card-body">
+                                            <h5 class="card-title">Visualise</h5>
+                                            <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
+                                            <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db={{ genome.gwipsDB }}&{{ genome.files }}" class="btn btn-primary">Genomic View</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="Trips-Viz" role="tabpanel" aria-labelledby="Trips-Viz-tab">
+                            <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
+                                {% for transcriptome in trips %}
+                                <br>
+                                <div class="row">
+                                    <h4>{{ transcriptome.clean_organism }}</h4>
+                                    <div class="col-sm-3">
+                                        <div class="card">
+                                            <img src="{% static 'images/single_transcript_plot.png' %}" 
                                             class="card-img-top" 
-                                            alt="Example image of a view in GWIPS-Viz"
+                                            alt="Example image of single transcript plot of PEG10"
                                             style="
                                             max-height:750px;
                                             max-width:750px;">
-                                        <div class="card-body">
-                                          <h5 class="card-title">Visualise</h5>
-                                          <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
-                                          <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db={{ genome.gwipsDB }}&{{ genome.files }}" class="btn btn-primary">Genomic View</a>
+                                            <div class="card-body">
+                                            <h5 class="card-title">Visualise</h5>
+                                            <p class="card-text">Visualise selected datasets on a transcriptome level</p>
+                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/interactive_plot/?{{ transcriptome.files}}" class="btn btn-primary">Single Transcript Plot</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="card">
+                                            <img src="{% static 'images/triplet_periodicity_plot.png' %}" class="card-img-top" alt="Example image of a triplet periodicity plot"
+                                            style="
+                                            max-height:750px;
+                                            max-width:750px;">
+                                            <div class="card-body">
+                                            <h5 class="card-title">Meta Information</h5>
+                                            <p class="card-text">Generate plots to understand the composition of your selection.</p>
+                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/metainfo_plot/?{{ transcriptome.files}}" class="btn btn-primary">Meta Information Plots</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
-                        </div>
-                        <div class="tab-pane fade" id="Trips-Viz" role="tabpanel" aria-labelledby="Trips-Viz-tab">
-                            {% for transcriptome in trips %}
-                            <br>
-                            <div class="row">
-                                <h4>{{ transcriptome.clean_organism }}</h4>
-                                <div class="col-sm-3">
-                                    <div class="card">
-                                        <img src="{% static 'images/single_transcript_plot.png' %}" 
-                                        class="card-img-top" 
-                                        alt="Example image of single transcript plot of PEG10"
-                                        style="
-                                        max-height:750px;
-                                        max-width:750px;">
-                                        <div class="card-body">
-                                          <h5 class="card-title">Visualise</h5>
-                                          <p class="card-text">Visualise selected datasets on a transcriptome level</p>
-                                          <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/interactive_plot/?{{ transcriptome.files}}" class="btn btn-primary">Single Transcript Plot</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="card">
-                                        <img src="{% static 'images/triplet_periodicity_plot.png' %}" class="card-img-top" alt="Example image of a triplet periodicity plot"
-                                        style="
-                                        max-height:750px;
-                                        max-width:750px;">
-                                        <div class="card-body">
-                                          <h5 class="card-title">Meta Information</h5>
-                                          <p class="card-text">Generate plots to understand the composition of your selection.</p>
-                                          <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/metainfo_plot/?{{ transcriptome.files}}" class="btn btn-primary">Meta Information Plots</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
                         </div>
                         <div class="tab-pane fade" id="RiboCrypt" role="tabpanel" aria-labelledby="RiboCrypt-tab">
-                            {% for project in ribocrypt %}
-                            <div class="row">
-                                <h4>{{ project.clean_organism }}</h4>
-                                <div class="col-sm-3">
-                                    <div class="card">
-                                        <img src="{% static 'images/RiboCrypt.svg' %}" 
-                                        class="card-img-top" 
-                                        alt="Example image of a view in RiboCrypt"
-                                        style="
-                                        max-height:750px;
-                                        max-width:750px;">
-                                        <div class="card-body">
-                                          <h5 class="card-title">Visualise</h5>
-                                          <p class="card-text">Visualise selected datasets in RiboCrypt</p>
-                                          <a href="https://ribocrypt.org/?dff={{ project.dff }}&library={{ project.files }}&go=TRUE" class="btn btn-primary">Transcriptomic View</a>
-                                          <a href="https://ribocrypt.org/?dff={{ project.dff }}&library={{ project.files }}&viewMode=TRUE&go=TRUE" class="btn btn-primary">Genomic View</a>
+                            <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
 
+                                {% for project in ribocrypt %}
+                                <div class="row">
+                                    <h4>{{ project.clean_organism }}</h4>
+                                    <div class="col-sm-3">
+                                        <div class="card">
+                                            <img src="{% static 'images/RiboCrypt.svg' %}" 
+                                            class="card-img-top" 
+                                            alt="Example image of a view in RiboCrypt"
+                                            style="
+                                            max-height:750px;
+                                            max-width:750px;">
+                                            <div class="card-body">
+                                            <h5 class="card-title">Visualise</h5>
+                                            <p class="card-text">Visualise selected datasets in RiboCrypt</p>
+                                            <a href="https://ribocrypt.org/?dff={{ project.dff }}&library={{ project.files }}&go=TRUE" class="btn btn-primary">Transcriptomic View</a>
+                                            <a href="https://ribocrypt.org/?dff={{ project.dff }}&library={{ project.files }}&viewMode=TRUE&go=TRUE" class="btn btn-primary">Genomic View</a>
+
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
                         </div>
                     </div>
                 </div>
