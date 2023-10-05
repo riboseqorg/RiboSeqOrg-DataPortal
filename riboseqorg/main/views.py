@@ -695,6 +695,14 @@ def sample_detail(request: HttpRequest, query: str) -> str:
     # generate GWIPS and Trips URLs
     urls = handle_urls_for_query(request, sample_query)
 
+    for entry in ls:
+        link = generate_link(entry.BioProject, entry.Run)
+        if type(link) == str:
+            entry.link = f"{link}"
+            entry.link_type = "FASTA"
+        else:
+            entry.link = ""
+
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -880,7 +888,6 @@ def links(request: HttpRequest) -> str:
 
     # get links for entries on page
     for entry in sample_page_obj:
-        link = generate_link(entry.BioProject, entry.Run)
         query = Q(Run=entry.Run)
         urls = handle_urls_for_query(request, query)
         entry.trips_link = urls['trips_link']
@@ -890,6 +897,7 @@ def links(request: HttpRequest) -> str:
         entry.ribocrypt_link = urls['ribocrypt_link']
         entry.ribocrypt_name = urls['ribocrypt_name']
 
+        link = generate_link(entry.BioProject, entry.Run)
         if type(link) == str:
             entry.link = f"{link}"
             entry.link_type = "FASTA"
