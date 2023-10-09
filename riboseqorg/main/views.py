@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.db.models import CharField
 from django.db.models.functions import Length
+from django.http import HttpResponseRedirect
 
 from django.db.models import Q, Count
 
@@ -973,7 +974,7 @@ def download_all(request) -> HttpRequest:
 
     static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
 
-    file_content = ["#!/usr/bin/env bash\n", "wget  "]
+    file_content = ["#!/usr/bin/env bash\n", "wget  -c "]
 
     with open(f"{static_base_path}RiboSeqOrg_Download_{filename}.sh", 'w') as f:
         for accession in selected['run']:
@@ -981,10 +982,12 @@ def download_all(request) -> HttpRequest:
             if link:
                 file_content.append(f"https://recode.ucc.ie/{link} \ \n")
 
-        if file_content == ["#!/usr/bin/env bash\n", "wget  "]:
+        if file_content == ["#!/usr/bin/env bash\n", "wget -c "]:
             file_content.append("echo 'No files Available for download'")
 
         f.writelines(file_content)
+    return HttpResponseRedirect(f"/static2/file-downloadRiboSeqOrg_Download_{filename}.sh")
+
 
     response = HttpResponse(file_content, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="{os.path.basename(f"RiboSeqOrg_Download_{filename}.sh")}"'
