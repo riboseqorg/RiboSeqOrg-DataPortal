@@ -1,6 +1,6 @@
 from django.http import HttpRequest
 from django.db.models import Q
-from .models import Sample, Trips, GWIPS
+from .models import Sample, Trips, GWIPS, RiboCrypt
 import pandas as pd
 
 import os
@@ -141,7 +141,7 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
     query = Q()
     # loop over unique keys in query_params
     for field, values in query_params:
-        if field in ['page']:
+        if field in ['page', 'csrfmiddlewaretoken']:
             continue
         options = request.GET.getlist(field)
         q_options = Q()
@@ -377,25 +377,33 @@ def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
     requested = dict(request.GET.lists())
 
     if str(query) != '<Q: (AND: )>' and query is not None:
-        samples = Sample.objects.filter(query)
+        samples = RiboCrypt.objects.filter(query)
 
     elif 'run' in requested:
         runs = requested['run']
-        samples = Sample.objects.filter(build_run_query(runs))
+        samples = RiboCrypt.objects.filter(Run__in=runs)
     elif 'bioproject' in requested:
         bioprojects = requested['bioproject']
-        samples = Sample.objects.filter(BioProject__in=bioprojects)
+        samples = RiboCrypt.objects.filter(BioProject__in=bioprojects)
 
-    samples_df = pd.DataFrame(list(samples.values()))
-    samples_df = samples_df.groupby(['BioProject_id', 'ScientificName'])
+    if samples:
+        samples_df = pd.DataFrame(list(samples.values()), columns=['BioProject', 'Organism', 'ribocrypt_id', 'Run'])
+        samples_df = samples_df.groupby(['ribocrypt_id', 'Organism'])
 
-    for (bioproject, organism), df in samples_df:
-        ribocrypt_dict = {
-            'dff': f"{bioproject}-{organism.replace(' ', '_').lower()}",
-            'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {bioproject}",
-            'files': ','.join(df['Run'].unique()),
-        }
-        ribocrypt.append(ribocrypt_dict)
+        for (ribocrypt_id, organism), df in samples_df:
+            ribocrypt_dict = {
+                'dff': f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}",
+                'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {ribocrypt_id}",
+                'files': ','.join(df['Run'].unique()),
+            }
+            ribocrypt.append(ribocrypt_dict)
+    else:
+        ribocrypt.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on RiboCrypt',
+                'organism': 'None of the Selected Runs are available on RiboCrypt',
+            }
+        )
     return ribocrypt
 
 
@@ -410,19 +418,20 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
     Returns:
     - (dict): the urls for the query
     '''
+    image_template = '''<img src="{% static 'images/{0}' %}" style=" max-height:75px; max-width:75px;">'''
     if query is not None:
         trips = handle_trips_urls(query)[0]
         if len(trips['clean_organism'].split(" ")) > 5:
             bioproject_trips_link = "https://trips.ucc.ie/"
-            bioproject_trips_name = "Not Available"
+            bioproject_trips_name = ""
         else:
             bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
-            bioproject_trips_name = "Visit Trips-Viz"
+            bioproject_trips_name = 'Visit Trips-Viz'
 
         gwips = handle_gwips_urls(request, query=query)[0]
         if len(gwips['clean_organism'].split(" ")) > 5:
             bioproject_gwips_link = "https://gwips.ucc.ie/"
-            bioproject_gwips_name = "Not Available"
+            bioproject_gwips_name = ""
         else:
             bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
             bioproject_gwips_name = "Visit GWIPS-viz"
@@ -430,7 +439,7 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
         ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
         if len(ribocrypt['clean_organism'].split(" ")) > 5:
             bioproject_ribocrypt_link = "https://ribocrypt.org/"
-            bioproject_ribocrypt_name = "Not Available"
+            bioproject_ribocrypt_name = ""
         else:
             bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
             bioproject_ribocrypt_name = "Visit RiboCrypt"
@@ -465,10 +474,11 @@ def select_all_query(query_string):
     Returns:
     - (str): the query string to select all the samples in the database that were shown in the table
     '''
-    query_string = query_string.replace('+', ' ')
+    query_string = query_string.replace('+', ' ').replace("run", "Run")
+
     query_list = [i.split("=") for i in query_string.split('&')]
 
-    query_list = [i for i in query_list if i[0] not in ['page']]
+    query_list = [i for i in query_list if i[0] not in ['page', 'csrfmiddlewaretoken', 'links']]
     query = Q()  # Initialize an empty query
     if len(query_list[0]) != 1:
         query_list = [[i[0], i[1].replace('on', 'True')] if i[1] == 'on' else i for i in query_list]

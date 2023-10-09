@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.db.models import CharField
 from django.db.models.functions import Length
-from django.http import HttpResponseRedirect
+import mimetypes
 
 from django.db.models import Q, Count
 
@@ -370,7 +370,7 @@ def samples(request: HttpRequest) -> str:
     # get entries to populate table
     sample_entries = Sample.objects.filter(query)
     sample_entries = list(
-        reversed(sample_entries.order_by('LIBRARYTYPE', 'INHIBITOR')))
+        reversed(sample_entries.order_by('INHIBITOR', 'LIBRARYTYPE')))
 
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
@@ -695,6 +695,14 @@ def sample_detail(request: HttpRequest, query: str) -> str:
     # generate GWIPS and Trips URLs
     urls = handle_urls_for_query(request, sample_query)
 
+    for entry in ls:
+        link = generate_link(entry.BioProject, entry.Run)
+        if type(link) == str:
+            entry.link = f"{link}"
+            entry.link_type = "FASTA"
+        else:
+            entry.link = ""
+
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -744,7 +752,6 @@ def sample_select_form(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-    print(selected)
     if 'download-metadata' in selected:
         return generate_samples_csv(request)
     elif 'link-all' in selected:
@@ -786,24 +793,13 @@ def generate_link(project, run, type="reads"):
     if os.path.exists(
             os.path.join(server_base, path_directories[type],
                          run + path_suffixes[type])):
-        # return str(
-        #     os.path.join(path_directories[type],
-        #                  run + path_suffixes[type]))
+
         return f"/static2/{path_directories[type]}/{run + path_suffixes[type]}" 
 
     elif os.path.exists(
             os.path.join(server_base, path_directories[type],
                          run + "_1" + path_suffixes[type])):
         return f"/static2/{path_directories[type]}/{run}_1{path_suffixes[type]}"
-        # return str(
-        #     os.path.join(path_directories[type],
-        #                  run + "_1" + path_suffixes[type]))
-    else:
-        print("Failed: " +
-              os.path.join(server_base, path_directories[type], run +
-                           path_suffixes[type]) + " or " +
-              os.path.join(server_base, path_directories[type], run +
-                           "_1" + path_suffixes[type]) + " does not exist")
 
     return None
 
@@ -892,9 +888,18 @@ def links(request: HttpRequest) -> str:
 
     # get links for entries on page
     for entry in sample_page_obj:
+        query = Q(Run=entry.Run)
+        urls = handle_urls_for_query(request, query)
+        entry.trips_link = urls['trips_link']
+        entry.trips_name = urls['trips_name']
+        entry.gwips_link = urls['gwips_link']
+        entry.gwips_name = urls['gwips_name']
+        entry.ribocrypt_link = urls['ribocrypt_link']
+        entry.ribocrypt_name = urls['ribocrypt_name']
+
         link = generate_link(entry.BioProject, entry.Run)
         if type(link) == str:
-            entry.link = f"/file-download/{link}"
+            entry.link = f"{link}"
             entry.link_type = "FASTA"
         else:
             entry.link = ""
@@ -974,9 +979,10 @@ def download_all(request) -> HttpRequest:
 
     static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
 
-    file_content = ["#!/usr/bin/env bash\n", "wget  -c "]
+    file_content = ["#!/usr/bin/env bash\n", "wget -c "]
+    filepath = f"{static_base_path}RiboSeqOrg_Download_{filename}.sh"
 
-    with open(f"{static_base_path}RiboSeqOrg_Download_{filename}.sh", 'w') as f:
+    with open(filepath, 'w') as f:
         for accession in selected['run']:
             link = generate_link(accession, accession)
             if link:
@@ -989,6 +995,8 @@ def download_all(request) -> HttpRequest:
     return HttpResponseRedirect(f"/static2/file-downloadRiboSeqOrg_Download_{filename}.sh")
 
 
-    response = HttpResponse(file_content, content_type='text/plain')
-    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(f"RiboSeqOrg_Download_{filename}.sh")}"'
+    path = open(filepath, "r")
+    mime_type, _ = mimetypes.guess_type(filepath)
+    response = HttpResponse(path, content_type=mime_type)
+    response["Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
     return response
