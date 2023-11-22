@@ -24,7 +24,6 @@ from .utilities import get_clean_names, get_original_name,\
     select_all_query, handle_urls_for_query,\
     get_fastp_report_link, get_fastqc_report_link
 
-
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -39,8 +38,6 @@ import os
 import uuid
 
 import tempfile
-
-
 
 CharField.register_lookup(Length, 'length')
 
@@ -576,7 +573,7 @@ def study_detail(request: HttpRequest, query: str) -> str:
         'bioproject_gwips_name': urls['gwips_name'],
         'bioproject_ribocrypt_link': urls['ribocrypt_link'],
         'bioproject_ribocrypt_name': urls['ribocrypt_name'],
-        }
+    }
     return render(request, 'main/study.html', context)
 
 
@@ -687,9 +684,7 @@ def sample_detail(request: HttpRequest, query: str) -> str:
     for key, value in ls.values()[0].items():
         if value not in ['nan', '']:
             if key in appropriate_fields:
-                ks.append(
-                    (clean_names[key], value)
-                )
+                ks.append((clean_names[key], value))
     sample_query = Q(Run=query)
 
     # generate GWIPS and Trips URLs
@@ -719,7 +714,7 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         'ribocrypt_name': urls['ribocrypt_name'],
         'fastp': get_fastp_report_link(sample_model.Run),
         'fastqc': get_fastqc_report_link(sample_model.Run),
-        }
+    }
     return render(request, 'main/sample.html', context)
 
 
@@ -794,7 +789,7 @@ def generate_link(project, run, type="reads"):
             os.path.join(server_base, path_directories[type],
                          run + path_suffixes[type])):
 
-        return f"/static2/{path_directories[type]}/{run + path_suffixes[type]}" 
+        return f"/static2/{path_directories[type]}/{run + path_suffixes[type]}"
 
     elif os.path.exists(
             os.path.join(server_base, path_directories[type],
@@ -877,11 +872,10 @@ def links(request: HttpRequest) -> str:
         }]
     sample_entries = Sample.objects.filter(sample_query)
 
-
-    # Retrieve entries 
+    # Retrieve entries
     sample_entries = Sample.objects.filter(sample_query)
 
-    # Paginate 
+    # Paginate
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     sample_page_obj = paginator.get_page(page_number)
@@ -903,12 +897,13 @@ def links(request: HttpRequest) -> str:
             entry.link_type = "FASTA"
         else:
             entry.link = ""
-    return render(request, 'main/links.html', {
-        'sample_results': sample_page_obj,
-        'trips': trips,
-        'gwips': gwips,
-        'ribocrypt': ribocrypt,
-        'current_url': request.get_full_path(),
+    return render(
+        request, 'main/links.html', {
+            'sample_results': sample_page_obj,
+            'trips': trips,
+            'gwips': gwips,
+            'ribocrypt': ribocrypt,
+            'current_url': request.get_full_path(),
         })
 
 
@@ -964,9 +959,10 @@ def reports(request, query) -> str:
     - (render): the rendered HTTP response for the page
     '''
 
-    return render(request, 'main/reports.html', {
-        'fastp': get_fastp_report_link(query),
-        'fastqc': get_fastqc_report_link(query),
+    return render(
+        request, 'main/reports.html', {
+            'fastp': get_fastp_report_link(query),
+            'fastqc': get_fastqc_report_link(query),
         })
 
 
@@ -996,5 +992,6 @@ def download_all(request) -> HttpRequest:
     path = open(filepath, "r")
     mime_type, _ = mimetypes.guess_type(filepath)
     response = HttpResponse(path, content_type=mime_type)
-    response["Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
+    response[
+        "Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
     return response

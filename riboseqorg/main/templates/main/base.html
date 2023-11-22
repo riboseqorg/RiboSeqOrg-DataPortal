@@ -33,49 +33,6 @@
         {% block head_static %}{% endblock %}
     </head>
     <body>
-        <!-- Image and text -->
-        <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
-          <div class="container">
-              <a class="navbar-brand" href="/home">
-                  <img src="{% static 'images/Logo.png' %}" class="me-2" height="50" alt="RiboSeq.org Logo" loading="lazy"/>
-              </a>
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                  aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-              </button>
-              <div class="collapse navbar-collapse" id="navbarNav">
-                  <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                      <li class="nav-item">
-                          <a class="nav-link" href="/samples">Samples</a>
-                      </li>
-                      <li class="nav-item">
-                          <a class="nav-link" href="/studies">Studies</a>
-                      </li>
-                      <li class="nav-item dropdown">
-                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                              data-bs-toggle="dropdown" aria-expanded="false">
-                              Resources
-                          </a>
-                          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                              <li><a class="dropdown-item" href="https://gwips.ucc.ie">GWIPS-viz</a></li>
-                              <li><a class="dropdown-item" href="https://trips.ucc.ie">Trips-Viz</a></li>
-                              <li><a class="dropdown-item" href="https://ribocrypt.org">RiboCrypt</a></li>
-                              <li><a class="dropdown-item" href="https://ribogalaxy.genomicsdatascience.ie">RiboGalaxy</a></li>
-                          </ul>
-                      </li>
-                      <li class="nav-item">
-                          <a class="nav-link" href="/about">About</a>
-                      </li>
-                      <li class="nav-item">
-                          <a class="nav-link" href="https://forms.gle/K1HPrcWkgZAvo33M9">Feedback</a>
-                      </li>
-                  </ul>
-                  <a href="{% url 'search' %}" class="btn btn-primary">Search</a>
-
-              </div>
-          </div>
-      </nav>
         <!-- Navbar -->
         <div id="content" name="content">
             {% block content %}{% endblock %}
