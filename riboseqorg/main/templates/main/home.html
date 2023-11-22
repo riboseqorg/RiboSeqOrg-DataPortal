@@ -8,35 +8,26 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
 {% endblock %}
 {% block content %}
-    <!-- Your content goes here -->
     <div class="container">
         <div class="row py-4">
             <div class="col-md-12 text-center">
-                <!-- Move the title content outside of the panel -->
                 <img src='../static/images/favicon.png' height="50" alt="RiboSeq.org Logo" loading="lazy"/>
                 <h1>Ribo-Seq Data Portal</h1>
                 <h5>Search Curated Metadata and Access Thousands of Processed Ribo-Seq Datasets</h5>
         
-                <!-- Use d-flex and justify-content-center for horizontal centering -->
                 <div class="d-flex justify-content-center">
-                    <form method="GET" action="{% url 'search' %}" id="results-searchbar">
+                    <form method="GET" action="{% url 'search' %}" id="results-searchbar" class="form-inline" style="width: 60%;">
                         {% csrf_token %}
                         {{ search_form.as_p }}
                         <button class="btn btn-outline-primary" type="submit" id="search-button">Submit</button>
                     </form>
-                    <!-- <form class="form-inline">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search" aria-describedby="search-button">
-                            <button class="btn btn-outline-primary" type="button" id="search-button">Submit</button>
-                        </div>
-                    </form> -->
                 </div>
             </div>
         </div>
         
         <div class="row py-2">
             <div class="col-md-6 py-2">
-                <div class="card shadow-lg"> <!-- Increased shadow with shadow-lg class -->
+                <div class="card shadow-lg">
                     <div class="card-body text-center">
                         <h2>Samples</h2>
                         <p>Explore Ribo-Seq at Sample Level</p>
@@ -45,7 +36,7 @@
                 </div>
             </div>
             <div class="col-md-6 py-2">
-                <div class="card shadow-lg"> <!-- Increased shadow with shadow-lg class -->
+                <div class="card shadow-lg">
                     <div class="card-body text-center">
                         <h2>Studies</h2>
                         <p>Explore Ribo-Seq at Study Level</p>
@@ -55,8 +46,8 @@
             </div>
         </div>
         <div class="row py-4">
-            <div class="col-md-12">
-                <div class="card shadow-lg"> <!-- Increased shadow with shadow-lg class -->
+            <div class="col-md-9 mx-auto text-center">
+                <div class="card shadow-lg">
                     <div class="card-body text-center">
                         <h2>About</h2>
                         <p>Learn more about our initiative.</p>
