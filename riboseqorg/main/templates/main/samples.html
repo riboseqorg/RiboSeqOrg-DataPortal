@@ -1,26 +1,46 @@
 {% extends 'main/base.html' %}
 {% load static %}
-
 {% block title %}Samples{% endblock %}
-
 {% block head_static %}
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.5.0/css/select.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css">
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.datatables.net/select/1.5.0/css/select.bootstrap5.min.css">
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css">
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css">
     <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="..."
+          crossorigin="anonymous">
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="..."
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+          type="text/css"
+          href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+    <script type="text/javascript"
+            charset="utf8"
+            src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
     <link href="{% static 'css/riboseq-css.css' %}"
-        rel="stylesheet"
-        type="text/css">
+          rel="stylesheet"
+          type="text/css">
     <script>
       $(document).ready(function() {
           var table = $('#sample-table').DataTable({
@@ -119,72 +139,127 @@
 
     <section id="database">
         <div id="side-panel" style="padding-bottom: 5px;">
-            <a class="btn btn-primary" data-bs-toggle="collapse" href="#side-panel-collapse" role="button" aria-expanded="false" aria-controls="side-panel-collapse">
-                Filters
-            </a>
+            <a class="btn btn-primary"
+               data-bs-toggle="collapse"
+               href="#side-panel-collapse"
+               role="button"
+               aria-expanded="false"
+               aria-controls="side-panel-collapse">Filters</a>
         </div>
         <div class="container-fluid">
             <div class="row">
                 <div class="collapse show" id="side-panel-collapse">
-                    <div class="col-md-3 d-md-block order-1" style="width: 250px; float: left;">
+                    <div class="col-md-3 d-md-block order-1" style="width: 250px; float: left">
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-3">
                                     <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
                                 </div>
                                 <div class="mb-3 accordion", id="filterAccordion">
-
                                     <h2 class="accordion-header" id="toggle">
-                                        <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#toggle-collapse" aria-expanded="true" aria-controls="toggle-collapse">
-                                            Toggles
-                                        </button>
+                                        <button class="accordion-button bg-default"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#toggle-collapse"
+                                                aria-expanded="true"
+                                                aria-controls="toggle-collapse">Toggles</button>
                                     </h2>
-                                    <div id="toggle-collapse" class="accordion-collapse collapse show" aria-labelledby="toggle" data-bs-parent="#filterAccordion" data-live-search="true" style="width: 98%;">
+                                    <div id="toggle-collapse"
+                                         class="accordion-collapse collapse show"
+                                         aria-labelledby="toggle"
+                                         data-bs-parent="#filterAccordion"
+                                         data-live-search="true"
+                                         style="width: 98%">
                                         <div class="accordion-body" style="padding: 0 0;">
-                                            <ul class="list-group overflow-auto" id="toggle-UL", style="list-style-type: none;">
+                                            <ul class="list-group overflow-auto"
+                                                id="toggle-UL"
+                                                style="list-style-type: none">
                                                 <form>
                                                     {% csrf_token %}
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="trips_id" {% if trips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'trips_id', 'on');">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               id="toggle2"
+                                                               name="trips_id"
+                                                               {% if trips_toggle_state == 'on' %}checked{% endif %}
+                                                               onchange="redirectToLink(this, '{{ url }}', 'trips_id', 'on');">
                                                         <label class="form-check-label" for="toggle1">Available on Trips-Viz</label>
                                                     </div>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="gwips_id" {% if gwips_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'gwips_id', 'on')">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               id="toggle2"
+                                                               name="gwips_id"
+                                                               {% if gwips_toggle_state == 'on' %}checked{% endif %}
+                                                               onchange="redirectToLink(this, '{{ url }}', 'gwips_id', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Available on GWIPS-viz</label>
                                                     </div>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="ribocrypt_id" {% if ribocrypt_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'ribocrypt_id', 'on')">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               id="toggle2"
+                                                               name="ribocrypt_id"
+                                                               {% if ribocrypt_toggle_state == 'on' %}checked{% endif %}
+                                                               onchange="redirectToLink(this, '{{ url }}', 'ribocrypt_id', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Available on RiboCrypt</label>
                                                     </div>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="FASTA_file" {% if FASTA_file_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'FASTA_file', 'on')">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               id="toggle2"
+                                                               name="FASTA_file"
+                                                               {% if FASTA_file_toggle_state == 'on' %}checked{% endif %}
+                                                               onchange="redirectToLink(this, '{{ url }}', 'FASTA_file', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Pre-Processed Read file Available</label>
                                                     </div>
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="toggle2" name="verified" {% if verified_toggle_state == 'on' %}checked{% endif %} onchange="redirectToLink(this, '{{ url }}', 'verified', 'on')">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               id="toggle2"
+                                                               name="verified"
+                                                               {% if verified_toggle_state == 'on' %}checked{% endif %}
+                                                               onchange="redirectToLink(this, '{{ url }}', 'verified', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Manually Verified</label>
                                                     </div>
                                                 </form>
                                             </ul>
                                         </div>
                                     </div>
-
-                                    {% for field, options in param_options.items %}   
+                                    {% for field, options in param_options.items %}
                                         <h2 class="accordion-header" id="{{ field }}">
-                                            <button class="accordion-button bg-default" type="button" data-bs-toggle="collapse" data-bs-target="#{{ field }}-collapse" aria-expanded="false" aria-controls="{{ field }}-collapse">
-                                                {{ field|title }}
-                                            </button>
+                                            <button class="accordion-button bg-default"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#{{ field }}-collapse"
+                                                    aria-expanded="false"
+                                                    aria-controls="{{ field }}-collapse">{{ field|title }}</button>
                                         </h2>
-                                        <div id="{{ field }}-collapse" class="accordion-collapse collapse" aria-labelledby="{{ field }}" data-bs-parent="#filterAccordion" data-live-search="true" style="width: 98%;">
+                                        <div id="{{ field }}-collapse"
+                                             class="accordion-collapse collapse"
+                                             aria-labelledby="{{ field }}"
+                                             data-bs-parent="#filterAccordion"
+                                             data-live-search="true"
+                                             style="width: 98%">
                                             <div class="accordion-body" style="padding: 0 0;">
-                                                <input type="text" id="{{ field }}-Input" onkeyup="updateAccordion('{{ field }}-UL','{{ field }}-Input')" placeholder="Search for names..", style="max-width: 100%; justify-content: center;" class="form-control">
-                                                <ul class="list-group overflow-auto" id="{{ field }}-UL", style="list-style-type: none;">
+                                                <input type="text"
+                                                       id="{{ field }}-Input"
+                                                       onkeyup="updateAccordion('{{ field }}-UL','{{ field }}-Input')"
+                                                       placeholder="Search for names.."
+                                                       style="max-width: 100%;
+                                                              justify-content: center"
+                                                       class="form-control">
+                                                <ul class="list-group overflow-auto"
+                                                    id="{{ field }}-UL"
+                                                    style="list-style-type: none">
                                                     {% for option in options %}
-                                                    {% url 'samples' as url %}
-                                                        <li style="width: 100%;" class="list-group-item justify-content-between align-items-center" style="justify-content: space-between;">
+                                                        {% url 'samples' as url %}
+                                                        <li style="width: 100%"
+                                                            class="list-group-item justify-content-between align-items-center"
+                                                            style="justify-content: space-between">
                                                             <div>
-                                                                <a class="sidenav-link link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="{{ url }}?{{ request.GET.urlencode }}&{{ field }}={{ option.value|urlencode }}">
-                                                                    {{ option.value }}    
+                                                                <a class="sidenav-link link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+                                                                   href="{{ url }}?{{ request.GET.urlencode }}&{{ field }}={% if option.value != 'None' %}{{ option.value|urlencode }}{% else %}{% endif %}">
+                                                                    {{ option.value }}
                                                                 </a>
                                                             </div>
                                                             <div style="display: inline;">
@@ -206,15 +281,24 @@
                     <div class="fw-container">
                         <div class="fw-body">
                             <div class="content">
-                                <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
+                                <form action="{% url 'sample_select_form' %}"
+                                      method="get"
+                                      name="sample_select">
                                     {% csrf_token %}
                                     <div class="fw-header d-flex align-items-center">
                                         <h1 class="flex-grow-1">Samples</h1>
                                         <li class="button-item">
-                                          <button type="button" class="btn btn-secondary" onclick="selectAll(); checkform()">Select All</button>
+                                            <button type="button"
+                                                    class="btn btn-secondary"
+                                                    onclick="selectAll(); checkform()">Select All</button>
                                         </li>
-                                    </div>                                      
-                                    <table id="sample-table" class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                                    </div>
+                                    <table id="sample-table"
+                                           class="table table-striped nowrap"
+                                           style="width:90%;
+                                                  margin-left:auto;
+                                                  margin-right:auto;
+                                                  overflow-x: auto">
                                         <thead>
                                             <tr>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
@@ -227,14 +311,23 @@
                                         </thead>
                                         <tbody>
                                             {% for sample in page_obj %}
-                                            <tr style="word-wrap: break-word;">
-                                                <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" name="run" value="{{ sample.Run }}" onchange="checkform()"/></td>
-                                            </tr>
+                                                <tr style="word-wrap: break-word;">
+                                                    <td style="background-color: rgba(255, 255, 255, 1);">
+                                                        <a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a>
+                                                    </td>
+                                                    <td style="background-color: rgba(255, 255, 255, 1);">
+                                                        <a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a>
+                                                    </td>
+                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
+                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
+                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
+                                                    <td style="background-color: rgba(255, 255, 255, 1);">
+                                                        <input type="checkbox"
+                                                               name="run"
+                                                               value="{{ sample.Run }}"
+                                                               onchange="checkform()" />
+                                                    </td>
+                                                </tr>
                                             {% endfor %}
                                         </tbody>
                                         <tfoot>
@@ -245,7 +338,6 @@
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
-
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -253,48 +345,65 @@
                                         <nav aria-label="Page navigation example">
                                             <ul class="pagination">
                                                 {% if page_obj.has_previous %}
-                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
-                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a>
+                                                    </li>
+                                                    <li class="page-item">
+                                                        <a class="page-link"
+                                                           href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                                                    </li>
                                                 {% endif %}
                                                 <span class="current">
-                                                <li class="page-item"><a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
+                                                    <li class="page-item">
+                                                        <a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                                                    </li>
                                                 </span>
                                                 {% if page_obj.has_next %}
-                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>
-                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                                                    <li class="page-item">
+                                                        <a class="page-link"
+                                                           href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
+                                                    </li>
+                                                    <li class="page-item">
+                                                        <a class="page-link"
+                                                           href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                                                    </li>
                                                 {% endif %}
                                             </ul>
                                         </nav>
-                                        <div class="d-flex justify-content-end">                               
+                                        <div class="d-flex justify-content-end">
                                             <div class="btn-group">
-                                                <button type="submit" class="btn btn-primary" id="submit" name="links">
-                                                    Generate Links</button>
-                                                <button type="button" class="btn btn-primary 
-                                                    dropdown-toggle dropdown-toggle-split"
-                                                    data-bs-toggle="dropdown">
-                                                    <span class="visually-hidden">
-                                                        Generate Links
-                                                    </span>
+                                                <button type="submit" class="btn btn-primary" id="submit" name="links">Generate Links</button>
+                                                <button type="button"
+                                                        class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                                                        data-bs-toggle="dropdown">
+                                                    <span class="visually-hidden">Generate Links</span>
                                                 </button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Links - All Views</button>
+                                                        <button type="submit"
+                                                                class="btn btn-secondary"
+                                                                name="query"
+                                                                value="{{ request.GET.urlencode }}">
+                                                            Links - All Views
+                                                        </button>
                                                     </li>
                                                 </ul>
                                             </div>
                                             <div class="btn-group">
-                                                <button type="submit" class="btn btn-primary" id="metadata" name="metadata">
-                                                    Download Metadata</button>
-                                                <button type="button" class="btn btn-primary 
-                                                    dropdown-toggle dropdown-toggle-split"
-                                                    data-bs-toggle="dropdown">
-                                                    <span class="visually-hidden">
-                                                        Download Metadata
-                                                    </span>
+                                                <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
+                                                <button type="button"
+                                                        class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                                                        data-bs-toggle="dropdown">
+                                                    <span class="visually-hidden">Download Metadata</span>
                                                 </button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <button type="submit" class="btn btn-secondary" name="download-metadata" value="{{ request.GET.urlencode }}">Download Metadata - All Views</button>
+                                                        <button type="submit"
+                                                                class="btn btn-secondary"
+                                                                name="download-metadata"
+                                                                value="{{ request.GET.urlencode }}">
+                                                            Download Metadata - All Views
+                                                        </button>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -307,6 +416,5 @@
                 </div>
             </div>
         </div>
-        
     </section>
 {% endblock %}
