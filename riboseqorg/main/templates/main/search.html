@@ -117,7 +117,7 @@
         <form method="GET" action="{% url 'search' %}" id="results-searchbar">
             {% csrf_token %}
             {{ search_form.as_p }}
-            <button type="submit" style="display: inline;">Search</button>
+            <button class="btn btn-outline-primary" type="submit" id="search-button">Submit</button>
         </form>
     </div>
     <br>
