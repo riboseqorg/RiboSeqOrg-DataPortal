@@ -941,7 +941,7 @@ def download_all(request) -> HttpRequest:
         for accession in selected['run']:
             link = generate_link(accession, accession)
             if link:
-                file_content.append(f"https://recode.ucc.ie/{link} \ \n")
+                file_content.append(f"https://rdp.ucc.ie/{link} \ \n")
 
         if file_content == ["#!/usr/bin/env bash\n", "wget -c "]:
             file_content.append("echo 'No files Available for download'")
