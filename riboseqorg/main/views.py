@@ -1,27 +1,25 @@
-from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from django.http import HttpRequest
-from django.db.models import CharField
+from django.db.models import CharField, Q, Count
 from django.db.models.functions import Length
-import mimetypes
-
-from django.db.models import Q, Count
-
-from .models import Sample, Study, OpenColumns
-
-import pandas as pd
-from datetime import datetime
-
-from .forms import SearchForm
-
 from django_filters.views import FilterView
-from .filters import StudyFilter, SampleFilter
+from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
+from django.shortcuts import render, get_object_or_404
 
-from .utilities import get_clean_names, get_original_name,\
-    build_query, handle_filter, handle_gwips_urls,\
-    handle_trips_urls, handle_ribocrypt_urls,\
-    build_run_query, build_bioproject_query,\
-    select_all_query, handle_urls_for_query,\
+import csv
+from datetime import datetime
+import mimetypes
+import os
+import uuid
+
+from .filters import StudyFilter, SampleFilter
+from .forms import SearchForm
+from .models import Sample, Study
+
+from .utilities import get_clean_names, get_original_name, \
+    build_query, handle_filter, handle_gwips_urls, \
+    handle_trips_urls, handle_ribocrypt_urls, \
+    build_run_query, build_bioproject_query, \
+    select_all_query, handle_urls_for_query, \
     get_fastp_report_link, get_fastqc_report_link
 
 from rest_framework import generics, permissions
@@ -29,15 +27,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import SampleSerializer
 
-import csv
-from django.http import HttpResponse, HttpResponseNotFound
-from django.http import FileResponse
-from django.conf import settings
-
-import os
-import uuid
-
-import tempfile
 
 CharField.register_lookup(Length, 'length')
 
@@ -49,7 +38,8 @@ class SampleListView(generics.ListCreateAPIView):
 
 
 class SampleFileDownloadView(APIView):
-    permission_classes = [permissions.IsAuthenticated
+    permission_classes = [
+        permissions.IsAuthenticated
                           ]  # Optional: Set the required permissions
 
     def get(self, request, pk):
@@ -58,43 +48,12 @@ class SampleFileDownloadView(APIView):
         except Sample.DoesNotExist:
             return Response(status=404)
 
-        # Perform any additional checks or validations before allowing the download
-
-        file_path = instance.file.path  # Assuming 'file' is a FileField in YourModel
+        file_path = instance.file.path  # Assuming 'file' is a FileField
         with open(file_path, 'rb') as file:
             response = Response(file.read())
             response[
                 'Content-Disposition'] = f'attachment; filename="{instance.file.name}"'
             return response
-
-
-def recode(request: HttpRequest) -> str:
-    """
-    Render the page that describes the fate of recode.ucc.ie
-
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
-
-    Returns:
-    - (render): the rendered HTTP response for the page
-    """
-    search_form = SearchForm()
-
-    context = {
-        'search_form': search_form,
-    }
-    return render(request, "main/recode.html", context)
-
-
-def download_recode_db(request):
-    file_path = os.path.join(settings.BASE_DIR, 'downloads', 'recode.zip')
-    if os.path.exists(file_path):
-        response = FileResponse(open(file_path, 'rb'),
-                                content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="recode.zip"'
-        return response
-    else:
-        return HttpResponseNotFound("File not found")
 
 
 def index(request: HttpRequest) -> str:
