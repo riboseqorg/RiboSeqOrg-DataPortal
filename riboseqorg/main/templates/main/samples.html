@@ -175,7 +175,6 @@
                                                 id="toggle-UL"
                                                 style="list-style-type: none">
                                                 <form>
-                                                    {% csrf_token %}
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input"
                                                                type="checkbox"
@@ -284,7 +283,6 @@
                                 <form action="{% url 'sample_select_form' %}"
                                       method="get"
                                       name="sample_select">
-                                    {% csrf_token %}
                                     <div class="fw-header d-flex align-items-center">
                                         <h1 class="flex-grow-1">Samples</h1>
                                         <li class="button-item">

@@ -115,7 +115,6 @@
 
     <div class="container">
         <form method="GET" action="{% url 'search' %}" id="results-searchbar">
-            {% csrf_token %}
             {{ search_form.as_p }}
             <button class="btn btn-outline-primary" type="submit" id="search-button">Submit</button>
         </form>
@@ -150,7 +149,6 @@
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'links' %}" method="get">
-                                    {% csrf_token %}
                                     <table id="studies-table" class="table table-striped" style="width:90%; margin-left:auto; margin-right:auto; overflow-x: auto">
                                         <thead>
                                         <tr>
@@ -232,7 +230,6 @@
                         <div class="fw-body">
                             <div class="content">
                                 <form action="{% url 'links' %}" method="get" name="sample_select">
-                                    {% csrf_token %}
                                     <table id="samples-table" class="table table-striped" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: clip">
                                         <thead>
                                             <tr>

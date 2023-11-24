@@ -149,7 +149,6 @@
         <div class="fw-body">
             <div class="content" style="padding-top: 2%;">
                 <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
-                    {% csrf_token %}
                     <div style="float: right;">
                         <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
                         <button type="submit" class="btn btn-primary" id="submit" name="links">Subset</button>
