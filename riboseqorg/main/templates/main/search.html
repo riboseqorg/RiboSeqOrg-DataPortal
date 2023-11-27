@@ -10,43 +10,17 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
 
     <script>  
-      $(document).ready(function() {
-          var table = $('#studies-table').DataTable({
-              paging: false,
-              searching: false,
-            //   dom: 'Plfrtip',
-              scrollY: '100vh',
-                // scrollX: true,
-              scrollCollapse: true,
-              fixedColumns: {
-                  leftColumns: 1,
-              }
-          });
-      });
-      $(document).ready(function() {
-          var table = $('#samples-table').DataTable({
-              paging: false,
-              searching: false,
-            //   dom: 'Plfrtip',
-              scrollY: '100vh',
-                // scrollX: true,
-              scrollCollapse: true,
-              fixedColumns: {
-                  leftColumns: 1,
-              }
-          });
-      });
+
         function selectAll(table_id, col) {
-        var table = $(table_id).DataTable();
-        var checkboxes = table.column(col).nodes().to$().find('input[type="checkbox"]');
-        
-        for (var i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-            checkboxes[i].checked = false;
-            } else {
-            checkboxes[i].checked = true;
-            }
-        }
+            var checkboxes = $(table_id).find('tbody tr td:nth-child(' + col + ') input[type="checkbox"]');
+
+            checkboxes.each(function () {
+                if ($(this).prop('checked')) {
+                    $(this).prop('checked', false);
+                } else {
+                    $(this).prop('checked', true);
+                }
+            });
         }
         function updateAccordion(ulId, inputId) {
           // Get the UL element
