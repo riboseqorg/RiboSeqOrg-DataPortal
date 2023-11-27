@@ -233,7 +233,7 @@ def build_bioproject_query(run_list: list) -> Q:
     return query
 
 
-def handle_trips_urls(query: Q) -> list[dict]:
+def handle_trips_urls(query: Q) -> list:
     '''
     For a given query return the required information to link
     those sample in trips.
