@@ -129,8 +129,8 @@ def get_original_name(name: str, clean_names: dict) -> str:
 
 def build_query(
         request: HttpRequest,
-        query_params: list[tuple[str, list[str]]],
-        clean_names: dict[str, str]
+        query_params: list,
+        clean_names: dict
         ) -> Q:
     """
     Build a query based on the query parameters.
@@ -176,8 +176,8 @@ def handle_filter(
     Returns:
     - (dict): the filter options for each parameter
     '''
-    clean_results_dict: dict[str, list] = {}
-    result_dict: dict[str, list] = {}
+    clean_results_dict: dict = {}
+    result_dict: dict = {}
 
     # Convert the values to a list of dictionaries for each parameter as
     # I couldn't get the template to iterate over the values in the queryset
