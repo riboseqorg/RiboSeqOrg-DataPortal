@@ -14,13 +14,13 @@ def get_clean_names() -> dict:
         clean_names: dictionary
     '''
     clean_names = {
-        'Run':'Run Accession',
-        'spots':'Total Number of Spots (Original file))',
-        'bases':'Total Number of Bases (Original file)',
-        'avgLength':'Average Read Length',
-        'size_MB':'Original File Size (MB)',
-        'LibraryName':'Library Name',
-        'LibraryStrategy':'Library Strategy',
+        'Run': 'Run Accession',
+        'spots': 'Total Number of Spots (Original file))',
+        'bases': 'Total Number of Bases (Original file)',
+        'avgLength': 'Average Read Length',
+        'size_MB': 'Original File Size (MB)',
+        'LibraryName': 'Library Name',
+        'LibraryStrategy': 'Library Strategy',
         'LibrarySelection': 'Library Selection',
         'LibrarySource': 'Library Source',
         'LibraryLayout': 'Library Layout',
@@ -51,7 +51,7 @@ def get_clean_names() -> dict:
         'INSDC_first_public': 'INSDC First Public',
         'INSDC_last_update': 'INSDC Last Update',
         'INSDC_status': 'INSDC Status',
-        'GEO_Accession'	: 'GEO Accession',
+        'GEO_Accession': 'GEO Accession',
         'Experiment_Date': 'Date of Experiment',
         'date_sequenced': 'Date of Sequencing',
         'submission_date': 'Submission Date',
@@ -72,7 +72,7 @@ def get_clean_names() -> dict:
         'Age': 'Age',
         'Infected': 'Infected',
         'Disease': 'Disease',
-        'Genotype'	: 'Genotype',
+        'Genotype': 'Genotype',
         'Feeding': 'Feeding',
         'Temperature': 'Temperature',
         'SiRNA': 'SiRNA',
@@ -127,7 +127,11 @@ def get_original_name(name: str, clean_names: dict) -> str:
     return name
 
 
-def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> Q:
+def build_query(
+        request: HttpRequest,
+        query_params: list[tuple[str, list[str]]],
+        clean_names: dict[str, str]
+        ) -> Q:
     """
     Build a query based on the query parameters.
 
@@ -172,10 +176,11 @@ def handle_filter(
     Returns:
     - (dict): the filter options for each parameter
     '''
-    clean_results_dict = {}
-    result_dict = {}
+    clean_results_dict: dict[str, list] = {}
+    result_dict: dict[str, list] = {}
 
-    # Convert the values to a list of dictionaries for each parameter as I couldn't get the template to iterate over the values in the queryset
+    # Convert the values to a list of dictionaries for each parameter as
+    # I couldn't get the template to iterate over the values in the queryset
     for name, queryset in param_options.items():
         if name in appropriate_fields:
             for obj in queryset:
@@ -185,8 +190,12 @@ def handle_filter(
                         clean_results_dict[clean_names[field_name]] = []
                     if obj[field_name] == '' or obj[field_name] == 'nan':
                         obj[field_name] = 'None'
-                    result_dict[field_name].append({'value': obj[field_name], 'count': obj['count']})
-                    clean_results_dict[clean_names[field_name]].append({'value': obj[field_name], 'count': obj['count']})
+                    result_dict[field_name].append(
+                        {'value': obj[field_name], 'count': obj['count']}
+                        )
+                    clean_results_dict[clean_names[field_name]].append(
+                        {'value': obj[field_name], 'count': obj['count']}
+                        )
     return clean_results_dict
 
 
@@ -195,7 +204,7 @@ def build_run_query(run_list: list) -> Q:
     For a given run list return a query to filter the Sample model.
 
     Arguments:
-    - run_list (list): the list of runs to filter  
+    - run_list (list): the list of runs to filter
 
     Returns:
     - (Q): the query
@@ -212,7 +221,7 @@ def build_bioproject_query(run_list: list) -> Q:
     For a given run list return a query to filter the Sample model.
 
     Arguments:
-    - run_list (list): the list of runs to filter  
+    - run_list (list): the list of runs to filter
 
     Returns:
     - (Q): the query
@@ -224,15 +233,16 @@ def build_bioproject_query(run_list: list) -> Q:
     return query
 
 
-def handle_trips_urls(query: Q) -> list:
+def handle_trips_urls(query: Q) -> list[dict]:
     '''
-    For a given query return the required information to link those sample in trips.
+    For a given query return the required information to link
+    those sample in trips.
 
     Arguments:
     - query (Q): the query
 
     Returns:
-    - (list): the required information to link those samples in trips (list of dicts)
+    - (list): the required information to link those samples in trips
     '''
     trips = []
     trips_entries = Trips.objects.filter(query)
@@ -248,14 +258,19 @@ def handle_trips_urls(query: Q) -> list:
     else:
         for transcriptome in trips_df['transcriptome'].unique():
             organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
-            file_ids = [str(int(i)) for i in organism_df['Trips_id'].unique().tolist()]
-            trips_dict = {
-                'clean_organism': organism_df['organism'].unique()[0].replace('_', ' ').capitalize(),
-                'organism': organism_df['organism'].unique()[0],
-                'transcriptome': transcriptome,
-                'files': f"files={','.join(file_ids)}",
-            }
-            trips.append(trips_dict)
+            file_ids = [str(int(i)) for i in organism_df[
+                'Trips_id'
+                ].unique().tolist()]
+            trips.append(
+                {
+                    'clean_organism': organism_df[
+                        'organism'
+                        ].unique()[0].replace('_', ' ').capitalize(),
+                    'organism': organism_df['organism'].unique()[0],
+                    'transcriptome': transcriptome,
+                    'files': f"files={','.join(file_ids)}",
+                }
+            )
 
     return trips
 
@@ -478,12 +493,25 @@ def select_all_query(query_string):
 
     query_list = [i.split("=") for i in query_string.split('&')]
 
-    query_list = [i for i in query_list if i[0] not in ['page', 'csrfmiddlewaretoken', 'links']]
+    query_list = [i for i in query_list if i[0] not in [
+            'page',
+            'csrfmiddlewaretoken',
+            'links',
+            'sample_page',
+            'study_page',
+            ]
+        ]
     query = Q()  # Initialize an empty query
     if len(query_list[0]) != 1:
-        query_list = [[i[0], i[1].replace('on', 'True')] if i[1] == 'on' else i for i in query_list]
+        query_list = [
+            [
+                i[0], i[1].replace('on', 'True')
+                ] if i[1] == 'on' else i for i in query_list
+            ]
         query_mappings = {
-            i[0]: get_original_name(i[0], get_clean_names()) for i in query_list
+            i[0]: get_original_name(
+                i[0], get_clean_names()
+                ) for i in query_list
         }
 
         for model_key, value in query_list:

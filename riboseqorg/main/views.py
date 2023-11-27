@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.db.models import CharField, Q, Count
 from django.db.models.functions import Length
+from django.db.models.query import QuerySet
 from django_filters.views import FilterView
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404
@@ -52,7 +53,8 @@ class SampleFileDownloadView(APIView):
         with open(file_path, 'rb') as file:
             response = Response(file.read())
             response[
-                'Content-Disposition'] = f'attachment; filename="{instance.file.name}"'
+                'Content-Disposition'
+                ] = f'attachment; filename="{instance.file.name}"'
             return response
 
 
@@ -195,7 +197,7 @@ def search(request: HttpRequest) -> str:
 
 
 def get_sample_filter_options(
-    studies: list,
+    studies: QuerySet[Study],
     sample_fields: list = [
         'CELL_LINE',
         'INHIBITOR',
@@ -204,7 +206,8 @@ def get_sample_filter_options(
     ]
 ) -> dict:
     '''
-    For a given filtered study queryset, return the filter options for the sample parameters.
+    For a given filtered study queryset, return the filter options f
+    or the sample parameters.
 
     Arguments:
     - studies (list): the filtered study queryset
@@ -234,12 +237,12 @@ def get_sample_filter_options(
                         obj['count']
                     }]
                 else:
-                    sample_filter_options[clean_names[field_name]].append({
-                        'value':
-                        obj[field_name],
-                        'count':
-                        obj['count']
-                    })
+                    sample_filter_options[clean_names[field_name]].append(
+                            {
+                                'value': obj[field_name],
+                                'count': obj['count']
+                            }
+                        )
     return sample_filter_options
 
 
@@ -254,7 +257,7 @@ def samples(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
 
-    #fields to show in Filter Panel
+    # fields to show in Filter Panel
     appropriate_fields = [
         'CELL_LINE',
         'INHIBITOR',
@@ -288,12 +291,14 @@ def samples(request: HttpRequest) -> str:
         for name, values in request.GET.lists()
     ]
 
-    # Get the unique values and counts for each parameter within the filtered queryset
+    # Get the unique values and counts for each parameter
+    # within the filtered queryset
     param_options = {}
     for field in Sample._meta.fields:
         # if field.get_internal_type() == 'CharField':
         if field.name in filtered_columns:
-            # update query_params to remove the current field to ensure this field is not filtered by itself
+            # update query_params to remove the current field to ensure this
+            # field is not filtered by itself
             query_params = [
                 i for i in request.GET.lists()
                 if get_original_name(i[0], clean_names) != field.name
@@ -342,17 +347,18 @@ def samples(request: HttpRequest) -> str:
         'FASTA_file_toggle_state': request.GET.get('FASTA_file', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
-    # Render the studies template with the filtered and paginated studies and the filter options
+    # Render the studies template with the filtered and paginated studies
+    # and the filter options
     return render(request, 'main/samples.html', context)
 
 
 def studies(request: HttpRequest) -> str:
     """
     Render a page of studies filtered by query parameters.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
     """
@@ -374,13 +380,15 @@ def studies(request: HttpRequest) -> str:
         for name, values in request.GET.lists()
     ]
 
-    boolenan_param_options = {}
-    # Get the unique values and counts for each parameter within the filtered queryset
+    boolean_param_options = {}
+    # Get the unique values and counts for each parameter within the
+    # filtered queryset
     param_options = {}
     for field in Study._meta.fields:
         if field.get_internal_type() == 'CharField':
             if field.name in filtered_columns:
-                # update query_params to remove the current field to ensure this field is not filtered by itself
+                # update query_params to remove the current field to ensure
+                # this field is not filtered by itself
                 query_params = [
                     i for i in request.GET.lists()
                     if get_original_name(i[0], clean_names) != field.name
@@ -422,7 +430,7 @@ def studies(request: HttpRequest) -> str:
             not_available_count = sum([i['count'] for i in not_available])
 
             clean_name = clean_names[field.name]
-            boolenan_param_options[clean_name] = [{
+            boolean_param_options[clean_name] = [{
                 'count': available_count,
                 'value': 'Available'
             }, {
@@ -443,7 +451,7 @@ def studies(request: HttpRequest) -> str:
             # Update the object in the database with the date object if needed
         except ValueError:
             print(obj.BioProject, date_string)
-            # NOTE: For eeror associated dates
+            # NOTE: For error associated dates
             date_obj = "01/01/2001"
         study_entries[i].Release_Date = date_obj
 
@@ -451,13 +459,16 @@ def studies(request: HttpRequest) -> str:
 # study_entries.save()
 # Handle invalid date strings if necessary
 
-    sample_filter_options = get_sample_filter_options(study_entries)
+    # The idea behind sample filter options is to be able to filter a study
+    # based on the metadata of the samples it contains. This is not currently
+    # implemented
+    # sample_filter_options = get_sample_filter_options(study_entries)
     clean_results_dict = handle_filter(param_options, appropriate_fields,
                                        clean_names)
     clean_results_dict = {
         **clean_results_dict,
-        **boolenan_param_options
-    }  #, **sample_filter_options}
+        **boolean_param_options
+    }  # , **sample_filter_options}
     clean_results_dict.pop('count', None)
 
     # Paginate the studies
@@ -465,7 +476,8 @@ def studies(request: HttpRequest) -> str:
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Render the studies template with the filtered and paginated studies and the filter options
+    # Render the studies template with the filtered and paginated studies
+    # and the filter options
     return render(request, 'main/studies.html', {
         'page_obj': page_obj,
         'param_options': clean_results_dict
@@ -515,14 +527,15 @@ def study_detail(request: HttpRequest, query: str) -> str:
         entry.ribocrypt_name = urls['ribocrypt_name']
         # get download link
         link = generate_link(entry.BioProject, entry.Run)
-        if type(link) == str:
+        if isinstance(link, str):
             entry.link = f"/file-download/{link}"
             entry.link_type = "FASTA"
         else:
             entry.link = ""
             entry.link_type = "Not Available"
 
-    # Return all results from Sample and query the sqlite too and add this to the table
+    # Return all results from Sample and query the sqlite too and add this to
+    # the table
     context = {
         'Study': study_model,
         'ls': ls,
@@ -651,7 +664,7 @@ def sample_detail(request: HttpRequest, query: str) -> str:
 
     for entry in ls:
         link = generate_link(entry.BioProject, entry.Run)
-        if type(link) == str:
+        if isinstance(link, str):
             entry.link = f"{link}"
             entry.link_type = "FASTA"
         else:
@@ -686,18 +699,10 @@ class StudyListView(FilterView):
     filterset_class = StudyFilter
 
 
-class SampleListView(FilterView):
-    """
-    View to display a list of samples based on applied filters.
-    """
-    model = Sample
-    template_name = 'sample_list.html'
-    filterset_class = SampleFilter
-
-
 def sample_select_form(request: HttpRequest) -> str:
     """
-    handle the samples selection form and either call links or download metadata
+    handle the samples selection form and either call links or
+    download metadata
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
@@ -738,22 +743,21 @@ def generate_link(project, run, type="reads"):
         "reads": "_clipped_collapsed.fastq.gz",
         "counts": "_counts.txt",
     }
-    path_directories = {
+    path_dirs = {
         "reads": "collapsed_fastq",
         "counts": "counts",
     }
     project = str(project)
     run = str(run)
     if os.path.exists(
-            os.path.join(server_base, path_directories[type],
+            os.path.join(server_base, path_dirs[type],
                          run + path_suffixes[type])):
-
-        return f"/static2/{path_directories[type]}/{run + path_suffixes[type]}"
+        return f"/static2/{path_dirs[type]}/{run + path_suffixes[type]}"
 
     elif os.path.exists(
-            os.path.join(server_base, path_directories[type],
+            os.path.join(server_base, path_dirs[type],
                          run + "_1" + path_suffixes[type])):
-        return f"/static2/{path_directories[type]}/{run}_1{path_suffixes[type]}"
+        return f"/static2/{path_dirs[type]}/{run}_1{path_suffixes[type]}"
 
     return None
 
@@ -851,7 +855,7 @@ def links(request: HttpRequest) -> str:
         entry.ribocrypt_name = urls['ribocrypt_name']
 
         link = generate_link(entry.BioProject, entry.Run)
-        if type(link) == str:
+        if isinstance(link, str):
             entry.link = f"{link}"
             entry.link_type = "FASTA"
         else:
@@ -868,7 +872,8 @@ def links(request: HttpRequest) -> str:
 
 def generate_samples_csv(request) -> HttpResponse:
     '''
-    Generate and return a csv file containing the metadata for the samples in the database based on the request
+    Generate and return a csv file containing the metadata for the samples in
+    the database based on the request
     '''
     selected = dict(request.GET.lists())
 
@@ -883,7 +888,6 @@ def generate_samples_csv(request) -> HttpResponse:
     elif 'bioproject' in selected:
         sample_query = build_bioproject_query(selected['bioproject'])
     else:
-        sample_page_obj = None
         sample_query = None
 
     if sample_query is not None:
@@ -891,7 +895,8 @@ def generate_samples_csv(request) -> HttpResponse:
 
         response = HttpResponse(content_type="text/csv")
         response[
-            "Content-Disposition"] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
+            "Content-Disposition"
+            ] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
 
         fields = [field.name for field in Sample._meta.get_fields()]
 
@@ -952,5 +957,6 @@ def download_all(request) -> HttpRequest:
     mime_type, _ = mimetypes.guess_type(filepath)
     response = HttpResponse(path, content_type=mime_type)
     response[
-        "Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
+        "Content-Disposition"
+        ] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
     return response
