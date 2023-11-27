@@ -197,7 +197,7 @@ def search(request: HttpRequest) -> str:
 
 
 def get_sample_filter_options(
-    studies: QuerySet[Study],
+    studies: QuerySet,
     sample_fields: list = [
         'CELL_LINE',
         'INHIBITOR',
