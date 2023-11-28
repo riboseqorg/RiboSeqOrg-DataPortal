@@ -26,11 +26,9 @@
     <!-- Include Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet"
-          integrity="..."
           crossorigin="anonymous">
     <!-- Include Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            integrity="..."
             crossorigin="anonymous"></script>
     <link rel="stylesheet"
           type="text/css"
@@ -57,17 +55,17 @@
           });
       });
 
-      function selectAll() {
-        var table = $('#sample-table').DataTable();
-        var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
-        
-        for (var i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-                checkboxes[i].checked = false;
-            } else
-            checkboxes[i].checked = true;
+    function selectAll(table_id, col) {
+            var checkboxes = $(table_id).find('tbody tr td:nth-child(' + col + ') input[type="checkbox"]');
+
+            checkboxes.each(function () {
+                if ($(this).prop('checked')) {
+                    $(this).prop('checked', false);
+                } else {
+                    $(this).prop('checked', true);
+                }
+            });
         }
-    }
       function updateAccordion(ulId, inputId) {
         // Get the UL element
         var ul = document.getElementById(ulId);
