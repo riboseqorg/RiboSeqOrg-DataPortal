@@ -141,7 +141,6 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(APP_ROOT, 'static'),
-    '/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg'
 ]
 
 # STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
