@@ -1,9 +1,10 @@
 {% extends 'main/base.html' %}
 {% block title %}Studies{% endblock %}
-{% block content %}
-{% include 'main/navbar.html' %}
+
 
 {% load static %}
+
+{% block head_static %}
     <link rel="stylesheet"
           type="text/css"
           href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
@@ -114,6 +115,10 @@
     window.onload = checkform;
 
     </script>
+{% endblock %}
+{% block content %}
+{% include 'main/navbar.html' %}
+
     <section id="database">
         <div id="side-panel" style="padding-bottom: 5px;">
             <a class="btn btn-primary"
