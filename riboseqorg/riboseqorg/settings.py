@@ -134,12 +134,13 @@ USE_TZ = True
 
 PARENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(PARENT_DIR)
+
 APP_ROOT = os.path.join(PROJECT_ROOT, 'main')
+
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(APP_ROOT, 'static'),
-    '/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg'
 ]
 
 # STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
