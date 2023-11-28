@@ -55,16 +55,16 @@
           });
       });
 
-    function selectAll(table_id, col) {
-            var checkboxes = $(table_id).find('tbody tr td:nth-child(' + col + ') input[type="checkbox"]');
-
-            checkboxes.each(function () {
-                if ($(this).prop('checked')) {
-                    $(this).prop('checked', false);
-                } else {
-                    $(this).prop('checked', true);
-                }
-            });
+      function selectAll() {
+        var table = $('#sample-table').DataTable();
+        var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
+        
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                checkboxes[i].checked = false;
+            } else
+            checkboxes[i].checked = true;
+        }
         }
       function updateAccordion(ulId, inputId) {
         // Get the UL element
