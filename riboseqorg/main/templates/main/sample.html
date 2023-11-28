@@ -1,6 +1,5 @@
 {% extends 'main/base.html' %}
 {% block title %}Datasets{% endblock %}
-{% include 'main/navbar.html' %}
 
 {% load static %}
 {% block head_static %}
@@ -21,6 +20,8 @@
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
 {% endblock %}
 {% block content %}
+{% include 'main/navbar.html' %}
+
 
     <section id="study">
         <h1>{{ Sample.Run }} (<a href="/Study/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a>)</h1>

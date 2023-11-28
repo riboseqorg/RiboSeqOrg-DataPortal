@@ -1,6 +1,5 @@
 {% extends 'main/base.html' %}
 {% block title %}Datasets{% endblock %}
-{% include 'main/navbar.html' %}
 
 {% load static %}
 {% block head_static %}
@@ -12,6 +11,7 @@
 
 {% endblock %}
 {% block content %}
+{% include 'main/navbar.html' %}
 
     <section id="study">
         <h1>{{ Study.Name }} ({{ Study.BioProject }})</h1>
