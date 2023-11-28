@@ -3,6 +3,7 @@ from django.db.models import CharField, Q, Count
 from django.db.models.functions import Length
 from django.db.models.query import QuerySet
 from django_filters.views import FilterView
+from django.views import View
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404
 
@@ -76,29 +77,27 @@ def index(request: HttpRequest) -> str:
     return render(request, "main/home.html", context)
 
 
-def search(request: HttpRequest) -> str:
-    """
-    Render the search results page based on the query parameters.
+class SearchView(View):
+    template_name = 'main/search.html'
+    paginate_by = 10
 
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('query', '')
+        search_form = SearchForm(request.GET or None)
 
-    Returns:
-    - (render): the rendered HTTP response for the page
-    """
-    query = request.GET.get('query', '')
-    search_form = SearchForm(request.GET or None)
+        if query == '':
+            study_results = Study.objects.all()
+            sample_results = Sample.objects.all()
+        else:
+            study_results = self.get_study_results(Study, query)
+            sample_results = self.get_sample_results(Sample, query)
 
-    if query == '':
-        study_results = Study.objects.all()
-        paginator = Paginator(study_results, 10)
-        page_number = request.GET.get('page')
-        study_page_obj = paginator.get_page(page_number)
-
-        sample_results = Sample.objects.all()
-        paginator = Paginator(sample_results, 10)
-        page_number = request.GET.get('page')
-        sample_page_obj = paginator.get_page(page_number)
+        study_page_obj = self.paginate_results(
+            study_results, 'study_page', request
+            )
+        sample_page_obj = self.paginate_results(
+            sample_results, 'sample_page', request
+            )
 
         context = {
             'search_form': search_form,
@@ -106,94 +105,87 @@ def search(request: HttpRequest) -> str:
             'study_results': study_page_obj,
             'query': query,
         }
-        return render(request, 'main/search.html', context)
 
-    # Search across all fields in Study model
-    study_results = Study.objects.filter(
-        Q(BioProject__icontains=query) | Q(Name__icontains=query)
-        | Q(Title__icontains=query) | Q(Organism__icontains=query)
-        | Q(Samples__icontains=query) | Q(SRA__icontains=query)
-        | Q(Release_Date__icontains=query) | Q(Description__icontains=query)
-        | Q(seq_types__icontains=query) | Q(GSE__icontains=query)
-        | Q(PMID__icontains=query) | Q(Authors__icontains=query)
-        | Q(Study_abstract__icontains=query)
-        | Q(Publication_title__icontains=query) | Q(doi__icontains=query)
-        | Q(Date_published__icontains=query) | Q(PMC__icontains=query)
-        | Q(Journal__icontains=query) | Q(Paper_abstract__icontains=query)
-        | Q(Email__icontains=query))
+        return render(request, self.template_name, context)
 
-    sample_results = Sample.objects.filter(
-        # Q(verified__icontains=query) |
-        # Q(trips_id__icontains=query) |
-        # Q(gwips_id__icontains=query) |
-        # Q(ribocrypt_id__icontains=query) |
-        # Q(readfile__icontains=query) |
-        # Q(BioProject__icontains=query) |
-        Q(Run__icontains=query) | Q(spots__icontains=query)
-        | Q(bases__icontains=query) | Q(avgLength__icontains=query)
-        | Q(size_MB__icontains=query) | Q(Experiment__icontains=query)
-        | Q(LibraryName__icontains=query) | Q(LibraryStrategy__icontains=query)
-        | Q(LibrarySelection__icontains=query)
-        | Q(LibrarySource__icontains=query) | Q(LibraryLayout__icontains=query)
-        | Q(InsertSize__icontains=query) | Q(InsertDev__icontains=query)
-        | Q(Platform__icontains=query) | Q(Model__icontains=query)
-        | Q(SRAStudy__icontains=query) | Q(Study_Pubmed_id__icontains=query)
-        | Q(Sample__icontains=query) | Q(BioSample__icontains=query)
-        | Q(SampleType__icontains=query) | Q(TaxID__icontains=query)
-        | Q(ScientificName__icontains=query) | Q(SampleName__icontains=query)
-        | Q(CenterName__icontains=query) | Q(Submission__icontains=query)
-        | Q(MONTH__icontains=query) | Q(YEAR__icontains=query)
-        | Q(AUTHOR__icontains=query) | Q(sample_source__icontains=query)
-        | Q(sample_title__icontains=query) | Q(LIBRARYTYPE__icontains=query)
-        | Q(REPLICATE__icontains=query) | Q(CONDITION__icontains=query)
-        | Q(INHIBITOR__icontains=query) | Q(BATCH__icontains=query)
-        | Q(TIMEPOINT__icontains=query) | Q(TISSUE__icontains=query)
-        | Q(CELL_LINE__icontains=query) | Q(FRACTION__icontains=query)
-        | Q(ENA_first_public__icontains=query)
-        | Q(ENA_last_update__icontains=query)
-        | Q(INSDC_center_alias__icontains=query)
-        | Q(INSDC_center_name__icontains=query)
-        | Q(INSDC_first_public__icontains=query)
-        | Q(INSDC_last_update__icontains=query)
-        | Q(INSDC_status__icontains=query) | Q(ENA_checklist__icontains=query)
-        | Q(GEO_Accession__icontains=query)
-        | Q(Experiment_Date__icontains=query)
-        | Q(date_sequenced__icontains=query)
-        | Q(submission_date__icontains=query) | Q(date__icontains=query)
-        | Q(STAGE__icontains=query) | Q(GENE__icontains=query)
-        | Q(Sex__icontains=query) | Q(Strain__icontains=query)
-        | Q(Age__icontains=query) | Q(Infected__icontains=query)
-        | Q(Disease__icontains=query) | Q(Genotype__icontains=query)
-        | Q(Feeding__icontains=query) | Q(Temperature__icontains=query)
-        | Q(SiRNA__icontains=query) | Q(SgRNA__icontains=query)
-        | Q(ShRNA__icontains=query) | Q(Plasmid__icontains=query)
-        | Q(Growth_Condition__icontains=query) | Q(Stress__icontains=query)
-        | Q(Cancer__icontains=query) | Q(microRNA__icontains=query)
-        | Q(Individual__icontains=query) | Q(Antibody__icontains=query)
-        | Q(Ethnicity__icontains=query) | Q(Dose__icontains=query)
-        | Q(Stimulation__icontains=query) | Q(Host__icontains=query)
-        | Q(UMI__icontains=query) | Q(Adapter__icontains=query)
-        | Q(Separation__icontains=query) | Q(rRNA_depletion__icontains=query)
-        | Q(Barcode__icontains=query)
-        | Q(Monosome_purification__icontains=query)
-        | Q(Nuclease__icontains=query) | Q(Kit__icontains=query)
-        | Q(Info__icontains=query))
-    paginator = Paginator(study_results, 10)
-    page_number = request.GET.get('study_page')
-    study_page_obj = paginator.get_page(page_number)
+    def get_sample_results(self, model, query):
+        sample_results = model.objects.filter(
+            # Q(verified__icontains=query) |
+            # Q(trips_id__icontains=query) |
+            # Q(gwips_id__icontains=query) |
+            # Q(ribocrypt_id__icontains=query) |
+            # Q(readfile__icontains=query) |
+            # Q(BioProject__icontains=query) |
+            Q(Run__icontains=query) | Q(spots__icontains=query)
+            | Q(bases__icontains=query) | Q(avgLength__icontains=query)
+            | Q(size_MB__icontains=query) | Q(Experiment__icontains=query)
+            | Q(LibraryName__icontains=query) | Q(LibraryStrategy__icontains=query)
+            | Q(LibrarySelection__icontains=query)
+            | Q(LibrarySource__icontains=query) | Q(LibraryLayout__icontains=query)
+            | Q(InsertSize__icontains=query) | Q(InsertDev__icontains=query)
+            | Q(Platform__icontains=query) | Q(Model__icontains=query)
+            | Q(SRAStudy__icontains=query) | Q(Study_Pubmed_id__icontains=query)
+            | Q(Sample__icontains=query) | Q(BioSample__icontains=query)
+            | Q(SampleType__icontains=query) | Q(TaxID__icontains=query)
+            | Q(ScientificName__icontains=query) | Q(SampleName__icontains=query)
+            | Q(CenterName__icontains=query) | Q(Submission__icontains=query)
+            | Q(MONTH__icontains=query) | Q(YEAR__icontains=query)
+            | Q(AUTHOR__icontains=query) | Q(sample_source__icontains=query)
+            | Q(sample_title__icontains=query) | Q(LIBRARYTYPE__icontains=query)
+            | Q(REPLICATE__icontains=query) | Q(CONDITION__icontains=query)
+            | Q(INHIBITOR__icontains=query) | Q(BATCH__icontains=query)
+            | Q(TIMEPOINT__icontains=query) | Q(TISSUE__icontains=query)
+            | Q(CELL_LINE__icontains=query) | Q(FRACTION__icontains=query)
+            | Q(ENA_first_public__icontains=query)
+            | Q(ENA_last_update__icontains=query)
+            | Q(INSDC_center_alias__icontains=query)
+            | Q(INSDC_center_name__icontains=query)
+            | Q(INSDC_first_public__icontains=query)
+            | Q(INSDC_last_update__icontains=query)
+            | Q(INSDC_status__icontains=query) | Q(ENA_checklist__icontains=query)
+            | Q(GEO_Accession__icontains=query)
+            | Q(Experiment_Date__icontains=query)
+            | Q(date_sequenced__icontains=query)
+            | Q(submission_date__icontains=query) | Q(date__icontains=query)
+            | Q(STAGE__icontains=query) | Q(GENE__icontains=query)
+            | Q(Sex__icontains=query) | Q(Strain__icontains=query)
+            | Q(Age__icontains=query) | Q(Infected__icontains=query)
+            | Q(Disease__icontains=query) | Q(Genotype__icontains=query)
+            | Q(Feeding__icontains=query) | Q(Temperature__icontains=query)
+            | Q(SiRNA__icontains=query) | Q(SgRNA__icontains=query)
+            | Q(ShRNA__icontains=query) | Q(Plasmid__icontains=query)
+            | Q(Growth_Condition__icontains=query) | Q(Stress__icontains=query)
+            | Q(Cancer__icontains=query) | Q(microRNA__icontains=query)
+            | Q(Individual__icontains=query) | Q(Antibody__icontains=query)
+            | Q(Ethnicity__icontains=query) | Q(Dose__icontains=query)
+            | Q(Stimulation__icontains=query) | Q(Host__icontains=query)
+            | Q(UMI__icontains=query) | Q(Adapter__icontains=query)
+            | Q(Separation__icontains=query) | Q(rRNA_depletion__icontains=query)
+            | Q(Barcode__icontains=query)
+            | Q(Monosome_purification__icontains=query)
+            | Q(Nuclease__icontains=query) | Q(Kit__icontains=query)
+            | Q(Info__icontains=query))
+        return sample_results
 
-    paginator = Paginator(sample_results, 10)
-    page_number = request.GET.get('sample_page')
-    sample_page_obj = paginator.get_page(page_number)
+    def get_study_results(self, model, query):
+        study_results = model.objects.filter(
+            Q(BioProject__icontains=query) | Q(Name__icontains=query)
+            | Q(Title__icontains=query) | Q(Organism__icontains=query)
+            | Q(Samples__icontains=query) | Q(SRA__icontains=query)
+            | Q(Release_Date__icontains=query) | Q(Description__icontains=query)
+            | Q(seq_types__icontains=query) | Q(GSE__icontains=query)
+            | Q(PMID__icontains=query) | Q(Authors__icontains=query)
+            | Q(Study_abstract__icontains=query)
+            | Q(Publication_title__icontains=query) | Q(doi__icontains=query)
+            | Q(Date_published__icontains=query) | Q(PMC__icontains=query)
+            | Q(Journal__icontains=query) | Q(Paper_abstract__icontains=query)
+            | Q(Email__icontains=query))
+        return study_results
 
-    context = {
-        'search_form': search_form,
-        'sample_results': sample_page_obj,
-        'study_results': study_page_obj,
-        'query': query,
-    }
-
-    return render(request, 'main/search.html', context)
+    def paginate_results(self, results, page_key, request):
+        paginator = Paginator(results, self.paginate_by)
+        page_number = request.GET.get(page_key)
+        return paginator.get_page(page_number)
 
 
 def get_sample_filter_options(
