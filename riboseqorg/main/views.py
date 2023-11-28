@@ -1,38 +1,35 @@
-from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from django.http import HttpRequest
-
-from django.db.models import Q, Count
-
-from .models import Sample, Study, OpenColumns
-
-from .forms import SearchForm
-
+from django.db.models import CharField, Q, Count
+from django.db.models.functions import Length
+from django.db.models.query import QuerySet
 from django_filters.views import FilterView
+from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
+from django.shortcuts import render, get_object_or_404
+
+import csv
+from datetime import datetime
+import mimetypes
+import os
+import uuid
+
 from .filters import StudyFilter, SampleFilter
+from .forms import SearchForm
+from .models import Sample, Study
 
-from .utilities import get_clean_names, get_original_name,\
-    build_query, handle_filter, handle_gwips_urls,\
-    handle_trips_urls, handle_ribocrypt_urls,\
-    build_run_query, build_bioproject_query,\
-    select_all_query
-
+from .utilities import get_clean_names, get_original_name, \
+    build_query, handle_filter, handle_gwips_urls, \
+    handle_trips_urls, handle_ribocrypt_urls, \
+    build_run_query, build_bioproject_query, \
+    select_all_query, handle_urls_for_query, \
+    get_fastp_report_link, get_fastqc_report_link
 
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import SampleSerializer
 
-import csv
-from django.http import HttpResponse, HttpResponseNotFound
-from django.http import FileResponse
-from django.conf import settings
-import os
 
-import zipfile
-import tempfile
-import shutil
-import time
+CharField.register_lookup(Length, 'length')
 
 
 class SampleListView(generics.ListCreateAPIView):
@@ -42,7 +39,9 @@ class SampleListView(generics.ListCreateAPIView):
 
 
 class SampleFileDownloadView(APIView):
-    permission_classes = [permissions.IsAuthenticated]  # Optional: Set the required permissions
+    permission_classes = [
+        permissions.IsAuthenticated
+                          ]  # Optional: Set the required permissions
 
     def get(self, request, pk):
         try:
@@ -50,41 +49,13 @@ class SampleFileDownloadView(APIView):
         except Sample.DoesNotExist:
             return Response(status=404)
 
-        # Perform any additional checks or validations before allowing the download
-
-        file_path = instance.file.path  # Assuming 'file' is a FileField in YourModel
+        file_path = instance.file.path  # Assuming 'file' is a FileField
         with open(file_path, 'rb') as file:
             response = Response(file.read())
-            response['Content-Disposition'] = f'attachment; filename="{instance.file.name}"'
+            response[
+                'Content-Disposition'
+                ] = f'attachment; filename="{instance.file.name}"'
             return response
-
-
-def recode(request: HttpRequest) -> str:
-    """
-    Render the page that describes the fate of recode.ucc.ie
-
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
-
-    Returns:
-    - (render): the rendered HTTP response for the page
-    """
-    search_form = SearchForm()
-
-    context = {
-        'search_form': search_form,
-    }
-    return render(request, "main/recode.html", context)
-
-
-def download_recode_db(request):
-    file_path = os.path.join(settings.BASE_DIR, 'downloads', 'recode.zip')
-    if os.path.exists(file_path):
-        response = FileResponse(open(file_path, 'rb'), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="recode.zip"'
-        return response
-    else:
-        return HttpResponseNotFound("File not found")
 
 
 def index(request: HttpRequest) -> str:
@@ -139,27 +110,17 @@ def search(request: HttpRequest) -> str:
 
     # Search across all fields in Study model
     study_results = Study.objects.filter(
-        Q(BioProject__icontains=query) |
-        Q(Name__icontains=query) |
-        Q(Title__icontains=query) |
-        Q(Organism__icontains=query) |
-        Q(Samples__icontains=query) |
-        Q(SRA__icontains=query) |
-        Q(Release_Date__icontains=query) |
-        Q(Description__icontains=query) |
-        Q(seq_types__icontains=query) |
-        Q(GSE__icontains=query) |
-        Q(PMID__icontains=query) |
-        Q(Authors__icontains=query) |
-        Q(Study_abstract__icontains=query) |
-        Q(Publication_title__icontains=query) |
-        Q(doi__icontains=query) |
-        Q(Date_published__icontains=query) |
-        Q(PMC__icontains=query) |
-        Q(Journal__icontains=query) |
-        Q(Paper_abstract__icontains=query) |
-        Q(Email__icontains=query)
-    )
+        Q(BioProject__icontains=query) | Q(Name__icontains=query)
+        | Q(Title__icontains=query) | Q(Organism__icontains=query)
+        | Q(Samples__icontains=query) | Q(SRA__icontains=query)
+        | Q(Release_Date__icontains=query) | Q(Description__icontains=query)
+        | Q(seq_types__icontains=query) | Q(GSE__icontains=query)
+        | Q(PMID__icontains=query) | Q(Authors__icontains=query)
+        | Q(Study_abstract__icontains=query)
+        | Q(Publication_title__icontains=query) | Q(doi__icontains=query)
+        | Q(Date_published__icontains=query) | Q(PMC__icontains=query)
+        | Q(Journal__icontains=query) | Q(Paper_abstract__icontains=query)
+        | Q(Email__icontains=query))
 
     sample_results = Sample.objects.filter(
         # Q(verified__icontains=query) |
@@ -168,92 +129,55 @@ def search(request: HttpRequest) -> str:
         # Q(ribocrypt_id__icontains=query) |
         # Q(readfile__icontains=query) |
         # Q(BioProject__icontains=query) |
-        Q(Run__icontains=query) |
-        Q(spots__icontains=query) |
-        Q(bases__icontains=query) |
-        Q(avgLength__icontains=query) |
-        Q(size_MB__icontains=query) |
-        Q(Experiment__icontains=query) |
-        Q(LibraryName__icontains=query) |
-        Q(LibraryStrategy__icontains=query) |
-        Q(LibrarySelection__icontains=query) |
-        Q(LibrarySource__icontains=query) |
-        Q(LibraryLayout__icontains=query) |
-        Q(InsertSize__icontains=query) |
-        Q(InsertDev__icontains=query) |
-        Q(Platform__icontains=query) |
-        Q(Model__icontains=query) |
-        Q(SRAStudy__icontains=query) |
-        Q(Study_Pubmed_id__icontains=query) |
-        Q(Sample__icontains=query) |
-        Q(BioSample__icontains=query) |
-        Q(SampleType__icontains=query) |
-        Q(TaxID__icontains=query) |
-        Q(ScientificName__icontains=query) |
-        Q(SampleName__icontains=query) |
-        Q(CenterName__icontains=query) |
-        Q(Submission__icontains=query) |
-        Q(MONTH__icontains=query) |
-        Q(YEAR__icontains=query) |
-        Q(AUTHOR__icontains=query) |
-        Q(sample_source__icontains=query) |
-        Q(sample_title__icontains=query) |
-        Q(LIBRARYTYPE__icontains=query) |
-        Q(REPLICATE__icontains=query) |
-        Q(CONDITION__icontains=query) |
-        Q(INHIBITOR__icontains=query) |
-        Q(BATCH__icontains=query) |
-        Q(TIMEPOINT__icontains=query) |
-        Q(TISSUE__icontains=query) |
-        Q(CELL_LINE__icontains=query) |
-        Q(FRACTION__icontains=query) |
-        Q(ENA_first_public__icontains=query) |
-        Q(ENA_last_update__icontains=query) |
-        Q(INSDC_center_alias__icontains=query) |
-        Q(INSDC_center_name__icontains=query) |
-        Q(INSDC_first_public__icontains=query) |
-        Q(INSDC_last_update__icontains=query) |
-        Q(INSDC_status__icontains=query) |
-        Q(ENA_checklist__icontains=query) |
-        Q(GEO_Accession__icontains=query) |
-        Q(Experiment_Date__icontains=query) |
-        Q(date_sequenced__icontains=query) |
-        Q(submission_date__icontains=query) |
-        Q(date__icontains=query) |
-        Q(STAGE__icontains=query) |
-        Q(GENE__icontains=query) |
-        Q(Sex__icontains=query) |
-        Q(Strain__icontains=query) |
-        Q(Age__icontains=query) |
-        Q(Infected__icontains=query) |
-        Q(Disease__icontains=query) |
-        Q(Genotype__icontains=query) |
-        Q(Feeding__icontains=query) |
-        Q(Temperature__icontains=query) |
-        Q(SiRNA__icontains=query) |
-        Q(SgRNA__icontains=query) |
-        Q(ShRNA__icontains=query) |
-        Q(Plasmid__icontains=query) |
-        Q(Growth_Condition__icontains=query) |
-        Q(Stress__icontains=query) |
-        Q(Cancer__icontains=query) |
-        Q(microRNA__icontains=query) |
-        Q(Individual__icontains=query) |
-        Q(Antibody__icontains=query) |
-        Q(Ethnicity__icontains=query) |
-        Q(Dose__icontains=query) |
-        Q(Stimulation__icontains=query) |
-        Q(Host__icontains=query) |
-        Q(UMI__icontains=query) |
-        Q(Adapter__icontains=query) |
-        Q(Separation__icontains=query) |
-        Q(rRNA_depletion__icontains=query) |
-        Q(Barcode__icontains=query) |
-        Q(Monosome_purification__icontains=query) |
-        Q(Nuclease__icontains=query) |
-        Q(Kit__icontains=query) |
-        Q(Info__icontains=query)
-    )
+        Q(Run__icontains=query) | Q(spots__icontains=query)
+        | Q(bases__icontains=query) | Q(avgLength__icontains=query)
+        | Q(size_MB__icontains=query) | Q(Experiment__icontains=query)
+        | Q(LibraryName__icontains=query) | Q(LibraryStrategy__icontains=query)
+        | Q(LibrarySelection__icontains=query)
+        | Q(LibrarySource__icontains=query) | Q(LibraryLayout__icontains=query)
+        | Q(InsertSize__icontains=query) | Q(InsertDev__icontains=query)
+        | Q(Platform__icontains=query) | Q(Model__icontains=query)
+        | Q(SRAStudy__icontains=query) | Q(Study_Pubmed_id__icontains=query)
+        | Q(Sample__icontains=query) | Q(BioSample__icontains=query)
+        | Q(SampleType__icontains=query) | Q(TaxID__icontains=query)
+        | Q(ScientificName__icontains=query) | Q(SampleName__icontains=query)
+        | Q(CenterName__icontains=query) | Q(Submission__icontains=query)
+        | Q(MONTH__icontains=query) | Q(YEAR__icontains=query)
+        | Q(AUTHOR__icontains=query) | Q(sample_source__icontains=query)
+        | Q(sample_title__icontains=query) | Q(LIBRARYTYPE__icontains=query)
+        | Q(REPLICATE__icontains=query) | Q(CONDITION__icontains=query)
+        | Q(INHIBITOR__icontains=query) | Q(BATCH__icontains=query)
+        | Q(TIMEPOINT__icontains=query) | Q(TISSUE__icontains=query)
+        | Q(CELL_LINE__icontains=query) | Q(FRACTION__icontains=query)
+        | Q(ENA_first_public__icontains=query)
+        | Q(ENA_last_update__icontains=query)
+        | Q(INSDC_center_alias__icontains=query)
+        | Q(INSDC_center_name__icontains=query)
+        | Q(INSDC_first_public__icontains=query)
+        | Q(INSDC_last_update__icontains=query)
+        | Q(INSDC_status__icontains=query) | Q(ENA_checklist__icontains=query)
+        | Q(GEO_Accession__icontains=query)
+        | Q(Experiment_Date__icontains=query)
+        | Q(date_sequenced__icontains=query)
+        | Q(submission_date__icontains=query) | Q(date__icontains=query)
+        | Q(STAGE__icontains=query) | Q(GENE__icontains=query)
+        | Q(Sex__icontains=query) | Q(Strain__icontains=query)
+        | Q(Age__icontains=query) | Q(Infected__icontains=query)
+        | Q(Disease__icontains=query) | Q(Genotype__icontains=query)
+        | Q(Feeding__icontains=query) | Q(Temperature__icontains=query)
+        | Q(SiRNA__icontains=query) | Q(SgRNA__icontains=query)
+        | Q(ShRNA__icontains=query) | Q(Plasmid__icontains=query)
+        | Q(Growth_Condition__icontains=query) | Q(Stress__icontains=query)
+        | Q(Cancer__icontains=query) | Q(microRNA__icontains=query)
+        | Q(Individual__icontains=query) | Q(Antibody__icontains=query)
+        | Q(Ethnicity__icontains=query) | Q(Dose__icontains=query)
+        | Q(Stimulation__icontains=query) | Q(Host__icontains=query)
+        | Q(UMI__icontains=query) | Q(Adapter__icontains=query)
+        | Q(Separation__icontains=query) | Q(rRNA_depletion__icontains=query)
+        | Q(Barcode__icontains=query)
+        | Q(Monosome_purification__icontains=query)
+        | Q(Nuclease__icontains=query) | Q(Kit__icontains=query)
+        | Q(Info__icontains=query))
     paginator = Paginator(study_results, 10)
     page_number = request.GET.get('study_page')
     study_page_obj = paginator.get_page(page_number)
@@ -263,24 +187,27 @@ def search(request: HttpRequest) -> str:
     sample_page_obj = paginator.get_page(page_number)
 
     context = {
-            'search_form': search_form,
-            'sample_results': sample_page_obj,
-            'study_results': study_page_obj,
-            'query': query,
-        }
+        'search_form': search_form,
+        'sample_results': sample_page_obj,
+        'study_results': study_page_obj,
+        'query': query,
+    }
 
     return render(request, 'main/search.html', context)
 
 
-def get_sample_filter_options(studies: list,
-                              sample_fields: list = [
-                                'CELL_LINE',
-                                'INHIBITOR',
-                                'TISSUE',
-                                'LIBRARYTYPE',
-                              ]) -> dict:
+def get_sample_filter_options(
+    studies: QuerySet,
+    sample_fields: list = [
+        'CELL_LINE',
+        'INHIBITOR',
+        'TISSUE',
+        'LIBRARYTYPE',
+    ]
+) -> dict:
     '''
-    For a given filtered study queryset, return the filter options for the sample parameters.
+    For a given filtered study queryset, return the filter options f
+    or the sample parameters.
 
     Arguments:
     - studies (list): the filtered study queryset
@@ -295,16 +222,27 @@ def get_sample_filter_options(studies: list,
     samples = Sample.objects.filter(BioProject_id__in=bioprojects)
 
     for field in sample_fields:
-        values = samples.values(field).annotate(count=Count(field)).order_by('-count')
+        values = samples.values(field).annotate(
+            count=Count(field)).order_by('-count')
         for obj in values:
             for field_name in obj.keys():
                 if obj[field_name] == '' or obj[field_name] == 'nan':
                     obj[field_name] = 'None'
 
                 if clean_names[field_name] not in sample_filter_options:
-                    sample_filter_options[clean_names[field_name]] = [{'value': obj[field_name], 'count': obj['count']}]
+                    sample_filter_options[clean_names[field_name]] = [{
+                        'value':
+                        obj[field_name],
+                        'count':
+                        obj['count']
+                    }]
                 else:
-                    sample_filter_options[clean_names[field_name]].append({'value': obj[field_name], 'count': obj['count']})
+                    sample_filter_options[clean_names[field_name]].append(
+                            {
+                                'value': obj[field_name],
+                                'count': obj['count']
+                            }
+                        )
     return sample_filter_options
 
 
@@ -318,7 +256,8 @@ def samples(request: HttpRequest) -> str:
     Returns:
     - (render): the rendered HTTP response for the page
     """
-    # fields to show in Filter Panel 
+
+    # fields to show in Filter Panel
     appropriate_fields = [
         'CELL_LINE',
         'INHIBITOR',
@@ -335,51 +274,64 @@ def samples(request: HttpRequest) -> str:
         # "Genotype",
         # "Feeding",
         # "Temperature",
-        ]
+    ]
     toggle_fields = [
         'trips_id',
         'gwips_id',
         'ribocrypt_id',
-        'readfile',
+        'FASTA_file',
         'verified',
     ]
     clean_names = get_clean_names()
 
     # Get all the query parameters from the request
     query_params = request.GET.lists()
-    filtered_columns = [get_original_name(name, clean_names) for name, values in request.GET.lists()]
+    filtered_columns = [
+        get_original_name(name, clean_names)
+        for name, values in request.GET.lists()
+    ]
 
-    # populate filter panel
-    # Get the unique values and counts for each parameter within the filtered queryset
+    # Get the unique values and counts for each parameter
+    # within the filtered queryset
     param_options = {}
     for field in Sample._meta.fields:
         # if field.get_internal_type() == 'CharField':
         if field.name in filtered_columns:
-            # update query_params to remove the current field to ensure this field is not filtered by itself
-            query_params = [i for i in request.GET.lists() if get_original_name(i[0], clean_names) != field.name]
+            # update query_params to remove the current field to ensure this
+            # field is not filtered by itself
+            query_params = [
+                i for i in request.GET.lists()
+                if get_original_name(i[0], clean_names) != field.name
+            ]
             query = build_query(request, query_params, clean_names)
             sample_entries = Sample.objects.filter(query)
 
-            filtered_samples = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+            filtered_samples = sample_entries.values(field.name).annotate(
+                count=Count(field.name)).order_by('-count')
             param_options[field.name] = filtered_samples
         else:
             query_params = request.GET.lists()
             query = build_query(request, query_params, clean_names)
             sample_entries = Sample.objects.filter(query)
 
-            values = sample_entries.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+            values = sample_entries.values(field.name).annotate(
+                count=Count(field.name)).order_by('-count')
             param_options[field.name] = values
 
-    clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
+    clean_results_dict = handle_filter(param_options, appropriate_fields,
+                                       clean_names)
     clean_results_dict.pop('count', None)
-
-    # build query - handle the original (as per db) to clean name conversion
-    query_params = [(name, values) for name, values in request.GET.lists() if get_original_name(name, clean_names) in appropriate_fields or name in toggle_fields]
+    query_params = [
+        (name, values) for name, values in request.GET.lists()
+        if get_original_name(name, clean_names) in appropriate_fields
+        or name in toggle_fields
+    ]
     query = build_query(request, query_params, clean_names)
 
     # get entries to populate table
     sample_entries = Sample.objects.filter(query)
-    sample_entries = list(reversed(sample_entries.order_by('INHIBITOR','LIBRARYTYPE')))
+    sample_entries = list(
+        reversed(sample_entries.order_by('INHIBITOR', 'LIBRARYTYPE')))
 
     # Paginate the studies
     paginator = Paginator(sample_entries, 10)
@@ -395,78 +347,128 @@ def samples(request: HttpRequest) -> str:
         'FASTA_file_toggle_state': request.GET.get('FASTA_file', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
-    # Render the studies template with the filtered and paginated studies and the filter options
+    # Render the studies template with the filtered and paginated studies
+    # and the filter options
     return render(request, 'main/samples.html', context)
 
 
 def studies(request: HttpRequest) -> str:
     """
     Render a page of studies filtered by query parameters.
-    
+
     Arguments:
     - request (HttpRequest): the HTTP request for the page
-    
+
     Returns:
     - (render): the rendered HTTP response for the page
-    """    
+    """
     appropriate_fields = [
         'Organism',
-        ]
+    ]
     boolean_fields = [
         'PMID',
     ]
     clean_names = get_clean_names()
     del clean_names['ScientificName']
-    
+
     # Get all the query parameters from the request
     # used for filter panel
-    query_params = [(name, values) for name, values in request.GET.lists() if name in appropriate_fields or name in boolean_fields]
-    filtered_columns = [get_original_name(name, clean_names) for name, values in request.GET.lists()]
+    query_params = [(name, values) for name, values in request.GET.lists()
+                    if name in appropriate_fields or name in boolean_fields]
+    filtered_columns = [
+        get_original_name(name, clean_names)
+        for name, values in request.GET.lists()
+    ]
 
-    boolenan_param_options = {}
-    # Get the unique values and counts for each parameter within the filtered queryset
+    boolean_param_options = {}
+    # Get the unique values and counts for each parameter within the
+    # filtered queryset
     param_options = {}
     for field in Study._meta.fields:
         if field.get_internal_type() == 'CharField':
             if field.name in filtered_columns:
-                # update query_params to remove the current field to ensure this field is not filtered by itself
-                query_params = [i for i in request.GET.lists() if get_original_name(i[0], clean_names) != field.name]
-                query_params = [(name, values) for name, values in request.GET.lists() if (name in appropriate_fields or name in boolean_fields) and get_original_name(name, clean_names) != field.name]
+                # update query_params to remove the current field to ensure
+                # this field is not filtered by itself
+                query_params = [
+                    i for i in request.GET.lists()
+                    if get_original_name(i[0], clean_names) != field.name
+                ]
+                query_params = [
+                    (name, values) for name, values in request.GET.lists()
+                    if (name in appropriate_fields or name in boolean_fields)
+                    and get_original_name(name, clean_names) != field.name
+                ]
 
                 query = build_query(request, query_params, clean_names)
                 studies = Study.objects.filter(query)
 
-                filtered_studies = studies.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+                filtered_studies = studies.values(field.name).annotate(
+                    count=Count(field.name)).order_by('-count')
                 param_options[field.name] = filtered_studies
             else:
                 query = build_query(request, query_params, clean_names)
                 studies = Study.objects.filter(query)
 
-                values = studies.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+                values = studies.values(field.name).annotate(
+                    count=Count(field.name)).order_by('-count')
                 param_options[field.name] = values
 
         if field.name in boolean_fields:
             query = build_query(request, query_params, clean_names)
             studies = Study.objects.filter(query)
-            values = studies.values(field.name).annotate(count=Count(field.name)).order_by('-count')
+            values = studies.values(field.name).annotate(
+                count=Count(field.name)).order_by('-count')
 
-            available = [i for i in values if i[field.name] not in ['', 'nan', None]]
+            available = [
+                i for i in values if i[field.name] not in ['', 'nan', None]
+            ]
             available_count = sum([i['count'] for i in available])
 
-            not_available = [i for i in values if i[field.name] in ['', 'nan', None]]
+            not_available = [
+                i for i in values if i[field.name] in ['', 'nan', None]
+            ]
             not_available_count = sum([i['count'] for i in not_available])
 
             clean_name = clean_names[field.name]
-            boolenan_param_options[clean_name] = [{'count': available_count, 'value': 'Available'}, {'count': not_available_count, 'value': 'Not Available'}]
-
+            boolean_param_options[clean_name] = [{
+                'count': available_count,
+                'value': 'Available'
+            }, {
+                'count': not_available_count,
+                'value': 'Not Available'
+            }]
 
     # rebuild query to populate table
-    query_params = [(name, values) for name, values in request.GET.lists() if name in appropriate_fields or name in boolean_fields]
+    query_params = [(name, values) for name, values in request.GET.lists()
+                    if name in appropriate_fields or name in boolean_fields]
     query = build_query(request, query_params, clean_names)
     study_entries = Study.objects.filter(query)
-    sample_filter_options = get_sample_filter_options(study_entries)
-    clean_results_dict = handle_filter(param_options, appropriate_fields, clean_names)
-    clean_results_dict = {**clean_results_dict, **boolenan_param_options}#, **sample_filter_options}
+    for i, obj in enumerate(study_entries):
+        date_string = obj.Release_Date
+        try:
+            date_obj = datetime.strptime(date_string,
+                                         "%Y/%m/%d %H:%M").strftime("%m/%d/%Y")
+            # Update the object in the database with the date object if needed
+        except ValueError:
+            print(obj.BioProject, date_string)
+            # NOTE: For error associated dates
+            date_obj = "01/01/2001"
+        study_entries[i].Release_Date = date_obj
+
+
+# study_entries.save()
+# Handle invalid date strings if necessary
+
+    # The idea behind sample filter options is to be able to filter a study
+    # based on the metadata of the samples it contains. This is not currently
+    # implemented
+    # sample_filter_options = get_sample_filter_options(study_entries)
+    clean_results_dict = handle_filter(param_options, appropriate_fields,
+                                       clean_names)
+    clean_results_dict = {
+        **clean_results_dict,
+        **boolean_param_options
+    }  # , **sample_filter_options}
     clean_results_dict.pop('count', None)
 
     # Paginate the studies
@@ -474,8 +476,12 @@ def studies(request: HttpRequest) -> str:
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Render the studies template with the filtered and paginated studies and the filter options
-    return render(request, 'main/studies.html', {'page_obj': page_obj, 'param_options': clean_results_dict})
+    # Render the studies template with the filtered and paginated studies
+    # and the filter options
+    return render(request, 'main/studies.html', {
+        'page_obj': page_obj,
+        'param_options': clean_results_dict
+    })
 
 
 def about(request: HttpRequest) -> str:
@@ -501,56 +507,45 @@ def study_detail(request: HttpRequest, query: str) -> str:
 
     Returns:
     - (render): the rendered HTTP response for the page
-    """ 
+    """
     study_model = get_object_or_404(Study, BioProject=query)
 
     # return all results from Study where Accession=query
     ls = Sample.objects.filter(BioProject=query)
 
     query = Q(BioProject=query)
-    if query is not None:
-        trips = handle_trips_urls(query)[0]
-        if len(trips['clean_organism'].split(" ")) > 5:
-            bioproject_trips_link = "https://trips.ucc.ie/"
-            bioproject_trips_name = "Not Available"
-        else:
-            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
-            bioproject_trips_name = "Visit Trips-Viz"
-
-        gwips = handle_gwips_urls(request, query=query)[0]
-        if len(gwips['clean_organism'].split(" ")) > 5:
-            bioproject_gwips_link = "https://gwips.ucc.ie/"
-            bioproject_gwips_name = "Not Available"
-        else:
-            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
-            bioproject_gwips_name = "Visit GWIPS-viz"
-
-        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
-        if len(ribocrypt['clean_organism'].split(" ")) > 5:
-            bioproject_ribocrypt_link = "https://ribocrypt.org/"
-            bioproject_ribocrypt_name = "Not Available"
-        else:
-            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
-            bioproject_ribocrypt_name = "Visit RiboCrypt"
+    urls = handle_urls_for_query(request, query)
 
     for entry in ls:
+        query = Q(Run=entry.Run)
+        urls = handle_urls_for_query(request, query)
+        entry.trips_link = urls['trips_link']
+        entry.trips_name = urls['trips_name']
+        entry.gwips_link = urls['gwips_link']
+        entry.gwips_name = urls['gwips_name']
+        entry.ribocrypt_link = urls['ribocrypt_link']
+        entry.ribocrypt_name = urls['ribocrypt_name']
+        # get download link
         link = generate_link(entry.BioProject, entry.Run)
-        if type(link) == str:
+        if isinstance(link, str):
             entry.link = f"/file-download/{link}"
             entry.link_type = "FASTA"
         else:
             entry.link = ""
-    # Return all results from Sample and query the sqlite too and add this to the table
+            entry.link_type = "Not Available"
+
+    # Return all results from Sample and query the sqlite too and add this to
+    # the table
     context = {
         'Study': study_model,
         'ls': ls,
-        'bioproject_trips_link': bioproject_trips_link,
-        'bioproject_trips_name': bioproject_trips_name,
-        'bioproject_gwips_link': bioproject_gwips_link,
-        'bioproject_gwips_name': bioproject_gwips_name,
-        'bioproject_ribocrypt_link': bioproject_ribocrypt_link,
-        'bioproject_ribocrypt_name': bioproject_ribocrypt_name,
-        }
+        'bioproject_trips_link': urls['trips_link'],
+        'bioproject_trips_name': urls['trips_name'],
+        'bioproject_gwips_link': urls['gwips_link'],
+        'bioproject_gwips_name': urls['gwips_name'],
+        'bioproject_ribocrypt_link': urls['ribocrypt_link'],
+        'bioproject_ribocrypt_name': urls['ribocrypt_name'],
+    }
     return render(request, 'main/study.html', context)
 
 
@@ -650,7 +645,7 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         'Monosome_purification',
         'Nuclease',
         'Kit',
-        ]
+    ]
 
     clean_names = get_clean_names()
     sample_model = get_object_or_404(Sample, Run=query)
@@ -661,36 +656,19 @@ def sample_detail(request: HttpRequest, query: str) -> str:
     for key, value in ls.values()[0].items():
         if value not in ['nan', '']:
             if key in appropriate_fields:
-                ks.append(
-                    (clean_names[key], value)
-                )
+                ks.append((clean_names[key], value))
     sample_query = Q(Run=query)
 
     # generate GWIPS and Trips URLs
-    if query is not None:
-        trips = handle_trips_urls(sample_query)[0]
-        if len(trips['clean_organism'].split(" ")) > 5:
-            trips_link = "https://trips.ucc.ie/"
-            trips_name = "Not Available"
-        else:
-            trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
-            trips_name = "Visit Trips-Viz"
+    urls = handle_urls_for_query(request, sample_query)
 
-        gwips = handle_gwips_urls(request, query=sample_query)[0]
-        if len(gwips['clean_organism'].split(" ")) > 5:
-            gwips_link = "https://gwips.ucc.ie/"
-            gwips_name = "Not Available"
+    for entry in ls:
+        link = generate_link(entry.BioProject, entry.Run)
+        if isinstance(link, str):
+            entry.link = f"{link}"
+            entry.link_type = "FASTA"
         else:
-            gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
-            gwips_name = "Visit GWIPS-viz"
-
-        ribocrypt = handle_ribocrypt_urls(request, query=sample_query)[0]
-        if len(ribocrypt['clean_organism'].split(" ")) > 5:
-            ribocrypt_link = "https://ribocrypt.org/"
-            ribocrypt_name = "Not Available"
-        else:
-            ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
-            ribocrypt_name = "Visit RiboCrypt"
+            entry.link = ""
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
@@ -700,13 +678,15 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         'Sample': sample_model,
         'ls': page_obj,
         'ks': ks,
-        'trips': trips_link,
-        'trips_name': trips_name,
-        'gwips': gwips_link,
-        'gwips_name': gwips_name,
-        'ribocrypt': ribocrypt_link,
-        'ribocrypt_name': ribocrypt_name,
-        }
+        'trips': urls['trips_link'],
+        'trips_name': urls['trips_name'],
+        'gwips': urls['gwips_link'],
+        'gwips_name': urls['gwips_name'],
+        'ribocrypt': urls['ribocrypt_link'],
+        'ribocrypt_name': urls['ribocrypt_name'],
+        'fastp': get_fastp_report_link(sample_model.Run),
+        'fastqc': get_fastqc_report_link(sample_model.Run),
+    }
     return render(request, 'main/sample.html', context)
 
 
@@ -719,18 +699,10 @@ class StudyListView(FilterView):
     filterset_class = StudyFilter
 
 
-class SampleListView(FilterView):
-    """
-    View to display a list of samples based on applied filters.
-    """
-    model = Sample
-    template_name = 'sample_list.html'
-    filterset_class = SampleFilter
-
-
 def sample_select_form(request: HttpRequest) -> str:
     """
-    handle the samples selection form and either call links or download metadata
+    handle the samples selection form and either call links or
+    download metadata
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
@@ -739,8 +711,11 @@ def sample_select_form(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-
-    if "links" in selected:
+    if 'download-metadata' in selected:
+        return generate_samples_csv(request)
+    elif 'link-all' in selected:
+        return links(request)
+    elif "links" in selected:
         return links(request)
     elif 'metadata' in selected:
         return generate_samples_csv(request)
@@ -768,21 +743,27 @@ def generate_link(project, run, type="reads"):
         "reads": "_clipped_collapsed.fastq.gz",
         "counts": "_counts.txt",
     }
-    path_directories = {
+    path_dirs = {
         "reads": "collapsed_fastq",
         "counts": "counts",
     }
     project = str(project)
     run = str(run)
-    if os.path.exists(os.path.join(server_base, path_directories[type], project, run + path_suffixes[type])):
-        return str(os.path.join(path_directories[type], project, run + path_suffixes[type]))
-    elif os.path.exists(os.path.join(server_base, path_directories[type], project, run + "_1" + path_suffixes[type])):
-        return str(os.path.join(path_directories[type], project, run + "_1" + path_suffixes[type]))
-    else:
-        # print("Failed: " + os.path.join(server_base, path_directories[type], project, run + path_suffixes[type]) + " or " + os.path.join(server_base, path_directories[type], project, run + "_1" + path_suffixes[type]) + " does not exist")
-        return None
+    if os.path.exists(
+            os.path.join(server_base, path_dirs[type],
+                         run + path_suffixes[type])):
+        return f"/static2/{path_dirs[type]}/{run + path_suffixes[type]}"
 
-def check_path_exists(path, server_base="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"):
+    elif os.path.exists(
+            os.path.join(server_base, path_dirs[type],
+                         run + "_1" + path_suffixes[type])):
+        return f"/static2/{path_dirs[type]}/{run}_1{path_suffixes[type]}"
+
+    return None
+
+
+def check_path_exists(
+        path, server_base="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"):
     """
     Check if a given path exists
 
@@ -808,18 +789,23 @@ def links(request: HttpRequest) -> str:
     selected = dict(request.GET.lists())
 
     # Parse query from request
-    if 'run' in selected:
+    if 'query' in selected:
+        sample_query = select_all_query(selected['query'][0])
+        if "PubMed" in selected['query'][0] and "Available" in selected[
+                'query'][0]:
+            sample_entries = Sample.objects.filter(
+                BioProject__PMID__length__gt=0)
+        sample_entries = Sample.objects.filter(sample_query)
+        runs = sample_entries.values_list('Run', flat=True)
+        if not str(sample_query) == "(AND: )":
+            sample_query = build_run_query(runs)
+
+    elif 'run' in selected:
         sample_query = build_run_query(selected['run'])
 
     elif 'bioproject' in selected:
         sample_query = build_bioproject_query(selected['bioproject'])
 
-    elif 'query' in selected:
-        sample_query = select_all_query(selected['query'][0])
-        sample_entries = Sample.objects.filter(sample_query)
-        runs = sample_entries.values_list('Run', flat=True)
-        if not str(sample_query) == "(AND: )":
-            sample_query = build_run_query(runs)
     else:
         sample_page_obj = None
         sample_query = None
@@ -835,88 +821,113 @@ def links(request: HttpRequest) -> str:
             ribocrypt = handle_ribocrypt_urls(request)
 
     else:
-        trips = [
-                {
-                'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
-                'organism': 'None of the Selected Runs are available on Trips-Viz',
-            }
-        ]
-        gwips = [
-                {
-                'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                'organism': 'None of the Selected Runs are available on GWIPS-Viz',
-            }
-        ]
-        ribocrypt = [
-                {
-                'clean_organism': 'None of the Selected Runs are available on Ribocrypt',
-                'organism': 'None of the Selected Runs are available on Ribocrypt',
-            }
-        ]
-
-    # Retrieve entries 
+        trips = [{
+            'clean_organism':
+            'None of the Selected Runs are available on Trips-Viz',
+            'organism':
+            'None of the Selected Runs are available on Trips-Viz',
+        }]
+        gwips = [{
+            'clean_organism':
+            'None of the Selected Runs are available on GWIPS-Viz',
+            'organism':
+            'None of the Selected Runs are available on GWIPS-Viz',
+        }]
     sample_entries = Sample.objects.filter(sample_query)
 
-    # Paginate 
+    # Retrieve entries
+    sample_entries = Sample.objects.filter(sample_query)
+
+    # Paginate
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     sample_page_obj = paginator.get_page(page_number)
 
     # get links for entries on page
     for entry in sample_page_obj:
+        query = Q(Run=entry.Run)
+        urls = handle_urls_for_query(request, query)
+        entry.trips_link = urls['trips_link']
+        entry.trips_name = urls['trips_name']
+        entry.gwips_link = urls['gwips_link']
+        entry.gwips_name = urls['gwips_name']
+        entry.ribocrypt_link = urls['ribocrypt_link']
+        entry.ribocrypt_name = urls['ribocrypt_name']
+
         link = generate_link(entry.BioProject, entry.Run)
-        if type(link) == str:
-            entry.link = f"/file-download/{link}"
+        if isinstance(link, str):
+            entry.link = f"{link}"
             entry.link_type = "FASTA"
         else:
             entry.link = ""
-
-    return render(request, 'main/links.html', {
-        'sample_results': sample_page_obj,
-        'trips': trips,
-        'gwips': gwips,
-        'ribocrypt': ribocrypt,
+    return render(
+        request, 'main/links.html', {
+            'sample_results': sample_page_obj,
+            'trips': trips,
+            'gwips': gwips,
+            'ribocrypt': ribocrypt,
+            'current_url': request.get_full_path(),
         })
 
 
 def generate_samples_csv(request) -> HttpResponse:
     '''
-    Generate and return a csv file containing the metadata for the samples in the database based on the request
+    Generate and return a csv file containing the metadata for the samples in
+    the database based on the request
     '''
     selected = dict(request.GET.lists())
 
-    if 'run' in selected:
-        sample_query = build_run_query(selected['run'])
-    elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
-    elif 'query' in selected:
-        sample_query = select_all_query(selected['query'][0])
+    if 'download-metadata' in selected:
+        sample_query = select_all_query(selected['download-metadata'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
         if not str(sample_query) == "(AND: )":
             sample_query = build_run_query(runs)
+    elif 'run' in selected:
+        sample_query = build_run_query(selected['run'])
+    elif 'bioproject' in selected:
+        sample_query = build_bioproject_query(selected['bioproject'])
     else:
-        sample_page_obj = None
         sample_query = None
+
     if sample_query is not None:
         queryset = Sample.objects.filter(sample_query)
 
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
+        response[
+            "Content-Disposition"
+            ] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
 
         fields = [field.name for field in Sample._meta.get_fields()]
-        
+
         writer = csv.writer(response)
         writer.writerow(fields)  # Write header row
 
         for item in queryset:
-            writer.writerow([getattr(item, field) for field in fields])  # Write data rows
+            writer.writerow([getattr(item, field)
+                             for field in fields])  # Write data rows
 
         return response
     else:
         return HttpResponseNotFound("No Samples Selected")
 
 
+def reports(request, query) -> str:
+    '''
+    Generate reports page
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+
+    Returns:
+    - (render): the rendered HTTP response for the page
+    '''
+
+    return render(
+        request, 'main/reports.html', {
+            'fastp': get_fastp_report_link(query),
+            'fastqc': get_fastqc_report_link(query),
+        })
 
 
 def download_all(request) -> HttpRequest:
@@ -924,36 +935,28 @@ def download_all(request) -> HttpRequest:
     Download all corresponding files for the accessions in the request
     '''
     selected = dict(request.GET.lists())
+    filename = str(uuid.uuid4())
 
-    # Create a temporary directory
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        zip_file_path = os.path.join(tmp_dir, 'RiboSeqOrg_DataFiles.zip')
+    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
 
-        with zipfile.ZipFile(zip_file_path, 'w') as zip_file:
-            for accession in selected['run']:
-                sample = Sample.objects.get(Run=accession)
-                file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_clipped_collapsed.fastq.gz"
+    file_content = ["#!/usr/bin/env bash\n", "wget -c "]
+    filepath = f"{static_base_path}RiboSeqOrg_Download_{filename}.sh"
 
-                if os.path.exists(file_path):
-                    zip_file.write(file_path)
-                else:
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_1_clipped_collapsed.fastq.gz"
-                    if os.path.exists(file_path):
-                        zip_file.write(file_path)
+    with open(filepath, 'w') as f:
+        for accession in selected['run']:
+            link = generate_link(accession, accession)
+            if link:
+                file_content.append(f"https://rdp.ucc.ie/{link} ")
 
-                    file_path = f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/collapsed_fastq/{sample.BioProject}/{sample.Run}_2_clipped_collapsed.fastq.gz"
-                    if os.path.exists(file_path):
-                        zip_file.write(file_path)
+        if file_content == ["#!/usr/bin/env bash\n", "wget -c "]:
+            file_content.append("echo 'No files Available for download'")
 
+        f.writelines(file_content)
 
-        response = HttpResponse(content_type="application/zip")
-        response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_DataFiles.zip"'
-
-        with open(zip_file_path, 'rb') as zip_file:
-            response.write(zip_file.read())
-
-    # 10 minute wait before deltion
-    time.sleep(600)
-    shutil.rmtree(tmp_dir)
-
+    path = open(filepath, "r")
+    mime_type, _ = mimetypes.guess_type(filepath)
+    response = HttpResponse(path, content_type=mime_type)
+    response[
+        "Content-Disposition"
+        ] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
     return response

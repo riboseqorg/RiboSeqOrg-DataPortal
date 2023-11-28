@@ -1,8 +1,9 @@
 from django.http import HttpRequest
 from django.db.models import Q
-from .models import Sample, Study, OpenColumns, Trips, GWIPS
+from .models import Sample, Trips, GWIPS, RiboCrypt
 import pandas as pd
 
+import os
 
 
 def get_clean_names() -> dict:
@@ -13,13 +14,13 @@ def get_clean_names() -> dict:
         clean_names: dictionary
     '''
     clean_names = {
-        'Run':'Run Accession',
-        'spots':'Total Number of Spots (Original file))',
-        'bases':'Total Number of Bases (Original file)',
-        'avgLength':'Average Read Length',
-        'size_MB':'Original File Size (MB)',
-        'LibraryName':'Library Name',
-        'LibraryStrategy':'Library Strategy',
+        'Run': 'Run Accession',
+        'spots': 'Total Number of Spots (Original file))',
+        'bases': 'Total Number of Bases (Original file)',
+        'avgLength': 'Average Read Length',
+        'size_MB': 'Original File Size (MB)',
+        'LibraryName': 'Library Name',
+        'LibraryStrategy': 'Library Strategy',
         'LibrarySelection': 'Library Selection',
         'LibrarySource': 'Library Source',
         'LibraryLayout': 'Library Layout',
@@ -45,11 +46,12 @@ def get_clean_names() -> dict:
         'sample_title': 'Sample Title',
         'ENA_first_public': 'ENA First Public',
         'ENA_last_update': 'ENA Last Update',
-        'INSDC_center_alias': 'INSDC Center Alias',	
+        'INSDC_center_alias': 'INSDC Center Alias',
         'INSDC_center_name': 'INSDC Center Name',
         'INSDC_first_public': 'INSDC First Public',
         'INSDC_last_update': 'INSDC Last Update',
-        'GEO_Accession'	: 'GEO Accession',
+        'INSDC_status': 'INSDC Status',
+        'GEO_Accession': 'GEO Accession',
         'Experiment_Date': 'Date of Experiment',
         'date_sequenced': 'Date of Sequencing',
         'submission_date': 'Submission Date',
@@ -70,7 +72,7 @@ def get_clean_names() -> dict:
         'Age': 'Age',
         'Infected': 'Infected',
         'Disease': 'Disease',
-        'Genotype'	: 'Genotype',
+        'Genotype': 'Genotype',
         'Feeding': 'Feeding',
         'Temperature': 'Temperature',
         'SiRNA': 'SiRNA',
@@ -102,7 +104,7 @@ def get_clean_names() -> dict:
         'trips_id': 'trips_id',
         'gwips_id': 'gwips_id',
         'ribocrypt_id': 'ribocrypt_id',
-        'readfile': 'readfile',
+        'FASTA_file': 'FASTA_file',
     }
     return clean_names
 
@@ -125,7 +127,11 @@ def get_original_name(name: str, clean_names: dict) -> str:
     return name
 
 
-def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> Q:
+def build_query(
+        request: HttpRequest,
+        query_params: list,
+        clean_names: dict
+        ) -> Q:
     """
     Build a query based on the query parameters.
 
@@ -139,12 +145,12 @@ def build_query(request: HttpRequest, query_params: dict, clean_names: dict) -> 
     query = Q()
     # loop over unique keys in query_params
     for field, values in query_params:
-        if field in ['page']:
+        if field in ['page', 'csrfmiddlewaretoken']:
             continue
         options = request.GET.getlist(field)
         q_options = Q()
         for option in options:
-            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'readfile', 'verified']:
+            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified']:
                 if option == 'on':
                     option = True
                 else:
@@ -170,10 +176,11 @@ def handle_filter(
     Returns:
     - (dict): the filter options for each parameter
     '''
-    clean_results_dict = {}
-    result_dict = {}
+    clean_results_dict: dict = {}
+    result_dict: dict = {}
 
-    # Convert the values to a list of dictionaries for each parameter as I couldn't get the template to iterate over the values in the queryset
+    # Convert the values to a list of dictionaries for each parameter as
+    # I couldn't get the template to iterate over the values in the queryset
     for name, queryset in param_options.items():
         if name in appropriate_fields:
             for obj in queryset:
@@ -183,8 +190,12 @@ def handle_filter(
                         clean_results_dict[clean_names[field_name]] = []
                     if obj[field_name] == '' or obj[field_name] == 'nan':
                         obj[field_name] = 'None'
-                    result_dict[field_name].append({'value': obj[field_name], 'count': obj['count']})
-                    clean_results_dict[clean_names[field_name]].append({'value': obj[field_name], 'count': obj['count']})
+                    result_dict[field_name].append(
+                        {'value': obj[field_name], 'count': obj['count']}
+                        )
+                    clean_results_dict[clean_names[field_name]].append(
+                        {'value': obj[field_name], 'count': obj['count']}
+                        )
     return clean_results_dict
 
 
@@ -193,7 +204,7 @@ def build_run_query(run_list: list) -> Q:
     For a given run list return a query to filter the Sample model.
 
     Arguments:
-    - run_list (list): the list of runs to filter  
+    - run_list (list): the list of runs to filter
 
     Returns:
     - (Q): the query
@@ -210,7 +221,7 @@ def build_bioproject_query(run_list: list) -> Q:
     For a given run list return a query to filter the Sample model.
 
     Arguments:
-    - run_list (list): the list of runs to filter  
+    - run_list (list): the list of runs to filter
 
     Returns:
     - (Q): the query
@@ -224,13 +235,14 @@ def build_bioproject_query(run_list: list) -> Q:
 
 def handle_trips_urls(query: Q) -> list:
     '''
-    For a given query return the required information to link those sample in trips.
+    For a given query return the required information to link
+    those sample in trips.
 
     Arguments:
     - query (Q): the query
 
     Returns:
-    - (list): the required information to link those samples in trips (list of dicts)
+    - (list): the required information to link those samples in trips
     '''
     trips = []
     trips_entries = Trips.objects.filter(query)
@@ -246,14 +258,19 @@ def handle_trips_urls(query: Q) -> list:
     else:
         for transcriptome in trips_df['transcriptome'].unique():
             organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
-            file_ids = [str(int(i)) for i in organism_df['Trips_id'].unique().tolist()]
-            trips_dict = {
-                'clean_organism': organism_df['organism'].unique()[0].replace('_', ' ').capitalize(),
-                'organism': organism_df['organism'].unique()[0],
-                'transcriptome': transcriptome,
-                'files': f"files={','.join(file_ids)}",
-            }
-            trips.append(trips_dict)
+            file_ids = [str(int(i)) for i in organism_df[
+                'Trips_id'
+                ].unique().tolist()]
+            trips.append(
+                {
+                    'clean_organism': organism_df[
+                        'organism'
+                        ].unique()[0].replace('_', ' ').capitalize(),
+                    'organism': organism_df['organism'].unique()[0],
+                    'transcriptome': transcriptome,
+                    'files': f"files={','.join(file_ids)}",
+                }
+            )
 
     return trips
 
@@ -271,7 +288,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
     gwips = []
 
     requested = dict(request.GET.lists())
-    print("REQUESTED: ", requested)
     if str(query) != '<Q: (AND: )>' and query is not None:
         samples = Sample.objects.filter(query)
     elif 'run' in requested:
@@ -314,7 +330,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
 
     elif 'bioproject' in requested or str(query) != '<Q: (AND: )>':
         for organism in organisms:
-            print(organism)
             organism_df = samples_df[samples_df['ScientificName'] == organism]
             organism_df = organism_df[organism_df['gwips_id'] == True]
             if organism_df.empty:
@@ -355,7 +370,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 'organism': 'None of the Selected Runs are available on GWIPS-Viz',
             }
         )
-    print("GWIPS", gwips)
     return gwips
 
 
@@ -378,26 +392,91 @@ def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
     requested = dict(request.GET.lists())
 
     if str(query) != '<Q: (AND: )>' and query is not None:
-        samples = Sample.objects.filter(query)
+        samples = RiboCrypt.objects.filter(query)
 
     elif 'run' in requested:
         runs = requested['run']
-        samples = Sample.objects.filter(build_run_query(runs))
+        samples = RiboCrypt.objects.filter(Run__in=runs)
     elif 'bioproject' in requested:
         bioprojects = requested['bioproject']
-        samples = Sample.objects.filter(BioProject__in=bioprojects)
+        samples = RiboCrypt.objects.filter(BioProject__in=bioprojects)
 
-    samples_df = pd.DataFrame(list(samples.values()))
-    samples_df = samples_df.groupby(['BioProject_id', 'ScientificName'])
+    if samples:
+        samples_df = pd.DataFrame(list(samples.values()), columns=['BioProject', 'Organism', 'ribocrypt_id', 'Run'])
+        samples_df = samples_df.groupby(['ribocrypt_id', 'Organism'])
 
-    for (bioproject, organism), df in samples_df:
-        ribocrypt_dict = {
-            'dff': f"{bioproject}-{organism.replace(' ', '_').lower()}",
-            'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {bioproject}",
-            'files': ','.join(df['Run'].unique()),
-        }
-        ribocrypt.append(ribocrypt_dict)
+        for (ribocrypt_id, organism), df in samples_df:
+            ribocrypt_dict = {
+                'dff': f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}",
+                'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {ribocrypt_id}",
+                'files': ','.join(df['Run'].unique()),
+            }
+            ribocrypt.append(ribocrypt_dict)
+    else:
+        ribocrypt.append(
+            {
+                'clean_organism': 'None of the Selected Runs are available on RiboCrypt',
+                'organism': 'None of the Selected Runs are available on RiboCrypt',
+            }
+        )
     return ribocrypt
+
+
+def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
+    '''
+    generate gwips trips and ribocrypt urls for a given query
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+    - query (Q): the query
+
+    Returns:
+    - (dict): the urls for the query
+    '''
+    image_template = '''<img src="{% static 'images/{0}' %}" style=" max-height:75px; max-width:75px;">'''
+    if query is not None:
+        trips = handle_trips_urls(query)[0]
+        if len(trips['clean_organism'].split(" ")) > 5:
+            bioproject_trips_link = "https://trips.ucc.ie/"
+            bioproject_trips_name = ""
+        else:
+            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
+            bioproject_trips_name = 'Visit Trips-Viz'
+
+        gwips = handle_gwips_urls(request, query=query)[0]
+        if len(gwips['clean_organism'].split(" ")) > 5:
+            bioproject_gwips_link = "https://gwips.ucc.ie/"
+            bioproject_gwips_name = ""
+        else:
+            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
+            bioproject_gwips_name = "Visit GWIPS-viz"
+
+        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
+        if len(ribocrypt['clean_organism'].split(" ")) > 5:
+            bioproject_ribocrypt_link = "https://ribocrypt.org/"
+            bioproject_ribocrypt_name = ""
+        else:
+            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            bioproject_ribocrypt_name = "Visit RiboCrypt"
+
+        return {
+            'trips_link': bioproject_trips_link,
+            'trips_name': bioproject_trips_name,
+            'gwips_link': bioproject_gwips_link,
+            'gwips_name': bioproject_gwips_name,
+            'ribocrypt_link': bioproject_ribocrypt_link,
+            'ribocrypt_name': bioproject_ribocrypt_name,
+        }
+
+    else:
+        return {
+            'trips_link': "https://trips.ucc.ie/",
+            'trips_name': "Not Available",
+            'gwips_link': "https://gwips.ucc.ie/",
+            'gwips_name': "Not Available",
+            'ribocrypt_link': "https://ribocrypt.org/",
+            'ribocrypt_name': "Not Available",
+        }
 
 
 def select_all_query(query_string):
@@ -410,15 +489,29 @@ def select_all_query(query_string):
     Returns:
     - (str): the query string to select all the samples in the database that were shown in the table
     '''
-    query_string = query_string.replace('+', ' ')
+    query_string = query_string.replace('+', ' ').replace("run", "Run")
+
     query_list = [i.split("=") for i in query_string.split('&')]
 
-    query_list = [i for i in query_list if i[0] not in ['page']]
+    query_list = [i for i in query_list if i[0] not in [
+            'page',
+            'csrfmiddlewaretoken',
+            'links',
+            'sample_page',
+            'study_page',
+            ]
+        ]
     query = Q()  # Initialize an empty query
     if len(query_list[0]) != 1:
-        query_list = [[i[0], i[1].replace('on', 'True')] if i[1] == 'on' else i for i in query_list]
+        query_list = [
+            [
+                i[0], i[1].replace('on', 'True')
+                ] if i[1] == 'on' else i for i in query_list
+            ]
         query_mappings = {
-            i[0]: get_original_name(i[0], get_clean_names()) for i in query_list
+            i[0]: get_original_name(
+                i[0], get_clean_names()
+                ) for i in query_list
         }
 
         for model_key, value in query_list:
@@ -426,3 +519,56 @@ def select_all_query(query_string):
                 continue
             query &= Q(**{query_mappings[model_key]: value})
     return query
+
+
+def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastp"):
+    '''
+    Return path to fastp report file for given run
+
+
+    Arguments:
+    - run (str): the run to get the report for
+
+    Returns:
+    - (str): the path to the report file
+    '''
+    path = f"{base_path}/{run}.html"
+    if os.path.exists(path):
+
+        return '/'.join(path.split('/')[-2:])
+    else:
+        path = f"{base_path}/{run}_1.html"
+        if os.path.exists(path):
+            return '/'.join(path.split('/')[-2:])
+        else:
+            path = f"{base_path}/{run}_2.html"
+            if os.path.exists(path):
+                return '/'.join(path.split('/')[-2:])
+            else:
+                return None
+
+
+def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastqc"):
+    '''
+    Return path to fastp report file for given run
+
+
+    Arguments:
+    - run (str): the run to get the report for
+
+    Returns:
+    - (str): the path to the report file
+    '''
+    path = f"{base_path}/{run}_fastqc.html"
+    if os.path.exists(path):
+        return '/'.join(path.split('/')[-2:])
+    else:
+        path = f"{base_path}/{run}_1_fastqc.html"
+        if os.path.exists(path):
+            return '/'.join(path.split('/')[-2:])
+        else:
+            path = f"{base_path}/{run}_2_fastqc.html"
+            if os.path.exists(path):
+                return '/'.join(path.split('/')[-2:])
+            else:
+                return None

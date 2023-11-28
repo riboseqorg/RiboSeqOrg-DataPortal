@@ -24,7 +24,6 @@ class Study(models.Model):
 
     def __str__(self):
         return self.BioProject
-    
 
 
 # The inconsistent naming is due to the fact that the data is coming from different sources
@@ -137,7 +136,7 @@ class OpenColumns(models.Model):
 
     def __str__(self):
         return self.column_name
-    
+
 
 class Trips(models.Model):
     BioProject = models.CharField(max_length=100)
@@ -153,7 +152,7 @@ class Trips(models.Model):
 
     def __str__(self):
         return f"Trips {self.pk}: {self.file_name}"
-    
+
 
 class GWIPS(models.Model):
     BioProject = models.CharField(max_length=100)
@@ -164,3 +163,13 @@ class GWIPS(models.Model):
 
     def __str__(self):
         return f"GWIPS {self.pk}: {self.gwips_db}"
+
+
+class RiboCrypt(models.Model):
+    BioProject = models.CharField(max_length=100)
+    Organism = models.CharField(max_length=100)
+    ribocrypt_id = models.CharField(max_length=100)
+    Run = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"RiboCrypt {self.pk}: {self.ribocrypt_id}"

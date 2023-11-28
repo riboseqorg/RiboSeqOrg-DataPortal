@@ -1,178 +1,59 @@
 {% extends 'main/base.html' %}
-{% block title %}RiboSeq.Org{% endblock %}
-{% load static %}
-{% block content %}
-    <!-- RiboSeq.org -->
+{% block title %}Home | RiboSeq Data Portal{% endblock %}
+{% block head %}
     <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
-    <script type="text/javascript">
-        function MM_swapImgRestore() { //v3.0
-          var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
-        }
-        function MM_preloadImages() { //v3.0
-          var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
-            var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
-            if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
-        }
-
-        function MM_findObj(n, d) { //v4.01
-          var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
-            d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
-          if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
-          for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
-          if(!x && d.getElementById) x=d.getElementById(n); return x;
-        }
-
-        function MM_swapImage() { //v3.0
-          var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
-           if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
-        }
-        $(document).ready(function(){
-            $("#trips").hover(function(){
-                $('#trips').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1038-Riboseq-Gateway-slices_05.jpg' %}", "{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_05.jpg' %}");} );
-                $('#trips_top').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1038-Riboseq-Gateway-slices_02.jpg' %}", "{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_02.jpg' %}");} );
-            },function(){
-                $('#trips').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_05.jpg' %}","{% static 'images/230124-1038-Riboseq-Gateway-slices_05.jpg' %}" );} );
-                $('#trips_top').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_02.jpg' %}","{% static 'images/230124-1038-Riboseq-Gateway-slices_02.jpg' %}" );} );
-            });$("#trips_top").hover(function(){
-                $('#trips').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1038-Riboseq-Gateway-slices_05.jpg' %}", "{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_05.jpg' %}");} );
-                $('#trips_top').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1038-Riboseq-Gateway-slices_02.jpg' %}", "{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_02.jpg' %}");} );
-            },function(){
-                $('#trips').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_05.jpg' %}","{% static 'images/230124-1038-Riboseq-Gateway-slices_05.jpg' %}" );} );
-                $('#trips_top').attr('src', function(index, attr){ return attr.replace("{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_02.jpg' %}","{% static 'images/230124-1038-Riboseq-Gateway-slices_02.jpg' %}" );} );
-            });
-        });
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row py-4">
+            <div class="col-md-12 text-center">
+                <img src='../static/images/favicon.png' height="50" alt="RiboSeq.org Logo" loading="lazy"/>
+                <h1>Ribo-Seq Data Portal</h1>
+                <h5>Search Curated Metadata and Access Thousands of Processed Ribo-Seq Datasets</h5>
         
-    </script>
-    <div class="riboseqorg">
-        <table id="Table_01"
-               width="1001"
-               height="1001"
-               border="0"
-               cellpadding="0"
-               cellspacing="0">
-            <tr>
-                <td colspan="2" rowspan="2">
-                    <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_01.jpg' %}"
-                         width="297"
-                         height="241"
-                         alt=""/>
-                </td>
-                <td colspan="2">
-                    <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_02.jpg' %}"
-                         width="409"
-                         height="164"
-                         alt=""
-                         id="trips_top"/>
-                </td>
-                <td rowspan="2">
-                    <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_03.jpg' %}"
-                         width="294"
-                         height="241"
-                         alt=""/>
-                </td>
-                <td>
-                    <img src="{% static 'images/spacer.gif' %}" width="1" height="164" alt=""/>
-                </td>
-            </tr>
-            <tr>
-                <td rowspan="2">
-                    <a href="https://gwips.ucc.ie/"
-                       onMouseOut="MM_swapImgRestore()"
-                       onMouseOver="MM_swapImage('gwips','', '{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_04.jpg' %}',1)">
-                        <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_04.jpg' %}"
-                             alt="GWIPS Genome Wide Information on Protein Synthesis"
-                             width="212"
-                             height="555"
-                             id="gwips"/>
-                    </a>
-                </td>
-                <td rowspan="2">
-                    <a href="https://trips.ucc.ie/">
-                        <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_05.jpg' %}"
-                             alt="TripsViz"
-                             width="197"
-                             height="555"
-                             id="trips"/>
-                    </a>
-                </td>
-                <td>
-                    <img src="{% static 'images/spacer.gif" width="1" height="77" alt=""/>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <a href="https://ribocrypt.org/"
-                       onMouseOut="MM_swapImgRestore()"
-                       onMouseOver="MM_swapImage('ribocrypt','','{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_06.jpg' %}',1)">
-                        <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_06.jpg' %}"
-                             alt="RiboCrypt"
-                             width="297"
-                             height="478"
-                             id="ribocrypt"/>
-                    </a>
-                </td>
-                <td>
-                    <a href="https://ribogalaxy.genomicsdatascience.ie/"
-                       onMouseOut="MM_swapImgRestore()"
-                       onMouseOver="MM_swapImage('ribogalaxy','','{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_07.jpg' %}',1)">
-                        <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_07.jpg' %}"
-                             alt="RiboGalaxy"
-                             width="294"
-                             height="478"
-                             id="ribogalaxy"/>
-                    </a>
-                </td>
-                <td>
-                    <img src="{% static 'images/spacer.gif" width="1" height="478" alt=""/>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <a href="https://gwips.ucc.ie/HOF.html"
-                       onMouseOut="MM_swapImgRestore()"
-                       onMouseOver="MM_swapImage('HOF','','{% static 'images/230124-1427-Riboseq-Gateway-slices-RO_08.jpg' %}',1)">
-                        <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_08.jpg' %}"
-                             alt="HallofFame"
-                             width="149"
-                             height="281"
-                             id="HOF"/>
-                    </a>
-                </td>
-                <td colspan="3">
-                    <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_09.jpg' %}"
-                         width="557"
-                         height="281"
-                         alt=""/>
-                </td>
-                <td>
-                    <a href="https://riboseq.org/">
-                        <img src="{% static 'images/230124-1038-Riboseq-Gateway-slices_10.jpg' %}"
-                             width="294"
-                             height="281"
-                             alt=""/>
-                    </a>
-                </td>
-                <td>
-                    <img src="{% static 'images/spacer.gif" width="1" height="281" alt=""/>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                <img src="{% static 'images/spacer.gif" width="149" height="1" alt=""/></td>
-                <td>
-                <img src="{% static 'images/spacer.gif" width="148" height="1" alt=""/></td>
-                <td>
-                <img src="{% static 'images/spacer.gif" width="212" height="1" alt=""/></td>
-                <td>
-                <img src="{% static 'images/spacer.gif" width="197" height="1" alt=""/></td>
-                <td>
-                <img src="{% static 'images/spacer.gif" width="294" height="1" alt=""/></td>
-                <td></td>
-            </tr>
-        </table>
+                <div class="d-flex justify-content-center">
+                    <form method="GET" action="{% url 'search' %}" id="results-searchbar" class="form-inline" style="width: 60%;">
+                        {{ search_form.as_p }}
+                        <button class="btn btn-outline-primary" type="submit" id="search-button">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row py-2">
+            <div class="col-md-6 py-2">
+                <div class="card shadow-lg">
+                    <div class="card-body text-center">
+                        <h2>Samples</h2>
+                        <p>Explore Ribo-Seq at Sample Level</p>
+                        <a href="/samples" class="btn btn-primary">View Samples</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 py-2">
+                <div class="card shadow-lg">
+                    <div class="card-body text-center">
+                        <h2>Studies</h2>
+                        <p>Explore Ribo-Seq at Study Level</p>
+                        <a href="/studies" class="btn btn-primary">Explore Studies</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row py-4">
+            <div class="col-md-9 mx-auto text-center">
+                <div class="card shadow-lg">
+                    <div class="card-body text-center">
+                        <h2>About</h2>
+                        <p>Learn more about our initiative.</p>
+                        <a href="/about" class="btn btn-primary">Read More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}

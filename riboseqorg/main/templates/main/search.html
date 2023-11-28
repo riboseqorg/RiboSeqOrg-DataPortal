@@ -1,50 +1,26 @@
 {% extends 'main/base.html' %}
 
 {% block content %}
+{% include 'main/navbar.html' %}
+
     <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="..." crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet"  crossorigin="anonymous">
 
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"  crossorigin="anonymous"></script>
 
     <script>  
-      $(document).ready(function() {
-          var table = $('#studies-table').DataTable({
-              paging: false,
-              searching: false,
-            //   dom: 'Plfrtip',
-              scrollY: '100vh',
-                // scrollX: true,
-              scrollCollapse: true,
-              fixedColumns: {
-                  leftColumns: 1,
-              }
-          });
-      });
-      $(document).ready(function() {
-          var table = $('#samples-table').DataTable({
-              paging: false,
-              searching: false,
-            //   dom: 'Plfrtip',
-              scrollY: '100vh',
-                // scrollX: true,
-              scrollCollapse: true,
-              fixedColumns: {
-                  leftColumns: 1,
-              }
-          });
-      });
+
         function selectAll(table_id, col) {
-        var table = $(table_id).DataTable();
-        var checkboxes = table.column(col).nodes().to$().find('input[type="checkbox"]');
-        
-        for (var i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-            checkboxes[i].checked = false;
-            } else {
-            checkboxes[i].checked = true;
-            }
-        }
+            var checkboxes = $(table_id).find('tbody tr td:nth-child(' + col + ') input[type="checkbox"]');
+
+            checkboxes.each(function () {
+                if ($(this).prop('checked')) {
+                    $(this).prop('checked', false);
+                } else {
+                    $(this).prop('checked', true);
+                }
+            });
         }
         function updateAccordion(ulId, inputId) {
           // Get the UL element
@@ -114,181 +90,184 @@
     <div class="container">
         <form method="GET" action="{% url 'search' %}" id="results-searchbar">
             {{ search_form.as_p }}
-            <button type="submit" style="display: inline;">Search</button>
+            <button class="btn btn-outline-primary" type="submit" id="search-button">Submit</button>
         </form>
     </div>
     <br>
-
-    <section id="search_results" style="padding-left: 2%;">
-        <h1>Search Results</h1>
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active btn-bigger" id="studies-tab" data-bs-toggle="tab" data-bs-target="#studies-tab-target" type="button" role="tab" aria-controls="studies-tab-target" aria-selected="false">Studies</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link btn-bigger" id="samples-tab" data-bs-toggle="tab" data-bs-target="#samples-tab-target" type="button" role="tab" aria-controls="samples-tab-target" aria-selected="true">Samples</button>
-            </li>
-        </ul>
-        <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade" id="studies-tab-target" role="tabpanel" aria-labelledby="studies-tab">
-                <div class="col-md-9 order-2">
-                    <div class="fw-container" id="study-container">
-                        <div class="fw-header">
-                            <div class="nav-wrapper">
-                                <div class="nav-search">
-                                    <div class="nav-item i-user">
+    <div>
+        <section id="search_results" style="padding-left: 2%;">
+            <h1>Search Results</h1>
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active btn-bigger" id="studies-tab" data-bs-toggle="tab" data-bs-target="#studies-tab-target" type="button" role="tab" aria-controls="studies-tab-target" aria-selected="false">Studies</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link btn-bigger" id="samples-tab" data-bs-toggle="tab" data-bs-target="#samples-tab-target" type="button" role="tab" aria-controls="samples-tab-target" aria-selected="true">Samples</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade" id="studies-tab-target" role="tabpanel" aria-labelledby="studies-tab">
+                    <div class="col-md-9 order-2">
+                        <div class="fw-container" id="study-container">
+                            <div class="fw-header">
+                                <div class="nav-wrapper">
+                                    <div class="nav-search">
+                                        <div class="nav-item i-user">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="nav-ad">
-                                <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
-                            </div>
-                        </div>
-                        <div class="fw-body">
-                            <div class="content">
-                                <form action="{% url 'links' %}" method="get">
-                                    <table id="studies-table" class="table table-striped" style="width:90%; margin-left:auto; margin-right:auto; overflow-x: auto">
-                                        <thead>
-                                        <tr>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">BioProject</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for study in study_results %}
-                                            <tr>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/bioproject/?term={{ study.BioProject }}">{{ study.BioProject }}</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Organism }}</td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Samples }}</td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
-                                            <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" name="bioproject" value="{{ study.BioProject }}"/></td>
-                                            </tr>
-                                        {% endfor %}
-                                        </tbody>
-                                        <tfoot>
-                                        <tr>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">BioProject</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                            <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
-                                        </tr>
-                                        </tfoot>
-                                    </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination">
-                                        {% if study_results.has_previous %}
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page=1">&laquo; First</a></li>
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page={{ study_results.previous_page_number }}">Previous</a></li>
-                                        {% endif %}
-                                        <span class="current">
-                                            <li class="page-item"><a class="page-link active">Page {{ study_results.number }} of {{ study_results.paginator.num_pages }}</a></li>
-                                        </span>
-                                        {% if study_results.has_next %}
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page={{ study_results.next_page_number }}">Next</a></li>
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page={{ study_results.paginator.num_pages }}">Last &raquo;</a></li>
-                                        {% endif %}
-                                        <li class="button-item">
-                                            <button type="button" class="btn btn-secondary" onclick="selectAll('#studies-table', 7); checkform()">Select All</button>
-                                            <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
-                                            <button type="submit" class="btn btn-primary" id="submit">Submit</button>
-                                        </li>
-                                        </ul>
-                                    </nav>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade show active" id="samples-tab-target" role="tabpanel" aria-labelledby="samples-tab">
-                <div class="col-md-9 order-2">
-                    <div class="fw-container" id="sample-container">
-                        <div class="fw-header">
-                            <div class="nav-wrapper">
-                                <div class="nav-search">
-                                    <div class="nav-item i-user">
-                                        <div class="account"></div>
-                                    </div>
+                                <div class="nav-ad">
+                                    <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
                                 </div>
                             </div>
-                            <div class="nav-ad">
-                                <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
-                            </div>
-                        </div>
-                        <div class="fw-body">
-                            <div class="content">
-                                <form action="{% url 'links' %}" method="get" name="sample_select">
-                                    <table id="samples-table" class="table table-striped" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: clip">
-                                        <thead>
-                                            <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for sample in sample_results %}
-                                            <tr style="word-wrap: break-word;">
-                                                <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
-                                                <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" name="run" value="{{ sample.Run }}" onchange="checkform()"/></td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
-
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                    <nav aria-label="Page navigation example">
-                                        <ul class="pagination">
-                                            {% if sample_results.has_previous %}
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page=1">&laquo; First</a></li>
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page={{ sample_results.previous_page_number }}">Previous</a></li>
+                            <div class="fw-body">
+                                <div class="content">
+                                    <form action="{% url 'links' %}" method="get">
+                                        <div class="table-responsive">
+                                            <table id="studies-table" class="table" style="width:90%; margin-left:auto; margin-right:auto; overflow-x: auto">
+                                                <thead>
+                                                <tr>
+                                                    <th class="search-table-row">Name</th>
+                                                    <th class="search-table-row">BioProject</th>
+                                                    <th class="search-table-row">Organism</th>
+                                                    <th class="search-table-row"># Samples</th>
+                                                    <th class="search-table-row">ENA</th>
+                                                    <th class="search-table-row">SRA</th>
+                                                    <th class="search-table-row" scope="col">Select</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for study in study_results %}
+                                                    <tr>
+                                                    <td class="search-table-row"><a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a></td>
+                                                    <td class="search-table-row"><a href="https://www.ncbi.nlm.nih.gov/bioproject/?term={{ study.BioProject }}">{{ study.BioProject }}</a></td>
+                                                    <td class="search-table-row">{{ study.Organism }}</td>
+                                                    <td class="search-table-row">{{ study.Samples }}</td>
+                                                    <td class="search-table-row"><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
+                                                    <td class="search-table-row"><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
+                                                    <td class="search-table-row"><input type="checkbox" name="bioproject" value="{{ study.BioProject }}"/></td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                                <tfoot>
+                                                <tr>
+                                                    <th class="search-table-row">Name</th>
+                                                    <th class="search-table-row">BioProject</th>
+                                                    <th class="search-table-row">Organism</th>
+                                                    <th class="search-table-row"># Samples</th>
+                                                    <th class="search-table-row">ENA</th>
+                                                    <th class="search-table-row">SRA</th>
+                                                    <th class="search-table-row" scope="col">Select</th>
+                                                </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination">
+                                            {% if study_results.has_previous %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page=1">&laquo; First</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page={{ study_results.previous_page_number }}">Previous</a></li>
                                             {% endif %}
                                             <span class="current">
-                                            <li class="page-item"><a class="page-link active">Page {{ sample_results.number }} of {{ sample_results.paginator.num_pages }}</a></li>
+                                                <li class="page-item"><a class="page-link active">Page {{ study_results.number }} of {{ study_results.paginator.num_pages }}</a></li>
                                             </span>
-                                            {% if sample_results.has_next %}
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page={{ sample_results.next_page_number }}">Next</a></li>
-                                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page={{ sample_results.paginator.num_pages }}">Last &raquo;</a></li>
+                                            {% if study_results.has_next %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page={{ study_results.next_page_number }}">Next</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&study_page={{ study_results.paginator.num_pages }}">Last &raquo;</a></li>
                                             {% endif %}
                                             <li class="button-item">
-                                            <button type="button" class="btn btn-secondary" onclick="selectAll('#samples-table', 6); checkform()">Select All - Current View</button>
-                                            <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
-                                            <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                                <button type="button" class="btn btn-secondary" onclick="selectAll('#studies-table', 7); checkform()">Select All</button>
+                                                <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
+                                                <button type="submit" class="btn btn-primary" id="submit">Submit</button>
                                             </li>
-                                        </ul>
-                                    </nav>
-                                </form>
+                                            </ul>
+                                        </nav>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade show active" id="samples-tab-target" role="tabpanel" aria-labelledby="samples-tab">
+                    <div class="col-md-9 order-2">
+                        <div class="fw-container" id="sample-container">
+                            <div class="fw-header">
+                                <div class="nav-wrapper">
+                                    <div class="nav-search">
+                                        <div class="nav-item i-user">
+                                            <div class="account"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="nav-ad">
+                                    <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
+                                </div>
+                            </div>
+                            <div class="fw-body">
+                                <div class="content">
+                                    <form action="{% url 'links' %}" method="get" name="sample_select">
+                                        <table id="samples-table" class="table table-striped" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: clip">
+                                            <thead>
+                                                <tr>
+                                                    <th class="search-table-row">Run Accession</th>
+                                                    <th class="search-table-row">Study Accession</th>
+                                                    <th class="search-table-row">Organism</th>
+                                                    <th class="search-table-row">Library Type</th>
+                                                    <th class="search-table-row">Inhibitor</th>
+                                                    <th class="search-table-row" scope="col"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for sample in sample_results %}
+                                                <tr style="word-wrap: break-word;">
+                                                    <td class="search-table-row"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
+                                                    <td class="search-table-row"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
+                                                    <td class="search-table-row">{{ sample.ScientificName }}</td>
+                                                    <td class="search-table-row">{{ sample.LIBRARYTYPE }}</td>
+                                                    <td class="search-table-row">{{ sample.INHIBITOR }}</td>
+                                                    <td class="search-table-row"><input type="checkbox" name="run" value="{{ sample.Run }}" onchange="checkform()"/></td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th class="search-table-row">Run Accession</th>
+                                                    <th class="search-table-row">Study Accession</th>
+                                                    <th class="search-table-row">Scientific Name</th>
+                                                    <th class="search-table-row">Library Type</th>
+                                                    <th class="search-table-row">Inhibitor</th>
+                                                    <th class="search-table-row" scope="col"></th>
+
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination">
+                                                {% if sample_results.has_previous %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page=1">&laquo; First</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page={{ sample_results.previous_page_number }}">Previous</a></li>
+                                                {% endif %}
+                                                <span class="current">
+                                                <li class="page-item"><a class="page-link active">Page {{ sample_results.number }} of {{ sample_results.paginator.num_pages }}</a></li>
+                                                </span>
+                                                {% if sample_results.has_next %}
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page={{ sample_results.next_page_number }}">Next</a></li>
+                                                <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&sample_page={{ sample_results.paginator.num_pages }}">Last &raquo;</a></li>
+                                                {% endif %}
+                                                <li class="button-item">
+                                                <button type="button" class="btn btn-secondary" onclick="selectAll('#samples-table', 6); checkform()">Select All - Current View</button>
+                                                <button type="submit" class="btn btn-secondary" name="query" value="{{ request.GET.urlencode }}">Select All - All Views</button>
+                                                <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                                                </li>
+                                            </ul>
+                                        </nav>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 {% endblock %}
