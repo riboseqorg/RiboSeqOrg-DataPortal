@@ -128,37 +128,37 @@
                                             <table id="studies-table" class="table" style="width:90%; margin-left:auto; margin-right:auto; overflow-x: auto">
                                                 <thead>
                                                 <tr>
-                                                    <th class="search-table-row">Name</th>
-                                                    <th class="search-table-row">BioProject</th>
-                                                    <th class="search-table-row">Organism</th>
-                                                    <th class="search-table-row"># Samples</th>
-                                                    <th class="search-table-row">ENA</th>
-                                                    <th class="search-table-row">SRA</th>
-                                                    <th class="search-table-row" scope="col">Select</th>
+                                                    <th class="table-row">Name</th>
+                                                    <th class="table-row">BioProject</th>
+                                                    <th class="table-row">Organism</th>
+                                                    <th class="table-row"># Samples</th>
+                                                    <th class="table-row">ENA</th>
+                                                    <th class="table-row">SRA</th>
+                                                    <th class="table-row" scope="col">Select</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
                                                 {% for study in study_results %}
                                                     <tr>
-                                                    <td class="search-table-row"><a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a></td>
-                                                    <td class="search-table-row"><a href="https://www.ncbi.nlm.nih.gov/bioproject/?term={{ study.BioProject }}">{{ study.BioProject }}</a></td>
-                                                    <td class="search-table-row">{{ study.Organism }}</td>
-                                                    <td class="search-table-row">{{ study.Samples }}</td>
-                                                    <td class="search-table-row"><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
-                                                    <td class="search-table-row"><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
-                                                    <td class="search-table-row"><input type="checkbox" name="bioproject" value="{{ study.BioProject }}"/></td>
+                                                    <td class="table-row"><a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a></td>
+                                                    <td class="table-row"><a href="https://www.ncbi.nlm.nih.gov/bioproject/?term={{ study.BioProject }}">{{ study.BioProject }}</a></td>
+                                                    <td class="table-row">{{ study.Organism }}</td>
+                                                    <td class="table-row">{{ study.Samples }}</td>
+                                                    <td class="table-row"><a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a></td>
+                                                    <td class="table-row"><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a></td>
+                                                    <td class="table-row"><input type="checkbox" name="bioproject" value="{{ study.BioProject }}"/></td>
                                                     </tr>
                                                 {% endfor %}
                                                 </tbody>
                                                 <tfoot>
                                                 <tr>
-                                                    <th class="search-table-row">Name</th>
-                                                    <th class="search-table-row">BioProject</th>
-                                                    <th class="search-table-row">Organism</th>
-                                                    <th class="search-table-row"># Samples</th>
-                                                    <th class="search-table-row">ENA</th>
-                                                    <th class="search-table-row">SRA</th>
-                                                    <th class="search-table-row" scope="col">Select</th>
+                                                    <th class="table-row">Name</th>
+                                                    <th class="table-row">BioProject</th>
+                                                    <th class="table-row">Organism</th>
+                                                    <th class="table-row"># Samples</th>
+                                                    <th class="table-row">ENA</th>
+                                                    <th class="table-row">SRA</th>
+                                                    <th class="table-row" scope="col">Select</th>
                                                 </tr>
                                                 </tfoot>
                                             </table>
@@ -210,34 +210,34 @@
                                         <table id="samples-table" class="table table-striped" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: clip">
                                             <thead>
                                                 <tr>
-                                                    <th class="search-table-row">Run Accession</th>
-                                                    <th class="search-table-row">Study Accession</th>
-                                                    <th class="search-table-row">Organism</th>
-                                                    <th class="search-table-row">Library Type</th>
-                                                    <th class="search-table-row">Inhibitor</th>
-                                                    <th class="search-table-row" scope="col"></th>
+                                                    <th class="table-row">Run Accession</th>
+                                                    <th class="table-row">Study Accession</th>
+                                                    <th class="table-row">Organism</th>
+                                                    <th class="table-row">Library Type</th>
+                                                    <th class="table-row">Inhibitor</th>
+                                                    <th class="table-row" scope="col"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {% for sample in sample_results %}
                                                 <tr style="word-wrap: break-word;">
-                                                    <td class="search-table-row"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                                    <td class="search-table-row"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
-                                                    <td class="search-table-row">{{ sample.ScientificName }}</td>
-                                                    <td class="search-table-row">{{ sample.LIBRARYTYPE }}</td>
-                                                    <td class="search-table-row">{{ sample.INHIBITOR }}</td>
-                                                    <td class="search-table-row"><input type="checkbox" name="run" value="{{ sample.Run }}" onchange="checkform()"/></td>
+                                                    <td class="table-row"><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
+                                                    <td class="table-row"><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
+                                                    <td class="table-row">{{ sample.ScientificName }}</td>
+                                                    <td class="table-row">{{ sample.LIBRARYTYPE }}</td>
+                                                    <td class="table-row">{{ sample.INHIBITOR }}</td>
+                                                    <td class="table-row"><input type="checkbox" name="run" value="{{ sample.Run }}" onchange="checkform()"/></td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th class="search-table-row">Run Accession</th>
-                                                    <th class="search-table-row">Study Accession</th>
-                                                    <th class="search-table-row">Scientific Name</th>
-                                                    <th class="search-table-row">Library Type</th>
-                                                    <th class="search-table-row">Inhibitor</th>
-                                                    <th class="search-table-row" scope="col"></th>
+                                                    <th class="table-row">Run Accession</th>
+                                                    <th class="table-row">Study Accession</th>
+                                                    <th class="table-row">Scientific Name</th>
+                                                    <th class="table-row">Library Type</th>
+                                                    <th class="table-row">Inhibitor</th>
+                                                    <th class="table-row" scope="col"></th>
 
                                                 </tr>
                                             </tfoot>
