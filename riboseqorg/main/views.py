@@ -28,9 +28,10 @@ from .utilities import get_clean_names, get_original_name, \
     select_all_query, handle_urls_for_query, \
     get_fastp_report_link, get_fastqc_report_link
 
-from rest_framework import generics, permissions
+from rest_framework import generics, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from .serializers import SampleSerializer
 
 
@@ -38,29 +39,70 @@ CharField.register_lookup(Length, 'length')
 
 
 class SampleListView(generics.ListCreateAPIView):
-    queryset = Sample.objects.all()
     serializer_class = SampleSerializer
-    filterset_fields = ['Run']  # This allows filtering by the 'name' field
+    filterset_fields = ['Run']
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    ordering_fields = ['Run']
+    search_fields = ['Run']
+    default_limit = 100  # Set a default limit if not provided
+
+    default_fields = [
+        'Run',
+        'BioProject',
+        'CELL_LINE',
+        'INHIBITOR',
+        'TISSUE',
+        'LIBRARYTYPE',
+    ]
+
+    def build_query(self, query_params):
+        '''
+        Dynamically parse remaining entries and apply filters
+        if the key matches a field
+        '''
+        query = Q()
+        for key, values in query_params.lists():
+            key_query = Q()
+            if key not in ['fields', 'limit']:
+                # Check if the key is a valid field in the model
+                if key in [field.name for field in Sample._meta.get_fields()]:
+                    for value in values:
+                        key_query |= Q(**{key: value})
+                    query &= key_query
+        return query
+
+    def get_queryset(self):
+        # Get query parameters
+        fields = self.request.query_params.get('fields')
+        limit = self.request.query_params.get('limit', self.default_limit)
+
+        # Start with an empty query
+        query = Q()
+
+        # Subset fields to just take selected
+        if fields:
+            requested_fields = set(fields.split(','))
+            valid_fields = [
+                field for field in requested_fields
+                if field in [f.name for f in Sample._meta.get_fields()]
+            ]
+
+            if valid_fields:
+                self.serializer_class.Meta.fields = valid_fields
+        else:
+            self.serializer_class.Meta.fields = self.default_fields
+
+        query = self.build_query(self.request.query_params)
+
+        queryset = Sample.objects.filter(query)
+        return queryset[:int(limit)]
 
 
-class SampleFileDownloadView(APIView):
-    permission_classes = [
-        permissions.IsAuthenticated
-                          ]  # Optional: Set the required permissions
-
-    def get(self, request, pk):
-        try:
-            instance = Sample.objects.get(pk=pk)
-        except Sample.DoesNotExist:
-            return Response(status=404)
-
-        file_path = instance.file.path  # Assuming 'file' is a FileField
-        with open(file_path, 'rb') as file:
-            response = Response(file.read())
-            response[
-                'Content-Disposition'
-                ] = f'attachment; filename="{instance.file.name}"'
-            return response
+class SampleFieldsView(APIView):
+    def get(self, request):
+        # Get all field names from the Sample model
+        fields = [field.name for field in Sample._meta.get_fields()]
+        return Response(fields)
 
 
 def index(request: HttpRequest) -> str:
