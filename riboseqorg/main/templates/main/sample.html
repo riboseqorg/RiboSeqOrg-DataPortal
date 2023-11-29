@@ -1,9 +1,8 @@
 {% extends 'main/base.html' %}
 {% block title %}Datasets{% endblock %}
-{% block content %}
-{% include 'main/navbar.html' %}
 
 {% load static %}
+{% block head_static %}
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
@@ -19,6 +18,11 @@
         rel="stylesheet"
         type="text/css">
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+{% endblock %}
+{% block content %}
+{% include 'main/navbar.html' %}
+
+
     <section id="study">
         <h1>{{ Sample.Run }} (<a href="/Study/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a>)</h1>
         <h4>General Details</h4>

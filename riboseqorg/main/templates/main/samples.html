@@ -2,34 +2,12 @@
 {% load static %}
 {% block title %}Samples{% endblock %}
 {% block head_static %}
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/select/1.5.0/css/select.bootstrap5.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css">
     <!-- Include Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet"
           crossorigin="anonymous">
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet"
           type="text/css"
           href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
@@ -68,68 +46,66 @@
         }
       function updateAccordion(ulId, inputId) {
         // Get the UL element
-        var ul = document.getElementById(ulId);
+            // Get the input element
+            var input = document.getElementById(inputId);
 
-        // Get the input element
-        var input = document.getElementById(inputId);
+            // Get the filter value
+            var filter = input.value.toUpperCase();
 
-        // Get the filter value
-        var filter = input.value.toUpperCase();
+            // Get the list items
+            var li = ul.getElementsByTagName('li');
 
-        // Get the list items
-        var li = ul.getElementsByTagName('li');
+            // Loop through all list items, and hide or show them based on the filter
+            for (var i = 0; i < li.length; i++) {
+                var a = li[i].getElementsByTagName("a")[0];
+                var txtValue = a.textContent || a.innerText;
 
-        // Loop through all list items, and hide or show them based on the filter
-        for (var i = 0; i < li.length; i++) {
-            var a = li[i].getElementsByTagName("a")[0];
-            var txtValue = a.textContent || a.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+                } else {
+                li[i].style.display = "none";
+                }
+            }
+        }
+        function redirectToLink(element, url, field, value) {
+            // Get the current state of the toggle
+            const toggleState = element.checked;
 
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            li[i].style.display = "";
+            // Construct the query string parameter for the toggle state
+            const toggleParam = `${field}=${encodeURIComponent(value)}`;
+
+            // Get the current URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Update the toggle state in the URL parameters
+            if (toggleState) {
+                urlParams.set(field, value);
             } else {
-            li[i].style.display = "none";
+                urlParams.delete(field);
             }
+
+            // Construct the new URL with the updated toggle state
+            const newURL = `${url}?${urlParams.toString()}`;
+
+            // Redirect to the new URL
+            window.location.href = newURL;
         }
-    }
-    function redirectToLink(element, url, field, value) {
-        // Get the current state of the toggle
-        const toggleState = element.checked;
+        function checkform() {
+            var table = document.getElementById('sample-table'); // Get the table element by ID
+            var checkboxes = table.querySelectorAll('input[type="checkbox"]'); 
+            var atleastOneChecked = false;
 
-        // Construct the query string parameter for the toggle state
-        const toggleParam = `${field}=${encodeURIComponent(value)}`;
-
-        // Get the current URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-
-        // Update the toggle state in the URL parameters
-        if (toggleState) {
-            urlParams.set(field, value);
-        } else {
-            urlParams.delete(field);
-        }
-
-        // Construct the new URL with the updated toggle state
-        const newURL = `${url}?${urlParams.toString()}`;
-
-        // Redirect to the new URL
-        window.location.href = newURL;
-    }
-    function checkform() {
-        var table = document.getElementById('sample-table'); // Get the table element by ID
-        var checkboxes = table.querySelectorAll('input[type="checkbox"]'); 
-        var atleastOneChecked = false;
-
-        for (var i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-                atleastOneChecked = true;
-                break;
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    atleastOneChecked = true;
+                    break;
+                }
             }
+            document.getElementById('submit').disabled = !atleastOneChecked;
+            document.getElementById('metadata').disabled = !atleastOneChecked;
         }
-        document.getElementById('submit').disabled = !atleastOneChecked;
-        document.getElementById('metadata').disabled = !atleastOneChecked;
-    }
 
-    window.onload = checkform;
+        window.onload = checkform;
     </script>
 {% endblock %}
 {% block content %}
@@ -297,27 +273,27 @@
                                                   overflow-x: auto">
                                         <thead>
                                             <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
+                                                <th class="table-row">Run Accession</th>
+                                                <th class="table-row">Study Accession</th>
+                                                <th class="table-row">Organism</th>
+                                                <th class="table-row">Library Type</th>
+                                                <th class="table-row">Inhibitor</th>
+                                                <th class="table-row" scope="col"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for sample in page_obj %}
                                                 <tr style="word-wrap: break-word;">
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
+                                                    <td class="table-row">
                                                         <a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a>
                                                     </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
+                                                    <td class="table-row">
                                                         <a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a>
                                                     </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
+                                                    <td class="table-row">{{ sample.ScientificName }}</td>
+                                                    <td class="table-row">{{ sample.LIBRARYTYPE }}</td>
+                                                    <td class="table-row">{{ sample.INHIBITOR }}</td>
+                                                    <td class="table-row">
                                                         <input type="checkbox"
                                                                name="run"
                                                                value="{{ sample.Run }}"
@@ -328,12 +304,12 @@
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
+                                                <th class="table-row">Run Accession</th>
+                                                <th class="table-row">Study Accession</th>
+                                                <th class="table-row">Scientific Name</th>
+                                                <th class="table-row">Library Type</th>
+                                                <th class="table-row">Inhibitor</th>
+                                                <th class="table-row" scope="col"></th>
                                             </tr>
                                         </tfoot>
                                     </table>
