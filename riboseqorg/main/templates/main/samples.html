@@ -18,34 +18,34 @@
           rel="stylesheet"
           type="text/css">
     <script>
-        $(document).ready(function() {
-            var table = $('#sample-table').DataTable({
-                paging: false,
-                searching: false,
-                info: false,
-                scrollY: '100vh',
-                scrollCollapse: true,
-                fixedColumns: {
-                    leftColumns: 1,
-                }
-            });
-        });
+      $(document).ready(function() {
+          var table = $('#sample-table').DataTable({
+              paging: false,
+              searching: false,
+              info: false,
+            //   dom: 'Plfrtip',
+              scrollY: '100vh',
+                // scrollX: true,
+              scrollCollapse: true,
+              fixedColumns: {
+                  leftColumns: 1,
+              }
+          });
+      });
 
-        function selectAll() {
-            var table = $('#sample-table').DataTable();
-            var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
-            
-            for (var i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].checked) {
-                    checkboxes[i].checked = false;
-                } else
-                checkboxes[i].checked = true;
-            }
-            }
-        function updateAccordion(ulId, inputId) {
-            // Get the UL element
-            var ul = document.getElementById(ulId);
-
+      function selectAll() {
+        var table = $('#sample-table').DataTable();
+        var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
+        
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                checkboxes[i].checked = false;
+            } else
+            checkboxes[i].checked = true;
+        }
+        }
+      function updateAccordion(ulId, inputId) {
+        // Get the UL element
             // Get the input element
             var input = document.getElementById(inputId);
 
