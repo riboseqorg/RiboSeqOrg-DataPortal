@@ -15,11 +15,12 @@ import mimetypes
 import os
 import uuid
 
-from typing import List, Type, Union
+from typing import List, Type
 
 from .filters import StudyFilter
 from .forms import SearchForm
 from .models import Sample, Study
+from .string2query import query2sqlquery
 
 from .utilities import get_clean_names, get_original_name, \
     build_query, handle_filter, handle_gwips_urls, \
@@ -30,7 +31,9 @@ from .utilities import get_clean_names, get_original_name, \
 
 from rest_framework import generics, filters
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 
 from .serializers import SampleSerializer
 
@@ -54,6 +57,14 @@ class SampleListView(generics.ListCreateAPIView):
         'TISSUE',
         'LIBRARYTYPE',
     ]
+    operator_mapping = {
+        '=': '__exact',
+        '!=': '__ne',
+        '<': '__lt',
+        '>': '__gt',
+        '<=': '__lte',
+        '>=': '__gte',
+    }
 
     def build_query(self, query_params):
         '''
@@ -75,6 +86,7 @@ class SampleListView(generics.ListCreateAPIView):
         # Get query parameters
         fields = self.request.query_params.get('fields')
         limit = self.request.query_params.get('limit', self.default_limit)
+        user_query = self.request.query_params.get('query', '')
 
         # Start with an empty query
         query = Q()
@@ -92,9 +104,29 @@ class SampleListView(generics.ListCreateAPIView):
         else:
             self.serializer_class.Meta.fields = self.default_fields
 
-        query = self.build_query(self.request.query_params)
+        if not user_query:
+            query = self.build_query(self.request.query_params)
 
-        queryset = Sample.objects.filter(query)
+            # Check for unused keys
+            unused_keys = [
+                key for key in self.request.query_params.keys()
+                if str(query).find(key) == -1 and key not in ['query', 'limit', 'field']
+            ]
+
+            if unused_keys:
+                error_message = f"Invalid Fields: '{', '.join(unused_keys)}'"
+                raise ValidationError(
+                    detail={'ERROR': error_message},
+                    code=status.HTTP_400_BAD_REQUEST
+                    )
+            queryset = Sample.objects.filter(query)
+
+        else:
+            print(user_query)
+            sql_query = query2sqlquery(user_query, Sample)
+            print(sql_query)
+            queryset = Sample.objects.filter(sql_query)
+
         return queryset[:int(limit)]
 
 
@@ -108,6 +140,7 @@ class SampleFieldsView(APIView):
 def index(request: HttpRequest) -> str:
     """
     Render the homepage.
+        return parse_expression(tokens)
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
