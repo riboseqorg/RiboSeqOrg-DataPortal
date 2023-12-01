@@ -163,7 +163,6 @@ class Stack:
             ValueError: If there is an issue with the parentheses in the expression.
         """
         output = ""
-
         for character in exp:
 
             if character.isalpha():  # check if operand add to output

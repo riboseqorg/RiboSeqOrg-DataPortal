@@ -126,7 +126,6 @@ class Sample(models.Model):
     Kit = models.CharField(max_length=200, blank=True)
     Info = models.TextField(blank=True)
 
-    objects = DjangoQLQuerySet.as_manager()
     def __str__(self):
         return self.Run
 
