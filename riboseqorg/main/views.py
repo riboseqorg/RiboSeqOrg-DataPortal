@@ -766,24 +766,32 @@ def generate_link(project, run, type="reads"):
     """
     server_base = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"
     path_suffixes = {
-        "reads": "_clipped_collapsed.fastq.gz",
+        "reads": ".collapsed.fa.gz",
         "counts": "_counts.txt",
+        "bams": ".bam",
+        "adapter_report": ".adapter.fa",
+        "fastp": ".html",
+        "fastqc": "_fastqc.html",
     }
     path_dirs = {
-        "reads": "collapsed_fastq",
+        "reads": "collapsed_reads",
         "counts": "counts",
+        "bams": "bams",
+        "adapter_report": "adapter_reports",
+        "fastp": "fastp",
+        "fastqc": "fastqc",
     }
     project = str(project)
     run = str(run)
     if os.path.exists(
-            os.path.join(server_base, path_dirs[type],
+            os.path.join(server_base, path_dirs[type], run[:6],
                          run + path_suffixes[type])):
-        return f"/static2/{path_dirs[type]}/{run + path_suffixes[type]}"
+        return f"/static2/{path_dirs[type]}/{run[:6]}/{run + path_suffixes[type]}"
 
     elif os.path.exists(
-            os.path.join(server_base, path_dirs[type],
+            os.path.join(server_base, path_dirs[type], run[:6],
                          run + "_1" + path_suffixes[type])):
-        return f"/static2/{path_dirs[type]}/{run}_1{path_suffixes[type]}"
+        return f"/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
 
     return None
 
@@ -966,7 +974,7 @@ def download_all(request) -> HttpRequest:
     static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
 
     file_content = ["#!/usr/bin/env bash\n", "wget -c "]
-    filepath = f"{static_base_path}RiboSeqOrg_Download_{filename}.sh"
+    filepath = f"{static_base_path}/RiboSeqOrg_Download_{filename}.sh"
 
     with open(filepath, 'w') as f:
         for accession in selected['run']:
