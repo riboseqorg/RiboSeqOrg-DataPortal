@@ -289,9 +289,9 @@ def eq2query(postfix: list, diction: Dict, model) -> QuerySet:
                 second = to_calculate.pop()
                 operator = to_operate.pop()
                 if operator == "+":
-                    query = first & second
-                if operator == "*":
                     query = first | second
+                if operator == "*":
+                    query = first & second
                 to_calculate.append(query)
     return to_calculate[0]
 
@@ -317,6 +317,8 @@ def query2sqlquery(user_query: str, model: Any) -> str:
             ).strip('"')
 
     infix_equation, diction = str_to_eq(user_query)
+    print(infix_equation)
+    print(diction)
 
     if not is_balanced(infix_equation):
         error_message = f"Invalid query (mismatching brackets): '{user_query}'"
@@ -326,7 +328,7 @@ def query2sqlquery(user_query: str, model: Any) -> str:
         )
 
     postfix_equation = list(Stack().infix_to_postfix(infix_equation))
-    print(postfix_equation)
+    print("POST: ", postfix_equation)
     sql_query = eq2query(postfix_equation, diction, model)
 
     return sql_query
