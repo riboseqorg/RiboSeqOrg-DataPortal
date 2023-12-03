@@ -585,15 +585,15 @@ def get_ribometic_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPor
     Returns:
     - (str): the path to the report file
     '''
-    path = f"{base_path}/{run[:6]}/{run}_ribometic.html"
+    path = f"{base_path}/{run[:6]}/{run}bamtrans_RiboMetric.html"
     if os.path.exists(path):
         return '/'.join(path.split('/')[-2:])
     else:
-        path = f"{base_path}/{run[:6]}/{run}_1_ribometic.html"
+        path = f"{base_path}/{run[:6]}/{run}_1bamtrans_RiboMetric.html"
         if os.path.exists(path):
             return '/'.join(path.split('/')[-2:])
         else:
-            path = f"{base_path}/{run[:6]}/{run}_2_ribometic.html"
+            path = f"{base_path}/{run[:6]}/{run}_2bamtrans_RiboMetric.html"
             if os.path.exists(path):
                 return '/'.join(path.split('/')[-2:])
             else:
