@@ -1,5 +1,55 @@
 from django.db import models
 
+import os
+
+def generate_link(project, run, type="reads"):
+    """
+    Generate Link for a specific run of a given type (default is reads)
+    Ensure path is valid before returning link
+
+    Arguments:
+    - project (str): the project accession number
+    - run (str): the run accession number
+    - type (str): the type of link to generate (default is reads)
+
+    Returns:
+    - (str): the link to the file
+    OR
+    - (None): if the link is not valid
+    """
+    server_base = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"
+    path_suffixes = {
+        "reads": ".collapsed.fa.gz",
+        "counts": "_counts.txt",
+        "bams": ".bam",
+        "adapter_report": ".adapter.fa",
+        "fastp": ".html",
+        "fastqc": "_fastqc.html",
+        "ribometric": "bamtrans_RiboMetric.html",
+    }
+    path_dirs = {
+        "reads": "collapsed_reads",
+        "counts": "counts",
+        "bams": "bams",
+        "adapter_report": "adapter_reports",
+        "fastp": "fastp",
+        "fastqc": "fastqc",
+        "ribometric": "ribometric",
+    }
+    project = str(project)
+    run = str(run)
+    if os.path.exists(
+            os.path.join(server_base, path_dirs[type], run[:6],
+                         run + path_suffixes[type])):
+        return f"/static2/{path_dirs[type]}/{run[:6]}/{run + path_suffixes[type]}"
+
+    elif os.path.exists(
+            os.path.join(server_base, path_dirs[type], run[:6],
+                         run + "_1" + path_suffixes[type])):
+        return f"/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
+
+    return ""
+
 class Study(models.Model):
     BioProject = models.CharField(max_length=200, blank=False, null=False, unique=True, primary_key=True)
     Name = models.CharField(max_length=200, blank=True)
@@ -127,6 +177,34 @@ class Sample(models.Model):
 
     def __str__(self):
         return self.Run
+    
+    @property
+    def fastqc_link(self):
+        return generate_link(self.BioProject, self.Run, "fastqc")
+    
+    @property
+    def fastp_link(self):
+        return generate_link(self.BioProject, self.Run, "fastp")
+    
+    @property
+    def adapter_report_link(self):
+        return generate_link(self.BioProject, self.Run, "adapter_report")
+    
+    @property
+    def ribometric_link(self):
+        return generate_link(self.BioProject, self.Run, "ribometric")
+    
+    @property
+    def reads_link(self):
+        return generate_link(self.BioProject, self.Run, "reads")
+    
+    @property
+    def counts_link(self):
+        return generate_link(self.BioProject, self.Run, "counts")
+    
+    @property
+    def bam_link(self):
+        return generate_link(self.BioProject, self.Run, "bams")
 
 
 class OpenColumns(models.Model):
