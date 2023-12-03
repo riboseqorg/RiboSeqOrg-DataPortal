@@ -587,14 +587,14 @@ def get_ribometric_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPo
     '''
     path = f"{base_path}/{run[:6]}/{run}bamtrans_RiboMetric.html"
     if os.path.exists(path):
-        return '/'.join(path.split('/')[-2:])
+        return '/'.join(path.split('/')[-3:])
     else:
         path = f"{base_path}/{run[:6]}/{run}_1bamtrans_RiboMetric.html"
         if os.path.exists(path):
-            return '/'.join(path.split('/')[-2:])
+            return '/'.join(path.split('/')[-3:])
         else:
             path = f"{base_path}/{run[:6]}/{run}_2bamtrans_RiboMetric.html"
             if os.path.exists(path):
-                return '/'.join(path.split('/')[-2:])
+                return '/'.join(path.split('/')[-3:])
             else:
                 return None
