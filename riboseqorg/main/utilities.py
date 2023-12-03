@@ -574,7 +574,7 @@ def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal
                 return None
 
 
-def get_ribometic_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/ribometic"):
+def get_ribometric_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/ribometic"):
     '''
     Return path to fastp report file for given run
 
