@@ -966,7 +966,7 @@ def download_all(request) -> HttpRequest:
     static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
 
     file_content = ["#!/usr/bin/env bash\n", "wget -c "]
-    filepath = f"{static_base_path}RiboSeqOrg_Download_{filename}.sh"
+    filepath = f"{static_base_path}/RiboSeqOrg_Download_{filename}.sh"
 
     with open(filepath, 'w') as f:
         for accession in selected['run']:
