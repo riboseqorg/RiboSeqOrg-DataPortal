@@ -586,6 +586,7 @@ def get_ribometric_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPo
     - (str): the path to the report file
     '''
     path = f"{base_path}/{run[:6]}/{run}bamtrans_RiboMetric.html"
+    return path
     if os.path.exists(path):
         return '/'.join(path.split('/')[-2:])
     else:
