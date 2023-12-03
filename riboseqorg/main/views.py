@@ -27,7 +27,7 @@ from .utilities import get_clean_names, get_original_name, \
     build_run_query, build_bioproject_query, \
     select_all_query, handle_urls_for_query, \
     get_fastp_report_link, get_fastqc_report_link, \
-    get_ribometic_report_link
+    get_ribometric_report_link
 
 from rest_framework import generics, filters
 from rest_framework.response import Response
@@ -989,7 +989,7 @@ def reports(request, query) -> str:
         request, 'main/reports.html', {
             'fastp': get_fastp_report_link(query),
             'fastqc': get_fastqc_report_link(query),
-            'ribometic': get_ribometic_report_link(query)
+            'ribometric': get_ribometric_report_link(query)
         })
 
 
