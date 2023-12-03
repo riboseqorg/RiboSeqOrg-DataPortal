@@ -572,3 +572,29 @@ def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal
                 return '/'.join(path.split('/')[-2:])
             else:
                 return None
+
+
+def get_ribometic_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/ribometic"):
+    '''
+    Return path to fastp report file for given run
+
+
+    Arguments:
+    - run (str): the run to get the report for
+
+    Returns:
+    - (str): the path to the report file
+    '''
+    path = f"{base_path}/{run[:6]}/{run}_ribometic.html"
+    if os.path.exists(path):
+        return '/'.join(path.split('/')[-2:])
+    else:
+        path = f"{base_path}/{run[:6]}/{run}_1_ribometic.html"
+        if os.path.exists(path):
+            return '/'.join(path.split('/')[-2:])
+        else:
+            path = f"{base_path}/{run[:6]}/{run}_2_ribometic.html"
+            if os.path.exists(path):
+                return '/'.join(path.split('/')[-2:])
+            else:
+                return None
