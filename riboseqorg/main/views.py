@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
-from django.db.models import CharField, Q, Count
-from django.db.models.functions import Length
+from django.db.models import CharField, Q, Count, F, Value
+from django.db.models.functions import Length, Concat
 from django.db.models.query import QuerySet
 from django_filters.views import FilterView
 from django.views import View
@@ -55,6 +55,13 @@ class SampleListView(generics.ListCreateAPIView):
         'TISSUE',
         'LIBRARYTYPE',
     ]
+    added_fields = [
+        'fastqc_link',
+        'fastp_link',
+        'ribometric_link',
+        'fasta_link',
+        'bam_link',
+    ]
 
     def build_query(self, query_params):
         '''
@@ -79,23 +86,24 @@ class SampleListView(generics.ListCreateAPIView):
 
         # Start with an empty query
         query = Q()
+        query = self.build_query(self.request.query_params)
+
+        queryset = Sample.objects.filter(query)
 
         # Subset fields to just take selected
         if fields:
             requested_fields = set(fields.split(','))
             valid_fields = [
                 field for field in requested_fields
-                if field in [f.name for f in Sample._meta.get_fields()]
+                if field in [f.name for f in Sample._meta.get_fields()] or
+                field in self.added_fields
             ]
-
+            print(valid_fields)
             if valid_fields:
                 self.serializer_class.Meta.fields = valid_fields
         else:
             self.serializer_class.Meta.fields = self.default_fields
 
-        query = self.build_query(self.request.query_params)
-
-        queryset = Sample.objects.filter(query)
         return queryset[:int(limit)]
 
 
@@ -791,6 +799,7 @@ def generate_link(project, run, type="reads"):
         "adapter_report": ".adapter.fa",
         "fastp": ".html",
         "fastqc": "_fastqc.html",
+        "ribometric": "bamtrans_RiboMetric.html",
     }
     path_dirs = {
         "reads": "collapsed_reads",
@@ -799,6 +808,7 @@ def generate_link(project, run, type="reads"):
         "adapter_report": "adapter_reports",
         "fastp": "fastp",
         "fastqc": "fastqc",
+        "ribometric": "ribometric",
     }
     project = str(project)
     run = str(run)
