@@ -59,7 +59,7 @@ class SampleListView(generics.ListCreateAPIView):
         'fastqc_link',
         'fastp_link',
         'ribometric_link',
-        'fasta_link',
+        'reads_link',
         'bam_link',
     ]
 
