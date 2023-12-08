@@ -166,12 +166,12 @@
                                     {% else %}
                                         <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
                                     {% endif %}
-                                    {% if sample.fasta_link_type == "FASTA" %}
+                                    {% if sample.fasta_link != "" %}
                                         <td><a href="{{ sample.fasta_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
                                     {% else %}
                                         <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
                                     {% endif %}
-                                    {% if sample.bam_link_type == "BAM" %}
+                                    {% if sample.bam_link != "" %}
                                         <td><a href="{{ sample.bam_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
                                     {% else %}
                                         <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
