@@ -87,7 +87,6 @@ class SampleListView(generics.ListCreateAPIView):
         # Start with an empty query
         query = Q()
         query = self.build_query(self.request.query_params)
-
         queryset = Sample.objects.filter(query)
 
         # Subset fields to just take selected
@@ -98,7 +97,6 @@ class SampleListView(generics.ListCreateAPIView):
                 if field in [f.name for f in Sample._meta.get_fields()] or
                 field in self.added_fields
             ]
-            print(valid_fields)
             if valid_fields:
                 self.serializer_class.Meta.fields = valid_fields
         else:
@@ -561,23 +559,6 @@ def study_detail(request: HttpRequest, query: str) -> str:
         entry.ribocrypt_link = urls['ribocrypt_link']
         entry.ribocrypt_name = urls['ribocrypt_name']
 
-        link = generate_link(entry.BioProject, entry.Run, "reads")
-        if isinstance(link, str):
-            entry.fasta_link = f"{link}"
-            entry.fasta_link_type = "FASTA"
-        else:
-            entry.fasta_link = ""
-            entry.fasta_link_type = "Not Available"
-
-        link = generate_link(entry.BioProject, entry.Run, "bams")
-        if isinstance(link, str):
-            entry.bam_link = f"{link}"
-            entry.bam_link_type = "BAM"
-        else:
-            entry.bam_link = ""
-            entry.bam_link_type = "Not Available"
-
-
     # Return all results from Sample and query the sqlite too and add this to
     # the table
     context = {
@@ -705,23 +686,6 @@ def sample_detail(request: HttpRequest, query: str) -> str:
 
     # generate GWIPS and Trips URLs
     urls = handle_urls_for_query(request, sample_query)
-
-    for entry in ls:
-        link = generate_link(entry.BioProject, entry.Run, "reads")
-        if isinstance(link, str):
-            entry.fasta_link = f"{link}"
-            entry.fasta_link_type = "FASTA"
-        else:
-            entry.fasta_link = ""
-            entry.fasta_link_type = "Not Available"
-
-        link = generate_link(entry.BioProject, entry.Run, "bams")
-        if isinstance(link, str):
-            entry.bam_link = f"{link}"
-            entry.bam_link_type = "BAM"
-        else:
-            entry.bam_link = ""
-            entry.bam_link_type = "Not Available"
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
@@ -917,21 +881,6 @@ def links(request: HttpRequest) -> str:
         entry.ribocrypt_link = urls['ribocrypt_link']
         entry.ribocrypt_name = urls['ribocrypt_name']
 
-        link = generate_link(entry.BioProject, entry.Run, "reads")
-        if isinstance(link, str):
-            entry.fasta_link = f"{link}"
-            entry.fasta_link_type = "FASTA"
-        else:
-            entry.fasta_link = ""
-            entry.fasta_link_type = "Not Available"
-
-        link = generate_link(entry.BioProject, entry.Run, "bams")
-        if isinstance(link, str):
-            entry.bam_link = f"{link}"
-            entry.bam_link_type = "BAM"
-        else:
-            entry.bam_link = ""
-            entry.bam_link_type = "Not Available"
     return render(
         request, 'main/links.html', {
             'sample_results': sample_page_obj,
