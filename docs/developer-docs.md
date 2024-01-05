@@ -1,6 +1,35 @@
 # Developer Documentation
 
-## Metadata Curation 
+## Introduction to the Codebase
+The RiboSeq Data Portals (RDP) codebase is broken into a number of parts based on their role. 
+
+### Directory of Repositories
+- [Metadata Fetching and Curation](https://github.com/Roleren/riboseq_metadata)
+- [Metadata Loading](https://github.com/RiboSeqOrg/Metadata)
+- [RDP Application](https://github.com/riboseqorg/RiboSeqOrg-DataPortal)
+
+### Developing RiboSeq Data Portal 
+The RDP repository follows the following practice that should be followed when developing new functionality. These steps also apply even if it is a simple spelling mistake or stylistic change. Make best practices a habit.  
+
+1. **Identify Desired Functionality** - Find a feature you wish to implement and describe it clearly in an issue on [github](https://github.com/riboseqorg/RiboSeqOrg-DataPortal/issues). Even if you are the only active developer it is important to write it out so you can properly understand the idea prior to implementation. This avoids pain in the future. 
+
+2. **Create a Development Branch** - All development should be carried out on a branch other than `main` (and definitely not `live`). It is sensible to name your branch after the feature you are implementing and then close the branch once the feature is merged. To create a branch do: 
+    ```
+    git checkout -b groundbreaking_functionality
+    ```
+3. **Develop functionality** - Write the code to add your desired changes to the data portal. 
+
+4. **Test** - Run the app locally and test that everything that you have made edits involving works correctly. 
+    ```
+    python manage.py runserver
+    ```
+
+5. **Merge with `Main`** - Next step is to merge with the main branch and ensure errors have not been incurred when merging. 
+
+6. **Merge `main` with `live`** - Merge the functional `main` branch with the `live` branch and then `pull` this branch on the production server. Restart apache and the changes you have made will be live 
+
+
+## Metadata Curation
 From a development perspective there are a number of key points to consider when understanding the workflow for the generation of high quality Ribo-Seq Metadata from the publicly available information. Firstly, a breakdown of the overall metadata curation process can be gleamed from the [core documentation](index.md). 
 
 ### Common Metadata Curation Pitfalls
@@ -43,7 +72,7 @@ This will push a finalised metadata file to the Google Drive.
 
 The scripts and information pertaining to the tidying and preparation for loading data into the database can be found in a [separate repository ](https://github.com/riboseqorg/Metadata). Here the logic behind these scripts are explained in more detail. To obtain a sample workflow of this data processing see [this](https://github.com/riboseqorg/Metadata/blob/main/workflow.md) document. 
 
-### Add Field to Metadata 
+## Add Field to Metadata 
 Eventually it will be required to expand the number of fields used to describe the Ribo-Seq samples stored in the RDP database. Below are the simple steps required to add a field. 
 
 1. Design The Field
@@ -69,9 +98,7 @@ Eventually it will be required to expand the number of fields used to describe t
     ```
 
 3. Load the data
-    You should now be able to load the data using fixtures with the `json` file containing this field. 
-
-
+    You should now be able to load the data using fixtures with the `json` file containing this field.
 
 ## Creating Versions
 
