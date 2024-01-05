@@ -24,7 +24,24 @@ This is a ongoing process and new pitfalls may be identified. If so, add them be
 
 To update metadata that is made publicly available on the RiboSeq Data Portal follow the following steps. 
 
-The scripts and information pertaining to this process can be found in a [separate repository ](https://github.com/riboseqorg/Metadata). Here the logic behind these scripts are explained in more detail. To obtain a sample workflow of this data processing see [this](https://github.com/riboseqorg/Metadata/blob/main/workflow.md) document. 
+Going from untidy metadata that is stored on public repositories to tidy metadata that is explorable on [RDP.ucc.ie](https://rdp.ucc.ie) is carried out in two main steps. **Metadata fetching and Curation** followed by **Preparation of the Metadata for Upload** to RDP. 
+
+### Find Ribo-Seq Samples and Curate Metadata
+The scripts required for this process can be found in [this repository](https://github.com/Roleren/riboseq_metadata). In the R console do the following: 
+
+Activate the renv:
+``` R
+renv::activate()
+``` 
+Source the Main Script:
+```R
+source("metadata_main_script.R")
+```
+This will push a finalised metadata file to the Google Drive. 
+
+### Preparation for Upload
+
+The scripts and information pertaining to the tidying and preparation for loading data into the database can be found in a [separate repository ](https://github.com/riboseqorg/Metadata). Here the logic behind these scripts are explained in more detail. To obtain a sample workflow of this data processing see [this](https://github.com/riboseqorg/Metadata/blob/main/workflow.md) document. 
 
 ### Add Field to Metadata 
 Eventually it will be required to expand the number of fields used to describe the Ribo-Seq samples stored in the RDP database. Below are the simple steps required to add a field. 
@@ -45,7 +62,6 @@ Eventually it will be required to expand the number of fields used to describe t
     ```
     python manage.py makemigrations
     ```
-    You are then encouraged to 'check' the migrations. But I often skip this step although I know it is bad practice. 
 
     Then apply the migration:
     ``` 
@@ -57,14 +73,13 @@ Eventually it will be required to expand the number of fields used to describe t
 
 
 
-
 ## Creating Versions
 
 Creating versions for resources in RDP is a crucial step for tracking changes. Here's how you can create versions:
 
-1. Use the version control system supported by RDP.
-2. Tag your repository with the desired version number.
-3. Ensure that documentation reflects the changes made in the new version.
+1. Within the repository on Github in your browser go to the Releases page from the panel on the right. 
+2. Create a New Release filling in release information 
+3. Publish Release 
 
 ## Advanced Topics
 
