@@ -17,8 +17,18 @@ The RDP repository follows the following practice that should be followed when d
     ```
     git checkout -b groundbreaking_functionality
     ```
-3. **Develop functionality** - 
-  
+3. **Develop functionality** - Write the code to add your desired changes to the data portal. 
+
+4. **Test** - Run the app locally and test that everything that you have made edits involving works correctly. 
+    ```
+    python manage.py runserver
+    ```
+
+5. **Merge with `Main`** - Next step is to merge with the main branch and ensure errors have not been incurred when merging. 
+
+6. **Merge `main` with `live`** - Merge the functional `main` branch with the `live` branch and then `pull` this branch on the production server. Restart apache and the changes you have made will be live 
+
+
 ## Metadata Curation
 From a development perspective there are a number of key points to consider when understanding the workflow for the generation of high quality Ribo-Seq Metadata from the publicly available information. Firstly, a breakdown of the overall metadata curation process can be gleamed from the [core documentation](index.md). 
 
