@@ -297,7 +297,9 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
         bioprojects = requested['bioproject']
         samples = Sample.objects.filter(BioProject__in=bioprojects)
 
+    print(requested)
     samples_df = pd.DataFrame(list(samples.values()))
+    print(samples_df)
     organisms = samples_df['ScientificName'].unique()
     if 'run' in requested:
         for organism in organisms:
