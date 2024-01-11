@@ -286,10 +286,10 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
     - (list): the required information to link those samples in GWIPS-viz (list of dicts)
     '''
     gwips = []
-
     requested = dict(request.GET.lists())
     if str(query) != '<Q: (AND: )>' and query is not None:
         samples = Sample.objects.filter(query)
+        print(samples, query)
     elif 'run' in requested:
         runs = requested['run']
         samples = Sample.objects.filter(build_run_query(runs))
@@ -297,9 +297,8 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
         bioprojects = requested['bioproject']
         samples = Sample.objects.filter(BioProject__in=bioprojects)
 
-    print(requested)
     samples_df = pd.DataFrame(list(samples.values()))
-    print(samples_df)
+
     organisms = samples_df['ScientificName'].unique()
     if 'run' in requested:
         for organism in organisms:
