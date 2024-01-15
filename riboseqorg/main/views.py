@@ -58,9 +58,13 @@ class SampleListView(generics.ListCreateAPIView):
     added_fields = [
         'fastqc_link',
         'fastp_link',
+        'adapter_report_link',
         'ribometric_link',
         'reads_link',
+        'counts_link',
         'bam_link',
+        'bigwig_forward_link',
+        'bigwig_reverse_link',
     ]
 
     def build_query(self, query_params):
@@ -88,10 +92,10 @@ class SampleListView(generics.ListCreateAPIView):
         query = Q()
         query = self.build_query(self.request.query_params)
         queryset = Sample.objects.filter(query)
-
         # Subset fields to just take selected
         if fields:
             requested_fields = set(fields.split(','))
+
             valid_fields = [
                 field for field in requested_fields
                 if field in [f.name for f in Sample._meta.get_fields()] or
@@ -764,6 +768,8 @@ def generate_link(project, run, type="reads"):
         "fastp": ".html",
         "fastqc": "_fastqc.html",
         "ribometric": "bamtrans_RiboMetric.html",
+        "bigwig (forward)": "_pshifted_forward.bigWig",
+        "bigwig (reverse)": "_pshifted_reverse.bigWig",
     }
     path_dirs = {
         "reads": "collapsed_reads",
@@ -773,6 +779,8 @@ def generate_link(project, run, type="reads"):
         "fastp": "fastp",
         "fastqc": "fastqc",
         "ribometric": "ribometric",
+        "bigwig (forward)": "bigwig",
+        "bigwig (reverse)": "bigwig",
     }
     project = str(project)
     run = str(run)
