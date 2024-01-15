@@ -58,9 +58,13 @@ class SampleListView(generics.ListCreateAPIView):
     added_fields = [
         'fastqc_link',
         'fastp_link',
+        'adapter_report_link',
         'ribometric_link',
         'reads_link',
+        'counts_link',
         'bam_link',
+        'bigwig_forward_link',
+        'bigwig_reverse_link',
     ]
 
     def build_query(self, query_params):
@@ -89,9 +93,16 @@ class SampleListView(generics.ListCreateAPIView):
         query = self.build_query(self.request.query_params)
         queryset = Sample.objects.filter(query)
 
+        sample_queryset = Sample.objects.all()
+
+        # Get a list of adapter_report_link values for each Sample
+        links = [sample.bigwig_reverse_link for sample in sample_queryset]
+        print("LINKS: ", links[:10])
+        
         # Subset fields to just take selected
         if fields:
             requested_fields = set(fields.split(','))
+
             valid_fields = [
                 field for field in requested_fields
                 if field in [f.name for f in Sample._meta.get_fields()] or
@@ -101,7 +112,7 @@ class SampleListView(generics.ListCreateAPIView):
                 self.serializer_class.Meta.fields = valid_fields
         else:
             self.serializer_class.Meta.fields = self.default_fields
-
+        print("fields: ", self.serializer_class.Meta.fields)
         return queryset[:int(limit)]
 
 
@@ -780,6 +791,7 @@ def generate_link(project, run, type="reads"):
     }
     project = str(project)
     run = str(run)
+    print("LINK", project, run, type)
     if os.path.exists(
             os.path.join(server_base, path_dirs[type], run[:6],
                          run + path_suffixes[type])):

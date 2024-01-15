@@ -26,6 +26,8 @@ def generate_link(project, run, type="reads"):
         "fastp": ".html",
         "fastqc": "_fastqc.html",
         "ribometric": "bamtrans_RiboMetric.html",
+        "bigwig (forward)": "_pshifted_forward.bigWig",
+        "bigwig (reverse)": "_pshifted_reverse.bigWig",
     }
     path_dirs = {
         "reads": "collapsed_reads",
@@ -35,6 +37,8 @@ def generate_link(project, run, type="reads"):
         "fastp": "fastp",
         "fastqc": "fastqc",
         "ribometric": "ribometric",
+        "bigwig (forward)": "bigwig",
+        "bigwig (reverse)": "bigwig",
     }
     project = str(project)
     run = str(run)
