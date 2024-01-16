@@ -51,7 +51,6 @@ def generate_link(project, run, type="reads"):
             os.path.join(server_base, path_dirs[type], run[:6],
                          run + "_1" + path_suffixes[type])):
         return f"/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
-
     return ""
 
 class Study(models.Model):

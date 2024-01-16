@@ -289,7 +289,6 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
     requested = dict(request.GET.lists())
     if str(query) != '<Q: (AND: )>' and query is not None:
         samples = Sample.objects.filter(query)
-        print(samples, query)
     elif 'run' in requested:
         runs = requested['run']
         samples = Sample.objects.filter(build_run_query(runs))
@@ -445,7 +444,7 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
             bioproject_trips_name = 'Visit Trips-Viz'
 
         gwips = handle_gwips_urls(request, query=query)[0]
-        if len(gwips['clean_organism'].split(" ")) > 5:
+        if gwips['gwipsDB'] == '':
             bioproject_gwips_link = "https://gwips.ucc.ie/"
             bioproject_gwips_name = ""
         else:
