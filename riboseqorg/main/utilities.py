@@ -533,16 +533,16 @@ def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-
     Returns:
     - (str): the path to the report file
     '''
-    path = f"{base_path}/{run}.html"
+    path = f"{base_path}/{run[:6]}/{run}.html"
     if os.path.exists(path):
 
         return '/'.join(path.split('/')[-2:])
     else:
-        path = f"{base_path}/{run}_1.html"
+        path = f"{base_path}/{run[:6]}/{run}_1.html"
         if os.path.exists(path):
             return '/'.join(path.split('/')[-2:])
         else:
-            path = f"{base_path}/{run}_2.html"
+            path = f"{base_path}/{run[:6]}/{run}_2.html"
             if os.path.exists(path):
                 return '/'.join(path.split('/')[-2:])
             else:
@@ -560,15 +560,15 @@ def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal
     Returns:
     - (str): the path to the report file
     '''
-    path = f"{base_path}/{run}_fastqc.html"
+    path = f"{base_path}/{run[:6]}/{run}_fastqc.html"
     if os.path.exists(path):
         return '/'.join(path.split('/')[-2:])
     else:
-        path = f"{base_path}/{run}_1_fastqc.html"
+        path = f"{base_path}/{run[:6]}/{run}_1_fastqc.html"
         if os.path.exists(path):
             return '/'.join(path.split('/')[-2:])
         else:
-            path = f"{base_path}/{run}_2_fastqc.html"
+            path = f"{base_path}/{run[:6]}/{run}_2_fastqc.html"
             if os.path.exists(path):
                 return '/'.join(path.split('/')[-2:])
             else:
