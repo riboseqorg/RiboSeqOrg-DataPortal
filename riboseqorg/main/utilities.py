@@ -444,7 +444,8 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
             bioproject_trips_name = 'Visit Trips-Viz'
 
         gwips = handle_gwips_urls(request, query=query)[0]
-        if gwips['gwipsDB'] == '':
+        print(gwips)
+        if gwips['clean_organism'] == 'None of the Selected Runs are available on GWIPS-Viz':
             bioproject_gwips_link = "https://gwips.ucc.ie/"
             bioproject_gwips_name = ""
         else:
