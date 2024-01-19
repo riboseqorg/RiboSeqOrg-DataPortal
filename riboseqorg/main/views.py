@@ -990,3 +990,26 @@ def download_all(request) -> HttpRequest:
         "Content-Disposition"
         ] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
     return response
+
+
+def custom_track(request, query) -> str:
+    '''
+    Generate custom track page
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+
+    Returns:
+    - (render): the rendered HTTP response for the page
+    '''
+    sample = Sample.objects.get(Run=query)
+
+    context = {
+        'Run': sample.Run,
+        'BioProject': sample.BioProject,
+        'description': sample.Info,
+        'forward_url': sample.bigwig_forward_link,
+        'reverse_url': sample.bigwig_reverse_link
+
+    }   
+    return render(request, 'main/custom_track.txt', context, content_type='text/plain')
