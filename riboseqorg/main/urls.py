@@ -45,6 +45,9 @@ urlpatterns = [
     path(
         'reports/<str:query>', views.reports, name='reports'
         ),
+    path(
+        'Sample/<str:query>/custom', views.custom_track, name='custom_track'
+        ),
     # API views
     path(
         'api/samples/',
