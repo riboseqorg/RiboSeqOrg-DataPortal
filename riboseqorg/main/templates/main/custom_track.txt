@@ -1,10 +1,12 @@
 {# Check if either forward_url or reverse_url is not an empty string #}
+# copy this text into the dialog box at https://gwips.ucc.ie/cgi-bin/hgCustom 
+# or download the file and upload to GWIPS on the same page
 {% if forward_url or reverse_url %}
     {% if forward_url %}
-        track type=bigWig name="{{ Run }} (Forward Strand)" description="{{ description }} (Forward Strand)" bigDataUrl={{ forward_url }}
+track type=bigWig name="{{ Run }} (Forward Strand)" description="{{ description }} (Forward Strand)" bigDataUrl=https://rdp.ucc.ie{{ forward_url }}
     {% endif %}
     {% if reverse_url %}
-        track type=bigWig name="{{ Run }} (Reverse Strand)" description="{{ description }} (Reverse Strand)" bigDataUrl={{ reverse_url }}
+track type=bigWig name="{{ Run }} (Reverse Strand)" description="{{ description }} (Reverse Strand)" bigDataUrl=https://rdp.ucc.ie{{ reverse_url }}
     {% endif %}
 {% else %}
     None available
