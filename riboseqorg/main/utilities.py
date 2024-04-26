@@ -457,7 +457,7 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
             bioproject_ribocrypt_link = "https://ribocrypt.org/"
             bioproject_ribocrypt_name = ""
         else:
-            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }"
+            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }&go=TRUE&go=TRUE"
             bioproject_ribocrypt_name = "Visit RiboCrypt"
 
         return {
