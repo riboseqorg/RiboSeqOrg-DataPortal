@@ -1,6 +1,8 @@
+
 from django.db import models
 
 import os
+
 
 def generate_link(project, run, type="reads"):
     """
@@ -53,8 +55,78 @@ def generate_link(project, run, type="reads"):
         return f"/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
     return ""
 
+
+def check_trips(project, run):
+    """
+    Check if a given run is present in the TRIPS database
+
+    Arguments:
+    - project (str): the project accession number
+    - run (str): the run accession number
+
+    Returns:
+    - (bool): True if the run is in the TRIPS database
+    OR
+    - (bool): False if the run is not in the TRIPS database
+    """
+    try:
+        trips = Trips.objects.get(BioProject=project, Run=run)
+        return True
+    except Trips.DoesNotExist:
+        return False
+
+
+def check_gwips(project, organism):
+    """
+    Check if a given organism is present in the GWIPS database
+
+    Arguments:
+    - project (str): the project accession number
+    - organism (str): the organism name
+
+    Returns:
+    - (bool): True if the organism is in the GWIPS database
+    OR
+    - (bool): False if the organism is not in the GWIPS database
+    """
+    try:
+        gwips = GWIPS.objects.get(BioProject=project, Organism=organism)
+        return True
+    except GWIPS.DoesNotExist:
+        return False
+
+
+def check_ribocrypt(project, organism):
+    """
+    Check if a given organism is present in the RiboCrypt database
+
+    Arguments:
+    - project (str): the project accession number
+    - organism (str): the organism name
+
+    Returns:
+    - (bool): True if the organism is in the RiboCrypt database
+    OR
+    - (bool): False if the organism is not in the RiboCrypt database
+    """
+    try:
+        ribocrypt = RiboCrypt.objects.get(
+            BioProject=project,
+            Organism=organism
+            )
+        return True
+    except RiboCrypt.DoesNotExist:
+        return False
+
+
 class Study(models.Model):
-    BioProject = models.CharField(max_length=200, blank=False, null=False, unique=True, primary_key=True)
+    BioProject = models.CharField(
+        max_length=200,
+        blank=False,
+        null=False,
+        unique=True,
+        primary_key=True
+        )
     Name = models.CharField(max_length=200, blank=True)
     Title = models.CharField(max_length=200, blank=True)
     Organism = models.CharField(max_length=200, blank=True)
@@ -79,8 +151,9 @@ class Study(models.Model):
         return self.BioProject
 
 
-# The inconsistent naming is due to the fact that the data is coming from different sources
-# SRA run info data is named as seen in that file 
+# The inconsistent naming is due to the fact that the data is
+# coming from different sources
+# SRA run info data is named as seen in that file
 # Manually curated metadata is in columns that are in all caps
 class Sample(models.Model):
     verified = models.BooleanField(blank=True, default=False)
@@ -88,8 +161,14 @@ class Sample(models.Model):
     gwips_id = models.BooleanField(default=False)
     ribocrypt_id = models.BooleanField(default=False)
     FASTA_file = models.BooleanField(default=False)
-
-    BioProject = models.ForeignKey(Study, on_delete=models.CASCADE, to_field='BioProject', related_name="sample", blank=True, null=True)
+    BioProject = models.ForeignKey(
+        Study,
+        on_delete=models.CASCADE,
+        to_field='BioProject',
+        related_name="sample",
+        blank=True,
+        null=True,
+        )
     Run = models.CharField(max_length=200, blank=True)
     spots = models.IntegerField(blank=True, null=True)
     bases = models.IntegerField(blank=True, null=True)
@@ -180,31 +259,31 @@ class Sample(models.Model):
 
     def __str__(self):
         return self.Run
-    
+
     @property
     def fastqc_link(self):
         return generate_link(self.BioProject, self.Run, "fastqc")
-    
+
     @property
     def fastp_link(self):
         return generate_link(self.BioProject, self.Run, "fastp")
-    
+
     @property
     def adapter_report_link(self):
         return generate_link(self.BioProject, self.Run, "adapter_report")
-    
+
     @property
     def ribometric_link(self):
         return generate_link(self.BioProject, self.Run, "ribometric")
-    
+
     @property
     def reads_link(self):
         return generate_link(self.BioProject, self.Run, "reads")
-    
+
     @property
     def counts_link(self):
         return generate_link(self.BioProject, self.Run, "counts")
-    
+
     @property
     def bam_link(self):
         return generate_link(self.BioProject, self.Run, "bams")
@@ -212,10 +291,11 @@ class Sample(models.Model):
     @property
     def bigwig_forward_link(self):
         return generate_link(self.BioProject, self.Run, "bigwig (forward)")
-    
+
     @property
     def bigwig_reverse_link(self):
         return generate_link(self.BioProject, self.Run, "bigwig (reverse)")
+
 
 class OpenColumns(models.Model):
     column_name = models.CharField(max_length=200, blank=True)
@@ -229,7 +309,7 @@ class OpenColumns(models.Model):
 class Trips(models.Model):
     BioProject = models.CharField(max_length=100)
     Run = models.CharField(max_length=100)
-    Trips_id = models.FloatField()
+    Trips_id = models.CharField(max_length=100)
     file_name = models.CharField(max_length=100)
     study_name = models.CharField(max_length=100)
     study_srp = models.CharField(max_length=100)
