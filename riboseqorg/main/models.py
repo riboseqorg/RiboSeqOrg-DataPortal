@@ -47,12 +47,12 @@ def generate_link(project, run, type="reads"):
     if os.path.exists(
             os.path.join(server_base, path_dirs[type], run[:6],
                          run + path_suffixes[type])):
-        return f"/static2/{path_dirs[type]}/{run[:6]}/{run + path_suffixes[type]}"
+        return f"https://rdp.ucc.ie/static2/{path_dirs[type]}/{run[:6]}/{run + path_suffixes[type]}"
 
     elif os.path.exists(
             os.path.join(server_base, path_dirs[type], run[:6],
                          run + "_1" + path_suffixes[type])):
-        return f"/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
+        return f"https://rdp.ucc.ie/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
     return ""
 
 
