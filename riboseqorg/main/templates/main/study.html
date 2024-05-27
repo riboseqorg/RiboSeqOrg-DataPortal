@@ -99,7 +99,11 @@
                         <td><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/{{ Study.PMC }}">{{ Study.PMC }}</a></td>
                     <tr>
                         <th>PMID</th>
-                        <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ Study.PMID }}">{{ Study.PMID }}</a></td>
+                        {% if Study.PMID != "<NA>" %}
+                            <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ Study.PMID }}">{{ Study.PMID }}</a></td>
+                        {% else %}
+                            <td>None Available</a></td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <th>DOI</th>
@@ -123,7 +127,7 @@
             </div>
             <div class="fw-body">
                 <div class="content">
-                    <table id="samples" class="table table-striped nowrap" style="width:100%; margin-left:auto; margin-right:auto">
+                    <table id="samples" class="table table-striped" style="width:100%; margin-left:auto; margin-right:auto">
                         <thead>
                             <tr>
                                 <th scope="col"></th>
@@ -136,9 +140,10 @@
                                 <th>GWIPS-viz</th>
                                 <th>Trips-Viz</th>
                                 <th>RiboCrypt</th>
-                                <th>Reads - Download</th>
-                                <th>BAM - Download</th>
-
+                                <th>Reads</th>
+                                <th>BAM</th>
+                                <th>BigWig (F)</th>
+                                <th>BigWig (R)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -176,6 +181,16 @@
                                     {% else %}
                                         <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
                                     {% endif %}
+                                    {% if sample.bigwig_forward_link != "" %}
+                                        <td><a href="{{ sample.bigwig_forward_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.bigwig_reverse_link != "" %}
+                                        <td><a href="{{ sample.bigwig_reverse_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
                                     <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
                             {% endfor %}
                         </tbody>
@@ -191,7 +206,10 @@
                                 <th>GWIPS-viz</th>
                                 <th>Trips-Viz</th>
                                 <th>RiboCrypt</th>
-                                <th>Download Links</th>
+                                <th>Reads</th>
+                                <th>BAM</th>
+                                <th>BigWig (F)</th>
+                                <th>BigWig (R)</th>
                             </tr>
                         </tfoot>
                     </table>

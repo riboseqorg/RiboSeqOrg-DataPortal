@@ -120,7 +120,7 @@
             </div>
             <div class="fw-body">
                 <div class="content">
-                    <table id="samples" class="table table-striped nowrap" style="width:100%; margin-left:auto; margin-right:auto">
+                    <table id="samples" class="table table-striped" style="width:100%; margin-left:auto; margin-right:auto">
                         <thead>
                             <tr>
                                 <th scope="col"></th>
@@ -134,8 +134,10 @@
                                 <th>Trips-Viz</th>
                                 <th>GWIPS-viz</th>
                                 <th>RiboCrypt</th>
-                                <th>Reads - Download</th>
-                                <th>BAM - Download</th>
+                                <th>Reads</th>
+                                <th>BAM</th>
+                                <th>BigWig (F)</th>
+                                <th>BigWig (R)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -174,7 +176,16 @@
                                     {% else %}
                                         <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
                                     {% endif %}
-
+                                    {% if sample.bigwig_forward_link != "" %}
+                                        <td><a href="{{ sample.bigwig_forward_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.bigwig_reverse_link != "" %}
+                                        <td><a href="{{ sample.bigwig_reverse_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -191,7 +202,10 @@
                                 <th>Trips-Viz</th>
                                 <th>GWIPS-viz</th>
                                 <th>RiboCrypt</th>
-                                <th>Download</th>
+                                <th>Reads</th>
+                                <th>BAM</th>
+                                <th>BigWig (F)</th>
+                                <th>BigWig (R)</th>
                             </tr>
                         </tfoot>
                     </table>

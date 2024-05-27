@@ -155,7 +155,7 @@
                     </div>
                     <h1>Selected Entries</h1>
 
-                    <table class="table table-striped nowrap" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
+                    <table class="table table-striped" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
                         <thead>
                             <tr>
                                 <th>Run Accession</th>
@@ -165,8 +165,11 @@
                                 <th>GWIPS-viz</th>
                                 <th>Trips-Viz</th>
                                 <th>RiboCrypt</th>
-                                <th>Reads - Download</th>
-                                <th>BAM - Download</th>
+                                <th>Reads</th>
+                                <th>BAM</th>
+                                <th>BigWig (F)</th>
+                                <th>BigWig (R)</th>
+
                                 <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
                             </tr>
                         </thead>
@@ -202,7 +205,16 @@
                                     {% else %}
                                         <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
                                     {% endif %}
-
+                                    {% if sample.bigwig_forward_link != "" %}
+                                        <td><a href="{{ sample.bigwig_forward_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
+                                    {% if sample.bigwig_reverse_link != "" %}
+                                        <td><a href="{{ sample.bigwig_reverse_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
+                                    {% else %}
+                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
+                                    {% endif %}
                                     <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
                                 </tr>
                             {% endfor %}
