@@ -1,5 +1,7 @@
 from django.http import HttpRequest
 from django.db.models import Q
+from typing import List, Dict
+
 from .models import Sample, Trips, GWIPS, RiboCrypt
 import pandas as pd
 
@@ -128,35 +130,39 @@ def get_original_name(name: str, clean_names: dict) -> str:
 
 
 def build_query(
-        request: HttpRequest,
-        query_params: list,
-        clean_names: dict
-        ) -> Q:
+    request: HttpRequest,
+    query_params: List[tuple],
+    clean_names: Dict[str, str]
+) -> Q:
     """
     Build a query based on the query parameters.
 
     Arguments:
-    - query_params dict_itemiterator
+    - request (HttpRequest): the HTTP request
+    - query_params (List[tuple]): list of (field, values) tuples
+    - clean_names (Dict[str, str]): mapping of clean names to original names
 
     Returns:
     - (Q): the query
     """
-    # Build the query for the studies based on the query parameters
     query = Q()
-    # loop over unique keys in query_params
+    toggle_fields = {'trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified'}
+    
     for field, values in query_params:
-        if field in ['page', 'csrfmiddlewaretoken']:
+        if field in ('page', 'csrfmiddlewaretoken'):
             continue
+        
         options = request.GET.getlist(field)
-        q_options = Q()
-        for option in options:
-            if field in ['trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified']:
-                if option == 'on':
-                    option = True
-                else:
-                    option = False
-            q_options |= Q(**{ get_original_name(field, clean_names): option})
-        query &= q_options
+        if not options:
+            continue
+        
+        original_field = clean_names.get(field, field)
+        
+        if field in toggle_fields:
+            query &= Q(**{original_field: 'on' in options})
+        else:
+            query &= Q(**{f"{original_field}__in": options})
+    
     return query
 
 
@@ -444,7 +450,6 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
             bioproject_trips_name = 'Visit Trips-Viz'
 
         gwips = handle_gwips_urls(request, query=query)[0]
-        print(gwips)
         if gwips['clean_organism'] == 'None of the Selected Runs are available on GWIPS-Viz':
             bioproject_gwips_link = "https://gwips.ucc.ie/"
             bioproject_gwips_name = ""
@@ -459,7 +464,7 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
         else:
             bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }&go=TRUE&go=TRUE"
             bioproject_ribocrypt_name = "Visit RiboCrypt"
-
+        
         return {
             'trips_link': bioproject_trips_link,
             'trips_name': bioproject_trips_name,
@@ -479,6 +484,19 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
             'ribocrypt_name': "Not Available",
         }
 
+
+def check_custom_track(run: str) -> bool:
+    '''
+    Check if the custom track is available for the run
+
+    Arguments:
+    - run (str): the run to check
+
+    Returns:
+    - (bool): whether the custom track is available for the run
+    '''
+    print(f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/bigwig/{run[:5]}")
+    return os.path.exists(f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/bigwig/{run[:5]}/{run}.bw")
 
 def select_all_query(query_string):
     '''

@@ -1,45 +1,77 @@
 {% extends 'main/base.html' %}
 {% block title %}Reports{% endblock %}
-{% block content %}
 {% load static %}
-{% include 'main/navbar.html' %}
-
+{% block head_static %}
     <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          crossorigin="anonymous">
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            crossorigin="anonymous"></script>    <link href="{% static 'css/riboseq-css.css' %}"
+        rel="stylesheet"
+        type="text/css">
+{% endblock %}
+
+{% block content %}
+
+{% include 'main/navbar.html' %}
     <section id="reports" style="padding: 2%;">
-        <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-left: 2%;">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="FASTQC-tab" data-bs-toggle="tab" data-bs-target="#FASTQC" type="button" role="tab" aria-controls="FASTQC" aria-selected="true">FASTQC</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="FASTP-tab" data-bs-toggle="tab" data-bs-target="#FASTP" type="button" role="tab" aria-controls="FASTP" aria-selected="false">FASTP</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="RiboMetric-tab" data-bs-toggle="tab" data-bs-target="#RiboMetric" type="button" role="tab" aria-controls="RiboMetric" aria-selected="false">RiboMetric</button>
-            </li>
+      <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-left: 2%;">
+        {% if not fastqc and not fastp and not ribometric %}
+        <div class="alert alert-info" role="alert">
+          <h4 class="alert-heading">No Reports Available</h4>
+          <p>Currently, there are no analysis reports available for viewing. This could be because:</p>
+          <ul>
+            <li>The analysis has not been run yet</li>
+            <li>There was an error during the analysis process</li>
+            <li>The report files have been moved or deleted</li>
           </ul>
-          <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="FASTQC" role="tabpanel" aria-labelledby="FASTQC-tab">
-              <a href="/static2/{{ fastqc }}" download class="btn btn-primary">Download</a>
-              <div id="fastqc" class="tab-content">
-                    <iframe src="/static2/{{fastqc}}" width="100%" height="1000"></iframe>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="FASTP" role="tabpanel" aria-labelledby="FASTP-tab">
-              <a href="/static2/{{ fastp }}" download class="btn btn-primary">Download</a>
-              <div id="fastp" class="tab-content">
-                    <iframe src="/static2/{{fastp}}" width="100%" height="1000"></iframe>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="RiboMetric" role="tabpanel" aria-labelledby="RiboMetric-tab">
-              <a href="/static2/{{ ribometric }}" download class="btn btn-primary">Download</a>
-              <div id="ribometric" class="tab-content">
-                    <iframe src="/static2/{{ribometric}}" width="100%" height="1000"></iframe>
-                </div>
-            </div>
+          <p>If you believe this is an error, please contact the system administrator.</p>
+        </div>
+      {% else %}
+        {% if fastqc %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if fastqc %}active{% endif %}" id="FASTQC-tab" data-bs-toggle="tab" data-bs-target="#FASTQC" type="button" role="tab" aria-controls="FASTQC" aria-selected="{% if fastqc %}true{% else %}false{% endif %}">FASTQC</button>
+        </li>
+        {% endif %}
+        {% if fastp %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if not fastqc and fastp %}active{% endif %}" id="FASTP-tab" data-bs-toggle="tab" data-bs-target="#FASTP" type="button" role="tab" aria-controls="FASTP" aria-selected="{% if not fastqc and fastp %}true{% else %}false{% endif %}">FASTP</button>
+        </li>
+        {% endif %}
+        {% if ribometric %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if not fastqc and not fastp and ribometric %}active{% endif %}" id="RiboMetric-tab" data-bs-toggle="tab" data-bs-target="#RiboMetric" type="button" role="tab" aria-controls="RiboMetric" aria-selected="{% if not fastqc and not fastp and ribometric %}true{% else %}false{% endif %}">RiboMetric</button>
+        </li>
+        {% endif %}
+      </ul>
+      <div class="tab-content" id="myTabContent">
+        {% if fastqc %}
+        <div class="tab-pane fade {% if fastqc %}show active{% endif %}" id="FASTQC" role="tabpanel" aria-labelledby="FASTQC-tab">
+          <a href="/static2/{{ fastqc }}" download class="btn btn-primary">Download</a>
+          <div id="fastqc" class="tab-content">
+            <iframe src="/static2/{{fastqc}}" width="100%" height="1000"></iframe>
           </div>
+        </div>
+        {% endif %}
+        {% if fastp %}
+        <div class="tab-pane fade {% if not fastqc and fastp %}show active{% endif %}" id="FASTP" role="tabpanel" aria-labelledby="FASTP-tab">
+          <a href="/static2/{{ fastp }}" download class="btn btn-primary">Download</a>
+          <div id="fastp" class="tab-content">
+            <iframe src="/static2/{{fastp}}" width="100%" height="1000"></iframe>
+          </div>
+        </div>
+        {% endif %}
+        {% if ribometric %}
+        <div class="tab-pane fade {% if not fastqc and not fastp and ribometric %}show active{% endif %}" id="RiboMetric" role="tabpanel" aria-labelledby="RiboMetric-tab">
+          <a href="/static2/{{ ribometric }}" download class="btn btn-primary">Download</a>
+          <div id="ribometric" class="tab-content">
+            <iframe src="/static2/{{ribometric}}" width="100%" height="1000"></iframe>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
     </section>
 {% endblock %}

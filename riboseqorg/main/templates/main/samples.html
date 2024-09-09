@@ -57,7 +57,7 @@
 
       function selectAll() {
         var table = $('#sample-table').DataTable();
-        var checkboxes = table.column(5).nodes().to$().find('input[type="checkbox"]');
+        var checkboxes = table.column(0).nodes().to$().find('input[type="checkbox"]');
         
         for (var i = 0; i < checkboxes.length; i++) {
             if (checkboxes[i].checked) {
@@ -191,7 +191,7 @@
                                                                onchange="redirectToLink(this, '{{ url }}', 'gwips_id', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Available on GWIPS-viz</label>
                                                     </div>
-                                                    <div class="form-check form-switch">
+                                                    <!-- <div class="form-check form-switch">
                                                         <input class="form-check-input"
                                                                type="checkbox"
                                                                id="toggle2"
@@ -199,7 +199,7 @@
                                                                {% if ribocrypt_toggle_state == 'on' %}checked{% endif %}
                                                                onchange="redirectToLink(this, '{{ url }}', 'ribocrypt_id', 'on')">
                                                         <label class="form-check-label" for="flexSwitchCheckChecked">Available on RiboCrypt</label>
-                                                    </div>
+                                                    </div> -->
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input"
                                                                type="checkbox"
@@ -260,7 +260,7 @@
                                                                 </a>
                                                             </div>
                                                             <div style="display: inline;">
-                                                                <span class="badge bg-primary rounded-pill">{{ option.count }}</span>
+                                                                <span class="badge bg-success rounded-pill">{{ option.count }}</span>
                                                             </div>
                                                         </li>
                                                     {% endfor %}
@@ -297,17 +297,23 @@
                                                   overflow-x: auto">
                                         <thead>
                                             <tr>
+                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for sample in page_obj %}
-                                                <tr style="word-wrap: break-word;">
+                                                <tr >
+                                                    <td style="background-color: rgba(255, 255, 255, 1); width: 20pz;">
+                                                        <input type="checkbox"
+                                                               name="run"
+                                                               value="{{ sample.Run }}"
+                                                               onchange="checkform()" />
+                                                    </td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">
                                                         <a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a>
                                                     </td>
@@ -317,23 +323,17 @@
                                                     <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <input type="checkbox"
-                                                               name="run"
-                                                               value="{{ sample.Run }}"
-                                                               onchange="checkform()" />
-                                                    </td>
                                                 </tr>
                                             {% endfor %}
                                         </tbody>
                                         <tfoot>
                                             <tr>
+                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
                                             </tr>
                                         </tfoot>
                                     </table>

@@ -27,9 +27,9 @@
                         <li class="nav-item" role="presentation">
                           <button class="nav-link" id="Trips-Viz-tab" data-bs-toggle="tab" data-bs-target="#Trips-Viz" type="button" role="tab" aria-controls="Trips-Viz" aria-selected="false">Trips-Viz</button>
                         </li>
-                        <li class="nav-item" role="presentation">
+                        <!-- <li class="nav-item" role="presentation">
                             <button class="nav-link" id="RiboCrypt-tab" data-bs-toggle="tab" data-bs-target="#RiboCrypt" type="button" role="tab" aria-controls="RiboCrypt" aria-selected="false">RiboCrypt</button>
-                          </li>
+                          </li> -->
                     </ul>
                     <div class="tab-content" id="myTabContent">
                         <div class="tab-pane fade show active" id="download" role="tabpanel" aria-labelledby="download-tab">
@@ -115,7 +115,7 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="RiboCrypt" role="tabpanel" aria-labelledby="RiboCrypt-tab">
+                        <!-- <div class="tab-pane fade" id="RiboCrypt" role="tabpanel" aria-labelledby="RiboCrypt-tab">
                             <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
 
                                 {% for project in ribocrypt %}
@@ -141,7 +141,7 @@
                                 </div>
                                 {% endfor %}
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -190,11 +190,11 @@
                                     {% else %}
                                         <td><img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
                                     {% endif %}
-                                    {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
+                                    <!-- {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
                                         <td><a href="{{ sample.ribocrypt_link }}"><img src="{% static 'images/RiboCrypt-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
                                     {% else %}
                                         <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
+                                    {% endif %} -->
                                     {% if sample.reads_link != "" %}
                                         <td><a href="{{ sample.reads_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
                                     {% else %}
