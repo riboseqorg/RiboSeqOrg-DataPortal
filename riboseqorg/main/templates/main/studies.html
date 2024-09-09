@@ -66,7 +66,7 @@
       });
       function selectAll() {
         var table = $('#studies-table').DataTable();
-        var checkboxes = table.column(8).nodes().to$().find('input[type="checkbox"]');
+        var checkboxes = table.column(0).nodes().to$().find('input[type="checkbox"]');
         
         for (var i = 0; i < checkboxes.length; i++) {
             checkboxes[i].checked = true;
@@ -171,7 +171,7 @@
                                                                 </a>
                                                             </div>
                                                             <div style="display: inline;">
-                                                                <span class="badge bg-primary rounded-pill">{{ option.count }}</span>
+                                                                <span class="badge bg-success rounded-pill">{{ option.count }}</span>
                                                             </div>
                                                         </li>
                                                     {% endfor %}
@@ -184,6 +184,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Table column -->
                 <div class="col-md-9 order-2">
                     <div class="fw-container">
@@ -203,24 +204,27 @@
                                                   margin-right:auto">
                                         <thead>
                                             <tr>
+                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">BioProject</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for study in page_obj %}
                                                 <tr>
+                                                    <td style="background-color: rgba(255, 255, 255, 1); width: 20px;">
+                                                        <input type="checkbox" name="bioproject" value="{{ study.BioProject }}" />
+                                                    </td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">
                                                         <a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a>
                                                     </td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term={{ study.BioProject }}">{{ study.BioProject }}</a>
+                                                        <a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ study.BioProject }}">{{ study.BioProject }}</a>
                                                     </td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Organism }}</td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Samples }}</td>
@@ -229,24 +233,21 @@
                                                         <a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a>
                                                     </td>
                                                     <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ study.SRA }}">{{ study.SRA }}</a>
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <input type="checkbox" name="bioproject" value="{{ study.BioProject }}" />
+                                                        <a href="https://www.ncbi.nlm.nih.gov/sra/{{ study.SRA }}">{{ study.SRA }}</a>
                                                     </td>
                                                 </tr>
                                             {% endfor %}
                                         </tbody>
                                         <tfoot>
                                             <tr>
+                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">BioProject</th>
+                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
                                                 <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col">Select</th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -313,14 +314,15 @@
                                                 </ul>
                                             </div>
                                         </div>
+
                                 </form>
+                            </div>
+                            <div>
+                                <p> ⓘ For more Information on the columns shown here see: <a href="/about#study-descriptions">About</a></p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <p> ⓘ For more Information on the columns shown here see: <a href="/about#study-descriptions">About</a></p>
             </div>
         </section>
     {% endblock %}

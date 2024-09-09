@@ -5,11 +5,15 @@
 
 {% load static %}
     <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet"  crossorigin="anonymous">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          crossorigin="anonymous">
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"  crossorigin="anonymous"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            crossorigin="anonymous"></script>
+    <link href="{% static 'css/riboseq-css.css' %}"
+            rel="stylesheet"
+            type="text/css">
     <section id="study">
         <h1>{{ Study.Name }} ({{ Study.BioProject }})</h1>
         <h4>General Details</h4>
@@ -44,19 +48,19 @@
             <tr>
                 <th>GWIPS-viz</th>
                 <th>Trips-Viz</th>
-                <th>RiboCrypt</th>
+                <!-- <th>RiboCrypt</th> -->
             </tr>
             <tr>
                 <td><a href="{{ bioproject_gwips_link }}">{{ bioproject_gwips_name }}</a></td>
                 <td><a href="{{ bioproject_trips_link }}">{{ bioproject_trips_name }}</a></td>
-                <td><a href="{{ bioproject_ribocrypt_link }}">{{ bioproject_ribocrypt_name }}</a></td>
+                <!-- <td><a href="{{ bioproject_ribocrypt_link }}">{{ bioproject_ribocrypt_name }}</a></td> -->
             </tr>
         </table> 
         <h4>Repository Details</h4>
         <table class="table table-bordered" id="study-repos">
             <tr>
                 <th>SRA</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/sra/?term={{ Study.SRA }}">{{ Study.SRA }}</a></td>
+                <td><a href="https://www.ncbi.nlm.nih.gov/sra/{{ Study.SRA }}">{{ Study.SRA }}</a></td>
             </tr>
             <tr>
                 <th>ENA</th>
@@ -139,7 +143,7 @@
                                 <th>Treatment</th>
                                 <th>GWIPS-viz</th>
                                 <th>Trips-Viz</th>
-                                <th>RiboCrypt</th>
+                                <!-- <th>RiboCrypt</th> -->
                                 <th>Reads</th>
                                 <th>BAM</th>
                                 <th>BigWig (F)</th>
@@ -166,11 +170,11 @@
                                     {% else %}
                                         <td><img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
                                     {% endif %}
-                                    {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
+                                    <!-- {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
                                         <td><a href="{{ sample.ribocrypt_link }}"><img src="{% static 'images/RiboCrypt-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
                                     {% else %}
                                         <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
+                                    {% endif %} -->
                                     {% if sample.reads_link != "" %}
                                         <td><a href="{{ sample.reads_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
                                     {% else %}
@@ -205,7 +209,7 @@
                                 <th>Treatment</th>
                                 <th>GWIPS-viz</th>
                                 <th>Trips-Viz</th>
-                                <th>RiboCrypt</th>
+                                <!-- <th>RiboCrypt</th> -->
                                 <th>Reads</th>
                                 <th>BAM</th>
                                 <th>BigWig (F)</th>
