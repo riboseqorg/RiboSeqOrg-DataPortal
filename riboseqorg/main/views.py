@@ -329,49 +329,62 @@ def samples(request: HttpRequest) -> str:
         for name, values in request.GET.lists()
     ]
 
-    # Get the unique values and counts for each parameter
-    # within the filtered queryset
-    cache_key = 'sample_filter_options'
-    
-    # Try to get filter options from cache
-    param_options = cache.get(cache_key)
-    
-    if param_options is None:
-        # If not in cache, generate filter options
-        param_options = {}
-        for field in Sample._meta.fields:
-            if field.name in appropriate_fields:
-                values = Sample.objects.values(field.name).annotate(
-                    count=Count(field.name)).order_by('-count')
-                param_options[field.name] = values
-        
-        # Store in cache for future requests
-        cache.set(cache_key, param_options, 3600)  # Cache for 1 hour
+    param_options = {}
+    for field in Sample._meta.fields:
+        # if field.get_internal_type() == 'CharField':
+        if field.name in filtered_columns:
+            # update query_params to remove the current field to ensure this
+            # field is not filtered by itself
+            query_params = [
+                i for i in request.GET.lists()
+                if get_original_name(i[0], clean_names) != field.name
+            ]
+            query = build_query(request, query_params, clean_names)
+            sample_entries = Sample.objects.filter(query)
 
-    # Build query based on request parameters
-    query = Q()
-    for name, values in request.GET.lists():
-        if name in appropriate_fields or name in toggle_fields:
-            query &= Q(**{f"{name}__in": values})
+            filtered_samples = sample_entries.values(field.name).annotate(
+                count=Count(field.name)).order_by('-count')
+            param_options[field.name] = filtered_samples
+        else:
+            query_params = request.GET.lists()
+            query = build_query(request, query_params, clean_names)
+            sample_entries = Sample.objects.filter(query)
 
-    # Fetch sample entries with optimized query
-    sample_entries = Sample.objects.filter(query).order_by('-INHIBITOR', '-LIBRARYTYPE')
+            values = sample_entries.values(field.name).annotate(
+                count=Count(field.name)).order_by('-count')
+            param_options[field.name] = values
 
-    # Paginate the results
+    clean_results_dict = handle_filter(param_options, appropriate_fields,
+                                       clean_names)
+    clean_results_dict.pop('count', None)
+    query_params = [
+        (name, values) for name, values in request.GET.lists()
+        if get_original_name(name, clean_names) in appropriate_fields
+        or name in toggle_fields
+    ]
+    query = build_query(request, query_params, clean_names)
+
+    # get entries to populate table
+    sample_entries = Sample.objects.filter(query)
+    sample_entries = list(
+        reversed(sample_entries.order_by('INHIBITOR', 'LIBRARYTYPE')))
+
+    # Paginate the studies
     paginator = Paginator(sample_entries, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     context = {
         'page_obj': page_obj,
-        'param_options': param_options,
+        'param_options': clean_results_dict,
         'trips_toggle_state': request.GET.get('trips_id', False),
         'gwips_toggle_state': request.GET.get('gwips_id', False),
         'ribocrypt_toggle_state': request.GET.get('ribocrypt_id', False),
         'FASTA_file_toggle_state': request.GET.get('FASTA_file', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
-
+    # Render the studies template with the filtered and paginated studies
+    # and the filter options
     return render(request, 'main/samples.html', context)
 
 
