@@ -322,6 +322,11 @@ def samples(request: HttpRequest) -> str:
     ]
     clean_names = get_clean_names()
 
+    cache_key = f"studies_view_{request.GET.urlencode()}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     # Get all the query parameters from the request
     query_params = request.GET.lists()
     filtered_columns = [
@@ -385,7 +390,12 @@ def samples(request: HttpRequest) -> str:
     }
     # Render the studies template with the filtered and paginated studies
     # and the filter options
-    return render(request, 'main/samples.html', context)
+    response = render(request, 'main/samples.html', context)
+    cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
+
+    # Render the studies template with the filtered and paginated studies
+    # and the filter options
+    return response
 
 
 def studies(request: HttpRequest) -> str:
@@ -406,6 +416,11 @@ def studies(request: HttpRequest) -> str:
     ]
     clean_names = get_clean_names()
     del clean_names['ScientificName']
+
+    cache_key = f"studies_view_{request.GET.urlencode()}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
 
     # Get all the query parameters from the request
     # used for filter panel
@@ -512,12 +527,15 @@ def studies(request: HttpRequest) -> str:
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Render the studies template with the filtered and paginated studies
-    # and the filter options
-    return render(request, 'main/studies.html', {
+    response = render(request, 'main/studies.html', {
         'page_obj': page_obj,
         'param_options': clean_results_dict
     })
+    cache.set(cache_key, response, 60 * 15)  # Cache for 15 minutes
+
+    # Render the studies template with the filtered and paginated studies
+    # and the filter options
+    return response
 
 
 def about(request: HttpRequest) -> str:
