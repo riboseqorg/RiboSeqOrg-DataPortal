@@ -4,10 +4,15 @@
 
 {% block content %}
     <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          crossorigin="anonymous">
     <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            crossorigin="anonymous"></script> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <link href="{% static 'css/riboseq-css.css' %}"
+    rel="stylesheet"
+    type="text/css">
     {% include 'main/navbar.html' %}
     <div>
     <section id="links">
@@ -46,7 +51,10 @@
                                         <div class="card-body">
                                             <h5 class="card-title">Download All</h5>
                                             <p class="card-text">Download available collapsed read files for all samples across all panels shown below</p>
-                                            <a href="{% url 'download_all' %}?current_url={{ current_url }}" class="btn btn-primary" download>Download</a>
+                                            <a href="{% url 'download_all' %}?current_url={{ current_url }}" 
+                                            class="btn btn-primary" 
+                                            id="download-all-btn" 
+                                            download>Download</a>
                                         </div>
                                     </div>
                                 </div>
@@ -69,8 +77,10 @@
                                             <div class="card-body">
                                             <h5 class="card-title">Visualise</h5>
                                             <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
-                                            <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db={{ genome.gwipsDB }}&{{ genome.files }}" class="btn btn-primary">Genomic View</a>
-                                            </div>
+                                            <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db={{ genome.gwipsDB }}&{{ genome.files }}" 
+                                            class="btn btn-primary" 
+                                            id="gwips-btn">Genomic View</a>
+                                        </div>
                                         </div>
                                     </div>
                                 </div>
@@ -94,7 +104,9 @@
                                             <div class="card-body">
                                             <h5 class="card-title">Visualise</h5>
                                             <p class="card-text">Visualise selected datasets on a transcriptome level</p>
-                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/interactive_plot/?{{ transcriptome.files}}" class="btn btn-primary">Single Transcript Plot</a>
+                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/interactive_plot/?{{ transcriptome.files}}" 
+                                            class="btn btn-primary" 
+                                            id="trips-btn">Single Transcript Plot</a>
                                             </div>
                                         </div>
                                     </div>
@@ -107,7 +119,9 @@
                                             <div class="card-body">
                                             <h5 class="card-title">Meta Information</h5>
                                             <p class="card-text">Generate plots to understand the composition of your selection.</p>
-                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/metainfo_plot/?{{ transcriptome.files}}" class="btn btn-primary">Meta Information Plots</a>
+                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/metainfo_plot/?{{ transcriptome.files}}"
+                                            class="btn btn-primary"
+                                            id="trips-meta-btn">Meta Information Plots</a>
                                             </div>
                                         </div>
                                     </div>
@@ -164,7 +178,7 @@
                                 <th>Library Type</th>
                                 <th>GWIPS-viz</th>
                                 <th>Trips-Viz</th>
-                                <th>RiboCrypt</th>
+                                <!-- <th>RiboCrypt</th> -->
                                 <th>Reads</th>
                                 <th>BAM</th>
                                 <th>BigWig (F)</th>
@@ -243,4 +257,50 @@
         </div>
     </section>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sampleResults = [
+                {% for sample in sample_results %}
+                    { 
+                        reads_link: "{{ sample.reads_link }}",
+                        gwips_name: "{{ sample.gwips_name }}",
+                        trips_name: "{{ sample.trips_name }}"
+                    },
+                {% endfor %}
+            ];
+
+            function checkAndDisableButton(buttonId, checkFunction) {
+                var button = document.getElementById(buttonId);
+                if (button && !checkFunction()) {
+                    button.classList.add('disabled');
+                    button.setAttribute('aria-disabled', 'true');
+                    button.onclick = function(event) { event.preventDefault(); };
+                }
+            }
+
+            var hasValidReadsLink = function() {
+                return sampleResults.some(function(sample) {
+                    return sample.reads_link !== "";
+                });
+            };
+
+            var hasValidGwipsLink = function() {
+                return sampleResults.some(function(sample) {
+                    return sample.gwips_name === "Visit GWIPS-viz";
+                });
+            };
+
+            var hasValidTripsLink = function() {
+                return sampleResults.some(function(sample) {
+                    return sample.trips_name === "Visit Trips-Viz";
+                });
+            };
+
+            checkAndDisableButton('download-all-btn', hasValidReadsLink);
+            checkAndDisableButton('gwips-btn', hasValidGwipsLink);
+            checkAndDisableButton('trips-btn', hasValidTripsLink);
+            checkAndDisableButton('trips-meta-btn', hasValidTripsLink);
+
+        });
+    </script>
 {% endblock %}
