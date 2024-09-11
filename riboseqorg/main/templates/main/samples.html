@@ -45,16 +45,11 @@
               paging: false,
               searching: false,
               info: false,
-            //   dom: 'Plfrtip',
               scrollY: '100vh',
-                // scrollX: true,
+              scrollX: true,
               scrollCollapse: true,
-              fixedColumns: {
-                  leftColumns: 1,
-              }
           });
       });
-
       function selectAll() {
         var table = $('#sample-table').DataTable();
         var checkboxes = table.column(0).nodes().to$().find('input[type="checkbox"]');
@@ -65,7 +60,7 @@
             } else
             checkboxes[i].checked = true;
         }
-        }
+      }
       function updateAccordion(ulId, inputId) {
         // Get the UL element
         var ul = document.getElementById(ulId);
@@ -115,20 +110,44 @@
         window.location.href = newURL;
     }
     function checkform() {
-        var table = document.getElementById('sample-table'); // Get the table element by ID
-        var checkboxes = table.querySelectorAll('input[type="checkbox"]'); 
+        var table = document.getElementById('sample-table');
+        var checkboxes = table.querySelectorAll('input[type="checkbox"]');
+        var form = document.forms['sample_select'];
         var atleastOneChecked = false;
 
+        // Get existing hidden inputs
+        var existingInputs = form.querySelectorAll('input[type="hidden"][name="run"]');
+        
         for (var i = 0; i < checkboxes.length; i++) {
             if (checkboxes[i].checked) {
                 atleastOneChecked = true;
-                break;
+                var value = checkboxes[i].value;
+                
+                // Check if this value already exists in hidden inputs
+                var valueExists = Array.from(existingInputs).some(input => input.value === value);
+                
+                if (!valueExists) {
+                    var hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'run';
+                    hiddenInput.value = value;
+                    form.appendChild(hiddenInput);
+                    // Add the new input to our list of existing inputs
+                    existingInputs = form.querySelectorAll('input[type="hidden"][name="run"]');
+                }
             }
         }
+        
+        // Remove hidden inputs for unchecked boxes
+        existingInputs.forEach(function(input) {
+            if (!Array.from(checkboxes).some(checkbox => checkbox.checked && checkbox.value === input.value)) {
+                form.removeChild(input);
+            }
+        });
+
         document.getElementById('submit').disabled = !atleastOneChecked;
         document.getElementById('metadata').disabled = !atleastOneChecked;
     }
-
     window.onload = checkform;
     </script>
 {% endblock %}
@@ -142,7 +161,7 @@
                href="#side-panel-collapse"
                role="button"
                aria-expanded="false"
-               aria-controls="side-panel-collapse">Filters</a>
+               aria-controls="side-panel-collapse">Toggle Filters</a>
         </div>
         <div class="container-fluid">
             <div class="row">
@@ -281,62 +300,86 @@
                                 <form action="{% url 'sample_select_form' %}"
                                       method="get"
                                       name="sample_select">
-                                    <div class="fw-header d-flex align-items-center">
-                                        <h1 class="flex-grow-1">Samples</h1>
-                                        <li class="button-item">
-                                            <button type="button"
-                                                    class="btn btn-secondary"
-                                                    onclick="selectAll(); checkform()">Select All</button>
-                                        </li>
+                                      <div class="fw-header d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                                        <h1 class="flex-grow-1 mb-3 mb-md-0">Samples</h1>
+                                        <div class="d-flex flex-column flex-md-row">
+                                          <button type="button" class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="selectAll(); checkform()">Select All</button>
+                                          <div class="dropdown">
+                                            <button class="btn btn-primary dropdown-toggle" type="button" id="studyOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                              <i class="fas fa-cog me-2"></i>Options
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="studyOptionsDropdown">
+                                              <li>
+                                                <h6 class="dropdown-header">Actions</h6>
+                                              </li>
+                                              <li>
+                                                <button type="submit" class="dropdown-item d-flex align-items-center" name="download-metadata" value="{{ request.GET.urlencode }}">
+                                                  <i class="fas fa-download me-2 text-primary"></i>
+                                                  <span>Download All Metadata</span>
+                                                </button>
+                                              </li>
+                                              <li>
+                                                <button type="submit" class="dropdown-item d-flex align-items-center" name="query" value="{{ request.GET.urlencode }}">
+                                                  <i class="fas fa-search me-2 text-primary"></i>
+                                                  <span>Explore All Samples</span>
+                                                </button>
+                                              </li>
+                                            </ul>
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <table id="sample-table"
-                                           class="table table-striped"
-                                           style="width:90%;
-                                                  margin-left:auto;
-                                                  margin-right:auto;
-                                                  overflow-x: auto">
-                                        <thead>
-                                            <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for sample in page_obj %}
-                                                <tr >
-                                                    <td style="background-color: rgba(255, 255, 255, 1); width: 20pz;">
-                                                        <input type="checkbox"
-                                                               name="run"
-                                                               value="{{ sample.Run }}"
-                                                               onchange="checkform()" />
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a>
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a>
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
+                                    <div class="table-responsive">
+
+                                        <table id="sample-table"
+                                            class="table table-striped nowrap"
+                                            style="width:90%;
+                                                    margin-left:auto;
+                                                    margin-right:auto;
+                                                    overflow-x: auto">
+                                            <thead>
+                                                <tr>
+                                                    <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
                                                 </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {% for sample in page_obj %}
+                                                    <tr >
+                                                        <td style="background-color: rgba(255, 255, 255, 1); width: 20pz;">
+                                                            <input type="checkbox"
+                                                                name="run"
+                                                                value="{{ sample.Run }}"
+                                                                onchange="checkform()" />
+                                                        </td>
+                                                        <td style="background-color: rgba(255, 255, 255, 1);">
+                                                            <a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a>
+                                                        </td>
+                                                        <td style="background-color: rgba(255, 255, 255, 1);">
+                                                            <a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a>
+                                                        </td>
+                                                        <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.ScientificName }}</td>
+                                                        <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.LIBRARYTYPE }}</td>
+                                                        <td style="background-color: rgba(255, 255, 255, 1);">{{ sample.INHIBITOR }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Run Accession</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Scientific Name</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Library Type</th>
+                                                    <th style="background-color: rgba(255, 255, 255, 1);">Inhibitor</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
                                     <div class="d-flex justify-content-between">
                                         <nav aria-label="Page navigation example">
                                             <ul class="pagination">
@@ -369,39 +412,9 @@
                                         <div class="d-flex justify-content-end">
                                             <div class="btn-group">
                                                 <button type="submit" class="btn btn-primary" id="submit" name="links">Generate Links</button>
-                                                <button type="button"
-                                                        class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-                                                        data-bs-toggle="dropdown">
-                                                    <span class="visually-hidden">Generate Links</span>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <button type="submit"
-                                                                class="btn btn-secondary"
-                                                                name="query"
-                                                                value="{{ request.GET.urlencode }}">
-                                                            Links - All Views
-                                                        </button>
-                                                    </li>
-                                                </ul>
                                             </div>
                                             <div class="btn-group">
                                                 <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
-                                                <button type="button"
-                                                        class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-                                                        data-bs-toggle="dropdown">
-                                                    <span class="visually-hidden">Download Metadata</span>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <button type="submit"
-                                                                class="btn btn-secondary"
-                                                                name="download-metadata"
-                                                                value="{{ request.GET.urlencode }}">
-                                                            Download Metadata - All Views
-                                                        </button>
-                                                    </li>
-                                                </ul>
                                             </div>
                                         </div>
                                     </div>
@@ -415,4 +428,9 @@
             <p> ⓘ For more Information on the columns shown here see: <a href="/about#sample-descriptions">About</a></p>
         </div>
     </section>
+    <script>
+        document.forms['sample_select'].addEventListener('submit', function(event) {
+            checkform();
+        });
+    </script>
 {% endblock %}

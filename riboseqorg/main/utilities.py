@@ -498,6 +498,7 @@ def check_custom_track(run: str) -> bool:
     print(f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/bigwig/{run[:5]}")
     return os.path.exists(f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/bigwig/{run[:5]}/{run}.bw")
 
+
 def select_all_query(query_string):
     '''
     Generate a query string to select all the samples in the database that were shown in the table

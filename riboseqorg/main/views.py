@@ -322,7 +322,7 @@ def samples(request: HttpRequest) -> str:
     ]
     clean_names = get_clean_names()
 
-    cache_key = f"studies_view_{request.GET.urlencode()}"
+    cache_key = f"samples_view_{request.GET.urlencode()}"
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result
