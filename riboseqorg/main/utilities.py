@@ -99,7 +99,7 @@ def get_clean_names() -> dict:
         'Monosome_purification': 'Mode of Purification',
         'Nuclease': 'Nucelase Used',
         'Kit': 'Kit Used',
-        'Organism': 'Organism',
+        # 'Organism': 'Organism',
         'PMID': 'PubMed',
         'count': 'count',
         'verified': 'verified',
@@ -155,8 +155,8 @@ def build_query(
         options = request.GET.getlist(field)
         if not options:
             continue
-        
-        original_field = clean_names.get(field, field)
+        cn = {v: k for k, v in clean_names.items()}
+        original_field = cn[field]
         
         if field in toggle_fields:
             query &= Q(**{original_field: 'on' in options})
