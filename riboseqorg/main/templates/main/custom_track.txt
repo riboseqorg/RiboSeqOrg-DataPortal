@@ -3,10 +3,10 @@
 # or download the file and upload to GWIPS on the same page
 {% if forward_url or reverse_url %}
     {% if forward_url %}
-track type=bigWig name="{{ Run }} (Forward Strand)" description="{{ description }} (Forward Strand)" bigDataUrl={{ forward_url }}
+track type=bigWig name="{{ Run }} (Forward Strand) - P-Sites predicted with ORFik" description="{{ description }} (Forward Strand)" bigDataUrl={{ forward_url }}
     {% endif %}
     {% if reverse_url %}
-track type=bigWig name="{{ Run }} (Reverse Strand)" description="{{ description }} (Reverse Strand)" bigDataUrl={{ reverse_url }}
+track type=bigWig name="{{ Run }} (Reverse Strand) - P-Sites predicted with ORFik" description="{{ description }} (Reverse Strand)" bigDataUrl={{ reverse_url }}
     {% endif %}
 {% else %}
     None available
