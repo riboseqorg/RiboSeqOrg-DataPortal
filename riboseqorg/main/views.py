@@ -925,6 +925,15 @@ def generate_samples_csv(request) -> HttpResponse:
     '''
     selected = dict(request.GET.lists())
 
+    exclude_fields = [
+        "id",
+        "verified",
+        "trips_id",
+        "gwips_id",
+        "ribocrypt_id",
+        "readfile",
+    ]
+
     if 'download-metadata' in selected:
         sample_query = select_all_query(selected['download-metadata'][0])
         sample_entries = Sample.objects.filter(sample_query)
@@ -946,14 +955,15 @@ def generate_samples_csv(request) -> HttpResponse:
             "Content-Disposition"
             ] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
 
-        fields = [field.name for field in Sample._meta.get_fields()]
+        fields = [field.name for field in Sample._meta.get_fields() if field.name not in exclude_fields]    
 
         writer = csv.writer(response)
         writer.writerow(fields)  # Write header row
 
         for item in queryset:
+            print(queryset)
             writer.writerow([getattr(item, field)
-                             for field in fields])  # Write data rows
+                             for field in fields if field not in exclude_fields ])  # Write data rows
 
         return response
     else:
