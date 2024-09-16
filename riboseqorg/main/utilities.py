@@ -99,7 +99,7 @@ def get_clean_names() -> dict:
         'Monosome_purification': 'Mode of Purification',
         'Nuclease': 'Nucelase Used',
         'Kit': 'Kit Used',
-        'Organism': 'Organism',
+        # 'Organism': 'Organism',
         'PMID': 'PubMed',
         'count': 'count',
         'verified': 'verified',
@@ -147,22 +147,21 @@ def build_query(
     """
     query = Q()
     toggle_fields = {'trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified'}
-    
     for field, values in query_params:
         if field in ('page', 'csrfmiddlewaretoken'):
             continue
-        
+
         options = request.GET.getlist(field)
         if not options:
             continue
+
         cn = {v: k for k, v in clean_names.items()}
         original_field = cn[field]
-        
+
         if field in toggle_fields:
             query &= Q(**{original_field: 'on' in options})
         else:
             query &= Q(**{f"{original_field}__in": options})
-    
     return query
 
 
