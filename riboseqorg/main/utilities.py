@@ -376,13 +376,15 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 'organism': 'None of the Selected Runs are available on GWIPS-Viz',
             }
         )
-    if len(gwips) == 1 and gwips[0]['gwipsDB'] == "":
-        gwips = [
-            {
-                'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                'organism': 'None of the Selected Runs are available on GWIPS-Viz',
-            }
-        ]
+    
+    if len(gwips) == 1 and 'gwipsDB' in gwips[0]:
+        if gwips[0]['gwipsDB'] == "":
+            gwips = [
+                {
+                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                }
+            ]
     return gwips
 
 
