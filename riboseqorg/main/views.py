@@ -407,13 +407,13 @@ def studies(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     appropriate_fields = [
+        'ScientificName',
         'Organism',
     ]
     boolean_fields = [
         'PMID',
     ]
     clean_names = get_clean_names()
-    del clean_names['ScientificName']
 
     cache_key = f"studies_view_{request.GET.urlencode()}"
     cached_result = cache.get(cache_key)
@@ -961,7 +961,6 @@ def generate_samples_csv(request) -> HttpResponse:
         writer.writerow(fields)  # Write header row
 
         for item in queryset:
-            print(queryset)
             writer.writerow([getattr(item, field)
                              for field in fields if field not in exclude_fields ])  # Write data rows
 

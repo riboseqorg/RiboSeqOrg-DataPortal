@@ -5,7 +5,7 @@ from .models import Study, Sample
 class StudyFilter(django_filters.FilterSet):
     class Meta:
         model = Study
-        fields = ['BioProject', 'Name', 'Title', 'Organism', 'Samples', 'SRA', 'Release_Date', 'seq_types', 'GSE', 'PMID', 'Authors', 'Study_abstract', 'Publication_title', 'doi', 'Date_published', 'PMC', 'Journal', 'Paper_abstract', 'Email']
+        fields = ['BioProject', 'Name', 'Title', 'ScientificName', 'Samples', 'SRA', 'Release_Date', 'seq_types', 'GSE', 'PMID', 'Authors', 'Study_abstract', 'Publication_title', 'doi', 'Date_published', 'PMC', 'Journal', 'Paper_abstract', 'Email']
 
 
 class SampleFilter(django_filters.FilterSet):
