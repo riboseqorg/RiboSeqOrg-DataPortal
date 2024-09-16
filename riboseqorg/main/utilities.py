@@ -99,7 +99,7 @@ def get_clean_names() -> dict:
         'Monosome_purification': 'Mode of Purification',
         'Nuclease': 'Nucelase Used',
         'Kit': 'Kit Used',
-        # 'Organism': 'Organism',
+        'Organism': 'Organism',
         'PMID': 'PubMed',
         'count': 'count',
         'verified': 'verified',
