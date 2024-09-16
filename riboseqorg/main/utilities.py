@@ -263,7 +263,7 @@ def handle_trips_urls(query: Q) -> list:
     else:
         for transcriptome in trips_df['transcriptome'].unique():
             organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
-            file_ids = [str(int(i)) for i in organism_df[
+            file_ids = [str(int(float(i))) for i in organism_df[
                 'Trips_id'
                 ].unique().tolist()]
             trips.append(
@@ -331,6 +331,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                     elif f"{suffix}=full" not in gwips_dict['files']:
                         gwips_dict['files'] = [f"{suffix}=full"]
             gwips_dict['files'] = '&'.join(gwips_dict['files'])
+
             gwips.append(gwips_dict)
 
     elif 'bioproject' in requested or str(query) != '<Q: (AND: )>':
@@ -375,6 +376,13 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 'organism': 'None of the Selected Runs are available on GWIPS-Viz',
             }
         )
+    if len(gwips) == 1 and gwips[0]['gwipsDB'] == "":
+        gwips = [
+            {
+                'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+            }
+        ]
     return gwips
 
 

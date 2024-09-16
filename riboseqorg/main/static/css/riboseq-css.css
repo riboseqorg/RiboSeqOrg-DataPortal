@@ -68,7 +68,10 @@ img {
    padding-left: 2%;
    padding-top: 1%;
 }
-
+#nav {
+   padding-left: 5%;
+   padding-right: 5%;
+}
 nav button {
    display: inline-block;
 }
