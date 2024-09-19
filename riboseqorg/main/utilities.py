@@ -99,7 +99,7 @@ def get_clean_names() -> dict:
         'Monosome_purification': 'Mode of Purification',
         'Nuclease': 'Nucelase Used',
         'Kit': 'Kit Used',
-        'Organism': 'Organism',
+        # 'Organism': 'Organism',
         'PMID': 'PubMed',
         'count': 'count',
         'verified': 'verified',
@@ -147,22 +147,21 @@ def build_query(
     """
     query = Q()
     toggle_fields = {'trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified'}
-    
     for field, values in query_params:
         if field in ('page', 'csrfmiddlewaretoken'):
             continue
-        
+
         options = request.GET.getlist(field)
         if not options:
             continue
-        
-        original_field = clean_names.get(field, field)
-        
+
+        cn = {v: k for k, v in clean_names.items()}
+        original_field = cn[field]
+
         if field in toggle_fields:
             query &= Q(**{original_field: 'on' in options})
         else:
             query &= Q(**{f"{original_field}__in": options})
-    
     return query
 
 
@@ -264,7 +263,7 @@ def handle_trips_urls(query: Q) -> list:
     else:
         for transcriptome in trips_df['transcriptome'].unique():
             organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
-            file_ids = [str(int(i)) for i in organism_df[
+            file_ids = [str(int(float(i))) for i in organism_df[
                 'Trips_id'
                 ].unique().tolist()]
             trips.append(
@@ -332,6 +331,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                     elif f"{suffix}=full" not in gwips_dict['files']:
                         gwips_dict['files'] = [f"{suffix}=full"]
             gwips_dict['files'] = '&'.join(gwips_dict['files'])
+
             gwips.append(gwips_dict)
 
     elif 'bioproject' in requested or str(query) != '<Q: (AND: )>':
@@ -376,6 +376,15 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                 'organism': 'None of the Selected Runs are available on GWIPS-Viz',
             }
         )
+    
+    if len(gwips) == 1 and 'gwipsDB' in gwips[0]:
+        if gwips[0]['gwipsDB'] == "":
+            gwips = [
+                {
+                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                }
+            ]
     return gwips
 
 

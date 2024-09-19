@@ -330,7 +330,6 @@ def samples(request: HttpRequest) -> str:
         get_original_name(name, clean_names)
         for name, values in request.GET.lists()
     ]
-
     param_options = {}
     for field in Sample._meta.fields:
         # if field.get_internal_type() == 'CharField':
@@ -359,13 +358,12 @@ def samples(request: HttpRequest) -> str:
     clean_results_dict = handle_filter(param_options, appropriate_fields,
                                        clean_names)
     clean_results_dict.pop('count', None)
-    query_params = [
-        (name, values) for name, values in request.GET.lists()
-        if get_original_name(name, clean_names) in appropriate_fields
-        or name in toggle_fields
-    ]
-    query = build_query(request, query_params, clean_names)
+    query_params = []
+    for name, values in request.GET.lists():
+        if get_original_name(name, clean_names) in appropriate_fields or name in toggle_fields:
+            query_params.append((name, values))
 
+    query = build_query(request, query_params, clean_names)
     # get entries to populate table
     sample_entries = Sample.objects.filter(query)
     sample_entries = list(
@@ -406,13 +404,13 @@ def studies(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     appropriate_fields = [
+        'ScientificName',
         'Organism',
     ]
     boolean_fields = [
         'PMID',
     ]
     clean_names = get_clean_names()
-    del clean_names['ScientificName']
 
     cache_key = f"studies_view_{request.GET.urlencode()}"
     cached_result = cache.get(cache_key)
@@ -764,13 +762,12 @@ def sample_select_form(request: HttpRequest) -> str:
         return links(request)
 
 
-def generate_link(project, run, type="reads"):
+def generate_link(run, type="reads"):
     """
     Generate Link for a specific run of a given type (default is reads)
     Ensure path is valid before returning link
 
     Arguments:
-    - project (str): the project accession number
     - run (str): the run accession number
     - type (str): the type of link to generate (default is reads)
 
@@ -802,7 +799,6 @@ def generate_link(project, run, type="reads"):
         "bigwig (forward)": "bigwig",
         "bigwig (reverse)": "bigwig",
     }
-    project = str(project)
     run = str(run)
     if os.path.exists(
             os.path.join(server_base, path_dirs[type], run[:6],
@@ -926,6 +922,15 @@ def generate_samples_csv(request) -> HttpResponse:
     '''
     selected = dict(request.GET.lists())
 
+    exclude_fields = [
+        "id",
+        "verified",
+        "trips_id",
+        "gwips_id",
+        "ribocrypt_id",
+        "readfile",
+    ]
+
     if 'download-metadata' in selected:
         sample_query = select_all_query(selected['download-metadata'][0])
         sample_entries = Sample.objects.filter(sample_query)
@@ -947,14 +952,14 @@ def generate_samples_csv(request) -> HttpResponse:
             "Content-Disposition"
             ] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
 
-        fields = [field.name for field in Sample._meta.get_fields()]
+        fields = [field.name for field in Sample._meta.get_fields() if field.name not in exclude_fields]    
 
         writer = csv.writer(response)
         writer.writerow(fields)  # Write header row
 
         for item in queryset:
             writer.writerow([getattr(item, field)
-                             for field in fields])  # Write data rows
+                             for field in fields if field not in exclude_fields ])  # Write data rows
 
         return response
     else:
@@ -987,14 +992,14 @@ def download_all(request) -> HttpRequest:
     selected = dict(request.GET.lists())
     filename = str(uuid.uuid4())
 
-    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
+    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download_files"
 
     file_content = ["#!/usr/bin/env bash\n", "wget -c "]
     filepath = f"{static_base_path}/RiboSeqOrg_Download_{filename}.sh"
 
     with open(filepath, 'w') as f:
         for accession in selected['run']:
-            link = generate_link(accession, accession)
+            link = generate_link(accession)
             if link:
                 file_content.append(f"https://rdp.ucc.ie/{link} ")
 

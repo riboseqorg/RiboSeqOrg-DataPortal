@@ -129,7 +129,7 @@ class Study(models.Model):
         )
     Name = models.CharField(max_length=200, blank=True)
     Title = models.CharField(max_length=200, blank=True)
-    Organism = models.CharField(max_length=200, blank=True)
+    ScientificName = models.CharField(max_length=200, blank=True)
     Samples = models.CharField(max_length=200, blank=True)
     SRA = models.CharField(max_length=200, blank=True)
     Release_Date = models.CharField(max_length=200, blank=True)
