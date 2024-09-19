@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -28,6 +29,9 @@ urlpatterns = [
         ),
     path(
         'links/', views.links, name='links'
+        ),
+    path(
+        'pivot/', views.pivot, name='pivot'
         ),
     path(
         'sample_select_form/',

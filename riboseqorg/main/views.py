@@ -1,41 +1,38 @@
-from django.core.paginator import Paginator
-from django.db.models import CharField, Q, Count, F, Value
-from django.db.models.functions import Length, Concat
-from django.db.models.query import QuerySet
-from django_filters.views import FilterView
-from django.core.cache import cache
-from django.views import View
-from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
-from django.shortcuts import render, get_object_or_404
-
 import csv
+import mimetypes
+import os
+import random
+import uuid
 from datetime import datetime
 from functools import reduce
 from operator import or_
-import mimetypes
-import os
-import uuid
-
 from typing import List, Type, Union
+
+import pandas as pd
+from django.core.cache import cache
+from django.core.paginator import Paginator
+from django.db.models import CharField, Count, F, Q, Value
+from django.db.models.functions import Concat, Length
+from django.db.models.query import QuerySet
+from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404, loader, render
+from django.views import View
+from django_filters.views import FilterView
+from rest_framework import filters, generics
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .filters import StudyFilter
 from .forms import SearchForm
 from .models import Sample, Study
-
-from .utilities import get_clean_names, get_original_name, \
-    build_query, handle_filter, handle_gwips_urls, \
-    handle_trips_urls, handle_ribocrypt_urls, \
-    build_run_query, build_bioproject_query, \
-    select_all_query, handle_urls_for_query, \
-    get_fastp_report_link, get_fastqc_report_link, \
-    get_ribometric_report_link
-
-from rest_framework import generics, filters
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 from .serializers import SampleSerializer
-
+from .utilities import (build_bioproject_query, build_query, build_run_query,
+                        get_clean_names, get_fastp_report_link,
+                        get_fastqc_report_link, get_original_name,
+                        get_ribometric_report_link, handle_filter,
+                        handle_gwips_urls, handle_ribocrypt_urls,
+                        handle_trips_urls, handle_urls_for_query,
+                        select_all_query)
 
 CharField.register_lookup(Length, 'length')
 
@@ -917,7 +914,7 @@ def links(request: HttpRequest) -> str:
             'sample_results': sample_page_obj,
             'trips': trips,
             'gwips': gwips,
-            'ribocrypt': ribocrypt,
+            #            'ribocrypt': ribocrypt,
             'current_url': request.get_full_path(),
         })
 
@@ -1036,3 +1033,22 @@ def custom_track(request, query) -> str:
 
     }   
     return render(request, 'main/custom_track.txt', context, content_type='text/plain')
+
+
+
+
+def pivot(request):
+    random.seed(42)
+    samples = Sample.objects.all().order_by('?')[:1000]
+    samples = pd.DataFrame.from_records(samples.values()).to_csv(encoding='utf8')
+    if hasattr(samples, 'decode'):
+        samples = samples.decode('utf8')
+
+    print(samples)
+    template = loader.get_template('main/pivot.html')
+
+    context = {
+        'data': samples
+    }
+
+    return HttpResponse(template.render(context, request))
