@@ -1044,12 +1044,26 @@ def custom_track(request, query) -> str:
 
 def pivot(request):
     random.seed(42)
-    samples = Sample.objects.all().order_by('?')[:1000]
-    samples = pd.DataFrame.from_records(samples.values()).to_csv(encoding='utf8')
+    samples = Sample.objects.all().order_by('?')# [:1000]
+    samples = pd.DataFrame.from_records(samples.values()).fillna("Missing")
+    columns2drop = ["id",'verified','Experiment','InsertDev', 'trips_id', 
+                    'gwips_id', 'ribocrypt_id', 'FASTA_file','sample_title',
+                    'MONTH', 'YEAR', 'ENA_last_update','sample_title',
+                    'ENA_checklist','ENA_first_public', 'ENA_last_update',
+                    'INSDC_center_alias', 'INSDC_center_name',
+                    'INSDC_first_public', 'INSDC_last_update', 
+                    'INSDC_status','spots','SampleName', 'CenterName',
+                    'Submission', 'BioProject_id', 'Run','SRAStudy', 
+                    'Study_Pubmed_id', 'Sample', 'BioSample','TaxID','AUTHOR',
+                    'GEO_Accession', 'Experiment_Date','date_sequenced', 
+                    'submission_date', 'date','Info']
+    samples = samples.drop(columns2drop, axis=1)
+    print(samples.columns)
+
+    samples= samples.to_csv(encoding='utf8')
     if hasattr(samples, 'decode'):
         samples = samples.decode('utf8')
 
-    print(samples)
     template = loader.get_template('main/pivot.html')
 
     context = {
