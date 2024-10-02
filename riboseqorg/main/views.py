@@ -2,6 +2,7 @@ import csv
 import mimetypes
 import os
 import random
+import re
 import uuid
 from datetime import datetime
 from functools import reduce
@@ -24,7 +25,7 @@ from rest_framework.views import APIView
 
 from .filters import StudyFilter
 from .forms import SearchForm
-from .models import Sample, Study
+from .models import GWIPS, Sample, Study, Trips
 from .serializers import SampleSerializer
 from .utilities import (build_bioproject_query, build_query, build_run_query,
                         get_clean_names, get_fastp_report_link,
@@ -750,6 +751,7 @@ def sample_select_form(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
+    print(selected)
     if 'download-metadata' in selected:
         return generate_samples_csv(request)
     elif 'link-all' in selected:
@@ -838,38 +840,125 @@ def links(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
+    sample_entries = Sample.objects.all()
 
     # Parse query from request
     if 'query' in selected:
-        sample_query = select_all_query(selected['query'][0])
-        if "PubMed" in selected['query'][0] and "Available" in selected[
-                'query'][0]:
-            sample_entries = Sample.objects.filter(
-                BioProject__PMID__length__gt=0)
-        sample_entries = Sample.objects.filter(sample_query)
-        runs = sample_entries.values_list('Run', flat=True)
-        if not str(sample_query) == "(AND: )":
-            sample_query = build_run_query(runs)
+        print(selected)
+        if selected['query'][0]:
+            sample_query = select_all_query(selected['query'][0])
+            sample_entries = sample_entries.filter(sample_query)
+            if "PubMed" in selected['query'][0] and "Available" in selected[
+                    'query'][0]:
+                sample_entries = sample_entries.filter(
+                    BioProject__PMID__length__gt=0)
+        bioproject_query = sample_entries.values("BioProject").distinct()
+        # trips = Trips.objects.filter(Run__in=sample_entries)
+        # print(sample_entries)
+        # print(trips)
 
     elif 'run' in selected:
-        sample_query = build_run_query(selected['run'])
+        sample_query = selected['run']
+        sample_entries = Sample.objects.filter(Run__in=sample_query)
+        bioproject_query = sample_entries.values("BioProject").distinct()
+        # sample_query = build_run_query(selected['run'])
 
     elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
+        bioproject_query = selected['bioproject']
+        sample_entries = Sample.objects.filter(BioProject__in=bioproject_query)
+        # sample_query = build_bioproject_query(selected['bioproject'])
 
     else:
         sample_page_obj = None
         sample_query = None
 
     # generate GWIPS and Trips URLs
-    if sample_query is not None:
-        trips = handle_trips_urls(sample_query)
-        if 'query' in selected:
-            gwips = handle_gwips_urls(request, sample_query)
-            ribocrypt = handle_ribocrypt_urls(request, sample_query)
+    if sample_entries:
+        # print(sample_query,
+        #       "Anmol"
+        #       )
+        # trips = handle_trips_urls(sample_query)
+        if 'bioproject' in selected:
+            trips_sql = Trips.objects.filter(BioProject__in=bioproject_query)
         else:
-            gwips = handle_gwips_urls(request)
-            ribocrypt = handle_ribocrypt_urls(request)
+            trips_sql = Trips.objects.filter(Run__in=sample_entries.values("Run"))
+
+
+        trips = []
+        if trips_sql:
+            trips_sql = pd.DataFrame(list(trips_sql.values()))
+            trips_sql["Trips_id"] = trips_sql["Trips_id"].apply(lambda x:x[:-2])
+            trips_sql = trips_sql.groupby(
+                ["organism","transcriptome"]
+            )["Trips_id"].apply(list).reset_index()
+            for _, trip in trips_sql.iterrows():
+                trips.append({
+                    'clean_organism': f"{trip['organism'].replace('_', ' ').capitalize()} - {trip['transcriptome']}",
+                    'organism': trip['organism'],
+                    'transcriptome': trip['transcriptome'],
+                    'files': 'files='+','.join(trip['Trips_id'])
+                })
+        else:
+            trips.append(
+                {
+                    'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
+                    'organism': 'None of the Selected Runs are available on Trips-Viz',
+                }
+            )
+            
+        
+        # print(trips,"Anmol")
+        gwips_sql = GWIPS.objects.filter(BioProject__in=bioproject_query)
+        gwips = [] 
+        if gwips_sql:
+            inhibited = pd.DataFrame(list(sample_entries.values())).drop_duplicates(
+                subset=['INHIBITOR', 'BioProject_id'], keep='first')
+            noninhibited = inhibited[~inhibited['INHIBITOR'].str.contains(
+                 'LTM|LAC|HARR', flags=re.IGNORECASE
+            )]
+            inhibited = inhibited[inhibited['INHIBITOR'].str.contains(
+                 'LTM|LAC|HARR', flags=re.IGNORECASE
+            )]
+
+            gwips_sql = pd.DataFrame(list(gwips_sql.values()))
+            gwips_sql_a = gwips_sql[gwips_sql["BioProject"].isin(
+
+                inhibited["BioProject_id"].values)]
+            gwips_sql_a["files"] = gwips_sql_a["GWIPS_Init_Suffix"].apply(
+                lambda x: f"{x}=full"
+            )
+
+            gwips_sql_b = gwips_sql[gwips_sql["BioProject"].isin(
+                noninhibited["BioProject_id"].values)]
+
+            gwips_sql_b["files"] = gwips_sql_b["GWIPS_Elong_Suffix"].apply(
+                lambda x: f"{x}=full"
+            )
+
+            gwips_sql = pd.concat([gwips_sql_a, gwips_sql_b]).groupby(["Organism","gwips_db","BioProject"])["files"].apply(list).reset_index()
+            gwips_sql["files"] = gwips_sql["files"].apply(
+                lambda x: "&".join(x)
+            )
+            
+
+        
+            for _, gwip in gwips_sql.iterrows():
+                print(gwip,"Anmol")
+                gwips.append({
+                'clean_organism': gwip['Organism'],
+                'bioproject': gwip['BioProject'],
+                'gwipsDB': gwip['gwips_db'],
+                'files': gwip['files']
+            })
+        if not gwips: 
+            gwips = [
+                {
+                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
+                    'gwips_db':"",
+                    'files':""
+                }
+            ]
 
     else:
         trips = [{
@@ -884,10 +973,9 @@ def links(request: HttpRequest) -> str:
             'organism':
             'None of the Selected Runs are available on GWIPS-Viz',
         }]
-    sample_entries = Sample.objects.filter(sample_query)
+    # sample_entries = Sample.objects.filter(sample_query)
 
     # Retrieve entries
-    sample_entries = Sample.objects.filter(sample_query)
 
     # Paginate
     paginator = Paginator(sample_entries, 10)
