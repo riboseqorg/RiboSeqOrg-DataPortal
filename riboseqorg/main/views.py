@@ -1080,7 +1080,7 @@ def download_all(request) -> HttpRequest:
     selected = dict(request.GET.lists())
     filename = str(uuid.uuid4())
 
-    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download-files"
+    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download_files"
 
     file_content = ["#!/usr/bin/env bash\n", "wget -c "]
     filepath = f"{static_base_path}/RiboSeqOrg_Download_{filename}.sh"
