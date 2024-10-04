@@ -1159,3 +1159,7 @@ def pivot(request):
     }
 
     return HttpResponse(template.render(context, request))
+
+
+def vocabularies(request):
+    return render(request, 'main/vocabularies.html')
