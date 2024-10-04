@@ -13,6 +13,18 @@
     <link href="{% static 'css/riboseq-css.css' %}"
     rel="stylesheet"
     type="text/css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileTypeSelect = document.getElementById('file-type-select');
+            const downloadBtn = document.getElementById('download-all-btn');
+            const baseUrl = downloadBtn.getAttribute('href');
+
+            fileTypeSelect.addEventListener('change', function() {
+                const selectedFileType = this.value;
+                downloadBtn.setAttribute('href', `${baseUrl}&file_type=${selectedFileType}`);
+            });
+        });
+    </script>
     {% include 'main/navbar.html' %}
     <div>
     <section id="links">
@@ -42,24 +54,29 @@
                                 <div class="col-sm-3">
                                     <div class="card">
                                         <img src="{% static 'images/download.png' %}" 
-                                                class="card-img-top" 
-                                                alt="Stock download image"
-                                                style="
-                                                max-height:60%;
-                                                max-width:60%;
-                                                padding: 2%">
+                                             class="card-img-top" 
+                                             alt="Stock download image"
+                                             style="max-height:60%; max-width:60%; padding: 2%">
                                         <div class="card-body">
                                             <h5 class="card-title">Download All</h5>
-                                            <p class="card-text">Download available collapsed read files for all samples across all panels shown below</p>
-                                            <a href="{% url 'download_all' %}?current_url={{ current_url }}" 
-                                            class="btn btn-primary" 
-                                            id="download-all-btn" 
-                                            download>Download</a>
+                                            <p class="card-text">Download available files for all samples across all panels shown below</p>
+                                            <div class="form-group mb-3">
+                                                <label for="file-type-select">Select File Type:</label>
+                                                <select class="form-control" id="file-type-select">
+                                                    <option value="reads">Reads</option>
+                                                    <option value="bams">BAMs</option>
+                                                    <option value="bigwigs">BigWigs</option>
+                                                </select>
+                                            </div>
+                                            <a href="{% url 'download_all' %}?{{ current_url }}" 
+                                               class="btn btn-primary" 
+                                               id="download-all-btn" 
+                                               download>Download</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>                        
+                        </div>                       
                         <div class="tab-pane fade" id="GWIPS-viz" role="tabpanel" aria-labelledby="GWIPS-viz-tab">
                             <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
                                 {% for genome in gwips %}
