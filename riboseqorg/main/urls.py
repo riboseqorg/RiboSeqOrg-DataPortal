@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -30,6 +31,9 @@ urlpatterns = [
         'links/', views.links, name='links'
         ),
     path(
+        'pivot/', views.pivot, name='pivot'
+        ),
+    path(
         'sample_select_form/',
         views.sample_select_form,
         name='sample_select_form',
@@ -59,5 +63,9 @@ urlpatterns = [
         views.SampleFieldsView.as_view(),
         name='api-sample-fields'
          ),
-
+    path(
+        'vocabularies/',
+        views.vocabularies,
+        name='vocabularies'
+        ),
     ]
