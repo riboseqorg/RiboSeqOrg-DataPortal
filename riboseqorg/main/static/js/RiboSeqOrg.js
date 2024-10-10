@@ -10,13 +10,13 @@ $(function () {
   for (const [key, value] of x) {
     vals.push(value);
     const filter =
-      "<li>" +
+      "<li class='key'>" +
       value +
-      " <bold style='color:red'><a class='key' data-value='" +
+      " <bold style='color:red'><a class='keylink' data-value='" +
       key +
       "=" +
       value +
-      "'>×</a></bold></li>";
+      "'>X</a></bold></li>";
     if (filters.indexOf(filter) == -1) {
       filters.push(filter);
     }
@@ -36,11 +36,11 @@ $(function () {
 });
 
 $(document).ready(function () {
-  $(".key").click(function () {
+  $(".keylink").click(function () {
     // const to_remove = $(this).html();
     const to_remove = $(this).data("value");
     const vals = [];
-    $(".key").each(function () {
+    $(".keylink").each(function () {
       const a_val = $(this).data("value");
       if (a_val != to_remove) {
         vals.push(a_val);
