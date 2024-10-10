@@ -510,13 +510,13 @@ def check_custom_track(run: str) -> bool:
 
 def select_all_query(query_string):
     '''
-    Generate a query string to select all the samples in the database that were shown in the table
+    Generate a query to select all the samples in the database that were shown in the table
 
     Arguments:
     - query_string (str): the query string
 
     Returns:
-    - (str): the query string to select all the samples in the database that were shown in the table
+    - (Q): the Django Q object to select all the samples in the database that were shown in the table
     '''
     query_string = query_string.replace('+', ' ').replace("run", "Run")
 
@@ -530,7 +530,10 @@ def select_all_query(query_string):
             'study_page',
             ]
         ]
-    query = Q()  # Initialize an empty query
+    
+    main_query = Q()  # Initialize an empty main query for AND between fields
+    field_queries = {}  # Dictionary to store OR queries for each field
+
     if len(query_list[0]) != 1:
         query_list = [
             [
@@ -546,8 +549,21 @@ def select_all_query(query_string):
         for model_key, value in query_list:
             if model_key in ['query']:
                 continue
-            query &= Q(**{query_mappings[model_key]: value})
-    return query
+
+            field_name = query_mappings[model_key]
+
+            # If the field already exists in field_queries, add to its OR query
+            if field_name in field_queries:
+                field_queries[field_name] |= Q(**{field_name: value})
+            else:
+                # If it's a new field, create a new OR query
+                field_queries[field_name] = Q(**{field_name: value})
+
+    # Combine all field queries with AND
+    for field_query in field_queries.values():
+        main_query &= field_query
+
+    return main_query
 
 
 def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastp"):

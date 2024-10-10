@@ -170,6 +170,9 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-3">
                                     <a href="{% url 'samples' %}" class="btn btn-secondary">Reset</a>
+                                    <button type="button" class="btn btn-outline-dark" id="helpButton" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="focus" title="How to Use the Filter Panel">
+                                        ⓘ
+                                    </button>
                                 </div>
                                 <div class="mb-3 accordion", id="filterAccordion">
                                     <h2 class="accordion-header" id="toggle">
@@ -444,6 +447,36 @@
     <script>
         document.forms['sample_select'].addEventListener('submit', function(event) {
             checkform();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+        var popoverContent = `
+                <div style="max-width: 300px;">
+                    <h6>Toggles</h6>
+                    <p>Use switches to filter samples based on availability or attributes.</p>
+                    
+                    <h6>Field Filters</h6>
+                    <ol>
+                        <li>Click a field name to expand options.</li>
+                        <li>Use the search box to find specific values.</li>
+                        <li>Click a value to filter samples.</li>
+                        <li>Numbers show matching sample count.</li>
+                    </ol>
+                    
+                    <h6>Combining Filters</h6>
+                    <p>Combine filters to refine your search.</p>
+                    <p> <u>OR operator is used within fields.</u> Example: Choosing Homo sapiens and Mus musculus will search "'Homo sapiens'[Organism] OR 'Mus musculus'[Organism]"</p>
+                    <p> <u>AND operator is used between fields.</u>  Example: Choosing Homo sapiens and Ribo-Seq will search "'Homo sapiens'[Organism] AND 'Ribo-Seq'[Library-Type]"</p>
+                    
+                    <h6>Resetting Filters</h6>
+                    <p>Click "Reset" to clear all filters and start over.</p>
+                </div>
+            `;
+
+            var popover = new bootstrap.Popover(document.getElementById('helpButton'), {
+                html: true,
+                content: popoverContent,
+                sanitize: false
+            });
         });
     </script>
 {% endblock %}
