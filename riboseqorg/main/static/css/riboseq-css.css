@@ -342,3 +342,18 @@ td {
   padding: 5px 5px 5px 5px; /* Making space around letters */
   font-size: 18px; /* Changing font size */
 }
+ul.key2 {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333333;
+}
+li {
+  float: left;
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 16px;
+  text-decoration: none;
+}
