@@ -38,6 +38,6 @@ $(document).ready(function () {
       }
     });
     const new_url = window.location.pathname + "?" + vals.join("&");
-    window.open(new_url);
+    window.location.href = new_url;
   });
 });
