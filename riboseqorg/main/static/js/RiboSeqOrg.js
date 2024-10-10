@@ -48,6 +48,6 @@ $(document).ready(function () {
     });
     const new_url = window.location.pathname + "?" + vals.join("&");
     window.location.href = new_url;
-    // window.open(new_url);
+
   });
 });

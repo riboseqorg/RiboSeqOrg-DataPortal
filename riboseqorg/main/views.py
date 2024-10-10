@@ -9,6 +9,8 @@ from functools import reduce
 from operator import or_
 from typing import List, Type, Union
 
+from urllib.parse import urlparse, parse_qs
+
 import pandas as pd
 from django.core.cache import cache
 from django.core.paginator import Paginator
@@ -764,7 +766,7 @@ def sample_select_form(request: HttpRequest) -> str:
         return links(request)
 
 
-def generate_link(run, type="reads"):
+def generate_link(run, file_type="reads"):
     """
     Generate Link for a specific run of a given type (default is reads)
     Ensure path is valid before returning link
@@ -801,16 +803,17 @@ def generate_link(run, type="reads"):
         "bigwig (forward)": "bigwig",
         "bigwig (reverse)": "bigwig",
     }
+
     run = str(run)
     if os.path.exists(
-            os.path.join(server_base, path_dirs[type], run[:6],
-                         run + path_suffixes[type])):
-        return f"/static2/{path_dirs[type]}/{run[:6]}/{run + path_suffixes[type]}"
+            os.path.join(server_base, path_dirs[file_type], run[:6],
+                         run + path_suffixes[file_type])):
+        return f"/static2/{path_dirs[file_type]}/{run[:6]}/{run + path_suffixes[file_type]}"
 
     elif os.path.exists(
-            os.path.join(server_base, path_dirs[type], run[:6],
-                         run + "_1" + path_suffixes[type])):
-        return f"/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
+            os.path.join(server_base, path_dirs[file_type], run[:6],
+                         run + "_1" + path_suffixes[file_type])):
+        return f"/static2/{path_dirs[file_type]}/{run[:6]}/{run}_1{path_suffixes[file_type]}"
 
     return None
 
@@ -829,17 +832,17 @@ def check_path_exists(
     return os.path.exists(server_base + "/" + path)
 
 
-def links(request: HttpRequest) -> str:
+def get_links_sample_entries(selected: dict, request: HttpRequest):
     """
-    Render the links page.
+    Get the sample entries for a given links request
 
     Arguments:
+    - selected (dict): the params from the query
     - request (HttpRequest): the HTTP request for the page
 
-    Returns:
-    - (render): the rendered HTTP response for the page
+    Retruns:    
+    - sample_entries: The entries matching the links query
     """
-    selected = dict(request.GET.lists())
     sample_entries = Sample.objects.all()
 
     # Parse query from request
@@ -871,7 +874,23 @@ def links(request: HttpRequest) -> str:
     else:
         sample_page_obj = None
         sample_query = None
+    
+    return sample_entries, bioproject_query
 
+
+def links(request: HttpRequest) -> str:
+    """
+    Render the links page.
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """
+    selected = dict(request.GET.lists())
+
+    sample_entries, bioproject_query = get_links_sample_entries(selected, request)
     # generate GWIPS and Trips URLs
     if sample_entries:
         # print(sample_query,
@@ -939,11 +958,8 @@ def links(request: HttpRequest) -> str:
             gwips_sql["files"] = gwips_sql["files"].apply(
                 lambda x: "&".join(x)
             )
-            
-
         
             for _, gwip in gwips_sql.iterrows():
-                print(gwip,"Anmol")
                 gwips.append({
                 'clean_organism': gwip['Organism'],
                 'bioproject': gwip['BioProject'],
@@ -999,7 +1015,7 @@ def links(request: HttpRequest) -> str:
             'trips': trips,
             'gwips': gwips,
             #            'ribocrypt': ribocrypt,
-            'current_url': request.get_full_path(),
+            'current_url': request.GET.urlencode(),
         })
 
 
@@ -1073,35 +1089,64 @@ def reports(request, query) -> str:
         })
 
 
-def download_all(request) -> HttpRequest:
+def download_all(request) -> HttpResponse:
     '''
     Download all corresponding files for the accessions in the request
     '''
     selected = dict(request.GET.lists())
+    file_type = selected.get('file_type', ['reads'])[0]
+
+    sample_entries, _ = get_links_sample_entries(selected, request)
+
+    if sample_entries is None:
+        return HttpResponseNotFound("No Samples Selected")
+
+    run_accessions = sample_entries.values_list('Run', flat=True)
     filename = str(uuid.uuid4())
-
     static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download_files"
-
-    file_content = ["#!/usr/bin/env bash\n", "wget -c "]
     filepath = f"{static_base_path}/RiboSeqOrg_Download_{filename}.sh"
 
-    with open(filepath, 'w') as f:
-        for accession in selected['run']:
-            link = generate_link(accession)
+    bash_content = [
+        "#!/bin/bash\n\n",
+        "# Base URL\n",
+        "BASE_URL=\"https://rdp.ucc.ie\"\n\n",
+        "# Array of file paths\n",
+        "FILES=(\n"
+    ]
+
+    for accession in run_accessions:
+        formats = ["bigwig (forward)", "bigwig (reverse)"] if file_type == "bigwigs" else [file_type]
+        for file_format in formats:
+            link = generate_link(accession, file_format)
             if link:
-                file_content.append(f"https://rdp.ucc.ie/{link} ")
+                bash_content.append(f'  "{link}"\n')
 
-        if file_content == ["#!/usr/bin/env bash\n", "wget -c "]:
-            file_content.append("echo 'No files Available for download'")
+    if len(bash_content) > 5:  # Check if any files were added to the array
+        bash_content.extend([
+            ")\n\n",
+            "# Download function\n",
+            "download_file() {\n",
+            "  local url=\"$BASE_URL/$1\"\n",
+            "  echo \"Downloading: $url\"\n",
+            "  wget -c \"$url\"\n",
+            "}\n\n",
+            "# Main loop\n",
+            "for file in \"${FILES[@]}\"; do\n",
+            "  download_file \"$file\"\n",
+            "done\n\n",
+            "echo \"All downloads completed!\"\n"
+        ])
+    else:
+        bash_content = ["#!/bin/bash\n\n", "echo 'No files available for download'\n"]
 
-        f.writelines(file_content)
+    with open(filepath, 'w') as f:
+        f.writelines(bash_content)
 
-    path = open(filepath, "r")
-    mime_type, _ = mimetypes.guess_type(filepath)
-    response = HttpResponse(path, content_type=mime_type)
-    response[
-        "Content-Disposition"
-        ] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
+    with open(filepath, "rb") as f:
+        mime_type, _ = mimetypes.guess_type(filepath)
+        response = HttpResponse(f, content_type=mime_type)
+        response["Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
+
     return response
 
 
@@ -1126,8 +1171,6 @@ def custom_track(request, query) -> str:
 
     }   
     return render(request, 'main/custom_track.txt', context, content_type='text/plain')
-
-
 
 
 def pivot(request):
@@ -1159,3 +1202,7 @@ def pivot(request):
     }
 
     return HttpResponse(template.render(context, request))
+
+
+def vocabularies(request):
+    return render(request, 'main/vocabularies.html')

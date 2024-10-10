@@ -63,5 +63,9 @@ urlpatterns = [
         views.SampleFieldsView.as_view(),
         name='api-sample-fields'
          ),
-
+    path(
+        'vocabularies/',
+        views.vocabularies,
+        name='vocabularies'
+        ),
     ]
