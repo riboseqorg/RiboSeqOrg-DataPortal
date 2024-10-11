@@ -68,4 +68,9 @@ urlpatterns = [
         views.vocabularies,
         name='vocabularies'
         ),
+    path('references/',
+         views.references,
+         name='references'
+         ),
+
     ]

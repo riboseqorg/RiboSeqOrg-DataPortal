@@ -1206,3 +1206,29 @@ def pivot(request):
 
 def vocabularies(request):
     return render(request, 'main/vocabularies.html')
+
+
+def get_reference_data():
+    references_dir = 'references'
+    reference_data = []
+
+    for organism_dir in os.listdir(references_dir):
+        organism_path = os.path.join(references_dir, organism_dir)
+        if os.path.isdir(organism_path):
+            organism_name = organism_dir.replace('_', ' ').title()
+            gtf_file = next((f for f in os.listdir(organism_path) if f.endswith('.gtf')), None)
+            fa_file = next((f for f in os.listdir(organism_path) if f.endswith('.fa')), None)
+            
+            if gtf_file and fa_file:
+                reference_data.append({
+                    'name': organism_name,
+                    'gtf': os.path.join(organism_dir, gtf_file),
+                    'fasta': os.path.join(organism_dir, fa_file)
+                })
+
+    return sorted(reference_data, key=lambda x: x['name'])
+
+
+def references(request):
+    reference_data = get_reference_data()
+    return render(request, 'references.html', {'references': reference_data})
