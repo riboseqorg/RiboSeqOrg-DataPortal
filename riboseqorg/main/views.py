@@ -1209,7 +1209,7 @@ def vocabularies(request):
 
 
 def get_reference_data():
-    references_dir = 'references'
+    references_dir = '/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/references'
     reference_data = []
 
     for organism_dir in os.listdir(references_dir):
@@ -1218,12 +1218,12 @@ def get_reference_data():
             organism_name = organism_dir.replace('_', ' ').title()
             gtf_file = next((f for f in os.listdir(organism_path) if f.endswith('.gtf')), None)
             fa_file = next((f for f in os.listdir(organism_path) if f.endswith('.fa')), None)
-            
+
             if gtf_file and fa_file:
                 reference_data.append({
                     'name': organism_name,
-                    'gtf': os.path.join(organism_dir, gtf_file),
-                    'fasta': os.path.join(organism_dir, fa_file)
+                    'gtf': os.path.join("static2", "references", organism_dir, gtf_file),
+                    'fasta': os.path.join("static2", "references", organism_dir, fa_file)
                 })
 
     return sorted(reference_data, key=lambda x: x['name'])
@@ -1231,4 +1231,4 @@ def get_reference_data():
 
 def references(request):
     reference_data = get_reference_data()
-    return render(request, 'references.html', {'references': reference_data})
+    return render(request, 'main/references.html', {'references': reference_data})

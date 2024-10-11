@@ -26,7 +26,6 @@
         <div class="section" id="reference-data">
             <h1>Reference Data</h1>
             <p>This page contains the reference data used in the RiboSeq Data Portal.</p>
-            <!-- You can add a DOI badge here if you have one for your reference data -->
             <div class="table-container">
                 <table class="table table-striped">
                     <thead>
@@ -40,8 +39,8 @@
                         {% for reference in references %}
                         <tr>
                             <td>{{ reference.name }}</td>
-                            <td>{{ reference.gtf }}</td>
-                            <td>{{ reference.fasta }}</td>
+                            <td><a href="/{{ reference.gtf }}">Annotation (GTF)</a></td>
+                            <td><a href="/{{ reference.fasta }}">Genome (FASTA)</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>
