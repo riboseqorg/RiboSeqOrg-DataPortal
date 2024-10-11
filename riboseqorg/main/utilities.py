@@ -549,9 +549,9 @@ def select_all_query(query_string):
         for model_key, value in query_list:
             if model_key in ['query']:
                 continue
-            
+
             field_name = query_mappings[model_key]
-            
+
             # If the field already exists in field_queries, add to its OR query
             if field_name in field_queries:
                 field_queries[field_name] |= Q(**{field_name: value})
