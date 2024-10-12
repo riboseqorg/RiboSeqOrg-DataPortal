@@ -534,30 +534,31 @@ def select_all_query(query_string):
     main_query = Q()  # Initialize an empty main query for AND between fields
     field_queries = {}  # Dictionary to store OR queries for each field
 
-    if len(query_list[0]) != 1:
-        query_list = [
-            [
-                i[0], i[1].replace('on', 'True')
-                ] if i[1] == 'on' else i for i in query_list
-            ]
-        query_mappings = {
-            i[0]: get_original_name(
-                i[0], get_clean_names()
-                ) for i in query_list
-        }
+    if query_list:
+        if len(query_list[0]) != 1:
+            query_list = [
+                [
+                    i[0], i[1].replace('on', 'True')
+                    ] if i[1] == 'on' else i for i in query_list
+                ]
+            query_mappings = {
+                i[0]: get_original_name(
+                    i[0], get_clean_names()
+                    ) for i in query_list
+            }
 
-        for model_key, value in query_list:
-            if model_key in ['query']:
-                continue
+            for model_key, value in query_list:
+                if model_key in ['query']:
+                    continue
 
-            field_name = query_mappings[model_key]
+                field_name = query_mappings[model_key]
 
-            # If the field already exists in field_queries, add to its OR query
-            if field_name in field_queries:
-                field_queries[field_name] |= Q(**{field_name: value})
-            else:
-                # If it's a new field, create a new OR query
-                field_queries[field_name] = Q(**{field_name: value})
+                # If the field already exists in field_queries, add to its OR query
+                if field_name in field_queries:
+                    field_queries[field_name] |= Q(**{field_name: value})
+                else:
+                    # If it's a new field, create a new OR query
+                    field_queries[field_name] = Q(**{field_name: value})
 
     # Combine all field queries with AND
     for field_query in field_queries.values():
