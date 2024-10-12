@@ -12,6 +12,7 @@ class SampleFilter(django_filters.FilterSet):
     class Meta:
         model = Sample
         fields = [
+            'GEO',
             'verified',
             'BioProject',
             'Run',

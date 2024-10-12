@@ -24,6 +24,7 @@
 
     <section id="study">
         <h1>{{ Sample.Run }} (<a href="/Study/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a>)</h1>
+        <h4><b>Processing Status:</b>  {{ Sample.process_status }}</h4>
         <h4>General Details</h4>
         <p><a href="/reports/{{ Sample.Run }}" >View quality reports</a></p>
         <table class="table table-bordered" id="study-general">

@@ -228,6 +228,7 @@ def generate_open_column_sqlites(df: pd.DataFrame, sqlite_dir_path: str):
 
         group_df.to_sql(group, conn, if_exists="replace")
 
+
 def add_trips_booleans(df: pd.DataFrame, trips_df: pd.DataFrame) -> pd.DataFrame:
     '''
     If the sample is in the trips_df, add a boolean to the sample dataframe

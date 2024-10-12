@@ -160,6 +160,7 @@ class Sample(models.Model):
     trips_id = models.BooleanField(default=False)
     gwips_id = models.BooleanField(default=False)
     ribocrypt_id = models.BooleanField(default=False)
+    process_status = models.CharField(max_length=200, blank=True)
     FASTA_file = models.BooleanField(default=False)
     BioProject = models.ForeignKey(
         Study,
@@ -169,6 +170,7 @@ class Sample(models.Model):
         blank=True,
         null=True,
         )
+    GEO = models.CharField(max_length=200, blank=True)
     Run = models.CharField(max_length=200, blank=True)
     spots = models.IntegerField(blank=True, null=True)
     bases = models.IntegerField(blank=True, null=True)

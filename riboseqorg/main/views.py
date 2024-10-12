@@ -1036,6 +1036,7 @@ def generate_samples_csv(request) -> HttpResponse:
     ]
 
     if 'download-metadata' in selected:
+        print(selected['download-metadata'])
         sample_query = select_all_query(selected['download-metadata'][0])
         sample_entries = Sample.objects.filter(sample_query)
         runs = sample_entries.values_list('Run', flat=True)
