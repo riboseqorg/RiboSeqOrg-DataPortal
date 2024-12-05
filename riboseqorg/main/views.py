@@ -1022,10 +1022,10 @@ def links(request: HttpRequest) -> str:
 def generate_samples_csv(request) -> HttpResponse:
     '''
     Generate and return a csv file containing the metadata for the samples in
-    the database based on the request
+    the database based on the request, using chunked processing for large queries
     '''
     selected = dict(request.GET.lists())
-
+    
     exclude_fields = [
         "id",
         "verified",
@@ -1035,40 +1035,101 @@ def generate_samples_csv(request) -> HttpResponse:
         "readfile",
     ]
 
-    if 'download-metadata' in selected:
-        print(selected['download-metadata'])
-        sample_query = select_all_query(selected['download-metadata'][0])
-        sample_entries = Sample.objects.filter(sample_query)
-        runs = sample_entries.values_list('Run', flat=True)
-        if not str(sample_query) == "(AND: )":
-            sample_query = build_run_query(runs)
-    elif 'run' in selected:
-        sample_query = build_run_query(selected['run'])
-    elif 'bioproject' in selected:
-        sample_query = build_bioproject_query(selected['bioproject'])
-    else:
-        sample_query = None
+    CHUNK_SIZE = 500  # Adjust based on your needs
 
+    def process_queryset_in_chunks(base_query, chunk_size):
+        """Process a large queryset in smaller chunks to avoid SQLite limitations"""
+        offset = 0
+        while True:
+            chunk = base_query.order_by('id')[offset:offset + chunk_size]
+            chunk_data = list(chunk)  # Evaluate the chunk
+            if not chunk_data:
+                break
+            for item in chunk_data:
+                yield item
+            offset += chunk_size
+
+    def get_initial_query():
+        if 'download-metadata' in selected:
+            print(selected['download-metadata'])
+            sample_query = select_all_query(selected['download-metadata'][0])
+            sample_entries = Sample.objects.filter(sample_query)
+            runs = sample_entries.values_list('Run', flat=True)
+            if not str(sample_query) == "(AND: )":
+                return build_run_query(runs)
+        elif 'run' in selected:
+            return build_run_query(selected['run'])
+        elif 'bioproject' in selected:
+            return build_bioproject_query(selected['bioproject'])
+        return None
+
+    sample_query = get_initial_query()
+    
     if sample_query is not None:
-        queryset = Sample.objects.filter(sample_query)
-
+        base_queryset = Sample.objects.filter(sample_query)
+        
         response = HttpResponse(content_type="text/csv")
-        response[
-            "Content-Disposition"
-            ] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
+        response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
 
-        fields = [field.name for field in Sample._meta.get_fields() if field.name not in exclude_fields]    
+        fields = [field.name for field in Sample._meta.get_fields() 
+                 if field.name not in exclude_fields]
 
         writer = csv.writer(response)
         writer.writerow(fields)  # Write header row
 
-        for item in queryset:
-            writer.writerow([getattr(item, field)
-                             for field in fields if field not in exclude_fields ])  # Write data rows
+        # Process the queryset in chunks
+        for item in process_queryset_in_chunks(base_queryset, CHUNK_SIZE):
+            row_data = [getattr(item, field) for field in fields 
+                       if field not in exclude_fields]
+            writer.writerow(row_data)
 
         return response
     else:
         return HttpResponseNotFound("No Samples Selected")
+
+def optimize_query(query):
+    """
+    Optimize the query by breaking down complex OR conditions
+    Returns a Q object with simplified logic
+    """
+    from django.db.models import Q
+    
+    def simplify_q_object(q_object):
+        if isinstance(q_object, Q):
+            if hasattr(q_object, 'children'):
+                # If there are too many OR conditions, split them into chunks
+                if len(q_object.children) > 50 and q_object.connector == 'OR':
+                    chunks = [q_object.children[i:i + 50] 
+                            for i in range(0, len(q_object.children), 50)]
+                    simplified_chunks = [Q(*chunk, _connector='OR') 
+                                      for chunk in chunks]
+                    return Q(*simplified_chunks, _connector='AND')
+                else:
+                    return Q(*[simplify_q_object(child) for child in q_object.children], 
+                            _connector=q_object.connector)
+        return q_object
+    
+    return simplify_q_object(query)
+
+def build_run_query(runs):
+    """
+    Build an optimized query for runs
+    """
+    from django.db.models import Q
+    query = Q()
+    for run in runs:
+        query |= Q(Run=run)
+    return optimize_query(query)
+
+def build_bioproject_query(bioprojects):
+    """
+    Build an optimized query for bioprojects
+    """
+    from django.db.models import Q
+    query = Q()
+    for bioproject in bioprojects:
+        query |= Q(Bioproject=bioproject)
+    return optimize_query(query)
 
 
 def reports(request, query) -> str:
