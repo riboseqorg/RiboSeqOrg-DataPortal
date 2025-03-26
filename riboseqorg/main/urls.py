@@ -72,5 +72,8 @@ urlpatterns = [
          views.references,
          name='references'
          ),
-
+    path('RDG/',
+         views.rdg_view,
+         name='rdg_view'
+         ),
     ]
