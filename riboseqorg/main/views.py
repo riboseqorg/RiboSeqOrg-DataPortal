@@ -1298,3 +1298,232 @@ def get_reference_data():
 def references(request):
     reference_data = get_reference_data()
     return render(request, 'main/references.html', {'references': reference_data})
+
+
+import json
+import io
+import base64
+import matplotlib
+matplotlib.use('Agg')  # Set the backend to Agg (non-interactive)
+import matplotlib.pyplot as plt
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+
+# Import the RDG libraries
+from RDG import RDG, plot
+from RDG.sequence_to_RDG import extract_translons
+
+
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+@ensure_csrf_cookie
+def rdg_view(request: HttpRequest) -> str:
+    """
+    Render the RDG visualization page.
+
+    Arguments:
+    - request (HttpRequest): the HTTP request for the page
+
+    Returns:
+    - (render): the rendered HTTP response for the page
+    """
+    if request.method == 'POST':
+        # Handle form submission via AJAX
+        try:
+            data = json.loads(request.body)
+            visualization_type = data.get('type', 'manual')
+            
+            if visualization_type == 'manual':
+                # Process manual input
+                locus_name = data.get('locus_name', 'Unnamed Locus')
+                transcript_length = int(data.get('transcript_length', 2000))
+                allow_reinitiation = data.get('allow_reinitiation', True)
+                reinitiation_limit = int(data.get('reinitiation_limit', 1))
+                translons = data.get('translons', [])
+                
+                # Build the graph
+                g = RDG(name=locus_name, locus_stop=transcript_length)
+                
+                for t in translons:
+                    start_pos = int(t['start'])
+                    stop_pos = int(t['stop'])
+                    if start_pos != stop_pos:  # Only add if start != stop
+                        g.add_open_reading_frame(
+                            start_codon_position=start_pos,
+                            stop_codon_position=stop_pos,
+                            reinitiation=allow_reinitiation,
+                            upstream_limit=reinitiation_limit
+                        )
+                
+            elif visualization_type == 'sequence':
+                # Process sequence input
+                sequence = data.get('sequence', '')
+                start_codons = data.get('start_codons', 'ATG,CTG,GTG').split(',')
+                min_length = int(data.get('min_length', 30))
+                max_starts = int(data.get('max_starts', 5))
+                allow_reinitiation = data.get('allow_reinitiation', True)
+                reinitiation_limit = int(data.get('reinitiation_limit', 1))
+                
+                # Extract translons from sequence
+                translons = extract_translons(sequence, 
+                                              starts=start_codons, 
+                                              min_length=min_length)
+                
+                # Build the graph
+                g = RDG(name="Sequence-based RDG", locus_stop=len(sequence))
+                
+                for t in translons[:max_starts]:
+                    g.add_open_reading_frame(
+                        start_codon_position=t[0],
+                        stop_codon_position=t[1],
+                        reinitiation=allow_reinitiation,
+                        upstream_limit=reinitiation_limit
+                    )
+            
+            elif visualization_type == 'gene':
+                # Process gene name input
+                organism = data.get('organism', 'homo_sapiens')
+                gene_name = data.get('gene_name', '')
+                transcript_id = data.get('transcript_id', '')
+                start_codons = [s.strip() for s in data.get('start_codons', 'ATG,CTG,GTG').split(',')]
+                min_length = int(data.get('min_length', 30))
+                max_starts = int(data.get('max_starts', 5))
+                allow_reinitiation = data.get('allow_reinitiation', True)
+                reinitiation_limit = int(data.get('reinitiation_limit', 1))
+                
+                try:
+                    # Import gget for sequence fetching
+                    import gget
+                    
+                    # Step 1: Get the Ensembl ID if gene name is provided
+                    if not transcript_id and gene_name:
+                        search_results = gget.search([gene_name], species=organism, release=111)
+                        if search_results.empty:
+                            return JsonResponse({
+                                'error': f'Could not find gene {gene_name} in {organism}'
+                            }, status=404)
+                        
+                        # Get the first ensembl_id
+                        ensg = search_results['ensembl_id'][0]
+                        
+                        # Get all transcripts for this gene
+                        seq_results = gget.seq(ensg, translate=False, isoforms=True)
+                        if not seq_results or len(seq_results) < 2:
+                            return JsonResponse({
+                                'error': f'No transcripts found for {gene_name}'
+                            }, status=404)
+                        
+                        # Use the first transcript
+                        tx_id = seq_results[0].split(' ')[0][1:]
+                        tx_seq = seq_results[1]
+                        display_name = f"{gene_name} ({tx_id})"
+                        
+                    else:  # Use provided transcript_id
+                        tx_id = transcript_id
+                        seq_results = gget.seq(tx_id, translate=False)
+                        if not seq_results or len(seq_results) < 2:
+                            return JsonResponse({
+                                'error': f'No sequence found for transcript {tx_id}'
+                            }, status=404)
+                        
+                        tx_seq = seq_results[1]
+                        display_name = f"Transcript {tx_id}"
+                    
+                    # Step 2: Get transcript information (exon structure)
+                    tx_info_df = gget.info([tx_id])[['exon_starts', 'exon_ends']]
+                    if tx_info_df.empty:
+                        # If exon structure not available, use the raw sequence
+                        sequence = tx_seq
+                    else:
+                        # Process exon structure to get the complete transcript sequence
+                        exon_starts = tx_info_df.loc[tx_id, 'exon_starts']
+                        exon_ends = tx_info_df.loc[tx_id, 'exon_ends']
+                        
+                        # Calculate base offset
+                        base = min(min(exon_starts), min(exon_ends))
+                        
+                        # Adjust exon coordinates
+                        updated_starts = [i - base for i in exon_starts]
+                        updated_ends = [i - base for i in exon_ends]
+                        updated_exons = zip(updated_starts, updated_ends)
+                        
+                        # Extract sequences for each exon and join them
+                        seqs = [tx_seq[exon[0]:exon[1] + 1] for exon in updated_exons]
+                        sequence = ''.join(seqs)
+                    
+                    # Step 3: Extract translons from the sequence
+                    translons = extract_translons(sequence, 
+                                                  starts=start_codons, 
+                                                  min_length=min_length)
+                    
+                    if not translons:
+                        return JsonResponse({
+                            'error': f'No translons found in the sequence with the given parameters'
+                        }, status=404)
+                    
+                    # Step 4: Build the RDG
+                    g = RDG(name=display_name, locus_stop=len(sequence))
+                    
+                    # Add open reading frames in order of appearance
+                    for translon_start, translon_stop in sorted(translons)[:max_starts]:
+                        g.add_open_reading_frame(
+                            start_codon_position=translon_start,
+                            stop_codon_position=translon_stop,
+                            reinitiation=allow_reinitiation,
+                            upstream_limit=reinitiation_limit
+                        )
+                        
+                except Exception as e:
+                    return JsonResponse({
+                        'error': f'Error processing gene sequence: {str(e)}'
+                    }, status=500)
+            
+            else:
+                return JsonResponse({
+                    'error': f'Unknown visualization type: {visualization_type}'
+                }, status=400)
+            
+            # Set up color scheme for the graph
+            color_dict = {
+                "edge_colors": {
+                    0: "#4a6fa5",
+                    1: "#98c1d9",
+                    2: "#7dace4"
+                },
+                "node_colors": {
+                    "startpoint": "#003366",
+                    "endpoint": "#003366",
+                    "translation_start": "#2e8b57",
+                    "translation_stop": "#8b0000",
+                    "frameshift": "#ff8c00",
+                },
+            }
+            
+            # Create visualization
+            plt.figure(figsize=(10, 6))
+            plot(g, color_dict=color_dict)
+            
+            # Convert plot to image
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+            buffer.seek(0)
+            image_png = buffer.getvalue()
+            buffer.close()
+            plt.close()  # Close the figure to free memory
+            
+            # Encode image to base64
+            graphic = base64.b64encode(image_png).decode('utf-8')
+            
+            return JsonResponse({
+                'image': graphic,
+                'success': True
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'error': f'Error generating RDG: {str(e)}'
+            }, status=500)
+    
+    # For GET requests, render the template
+    return render(request, "main/rdg.html")
