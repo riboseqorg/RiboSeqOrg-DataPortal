@@ -6,6 +6,9 @@ urlpatterns = [
     path(
         '', views.index, name='home'
         ),
+#    path(
+ #       'pplot', views.pplot, name='pplot'
+  #      ),
     path(
         'home', views.index, name='home'
         ),
@@ -72,8 +75,8 @@ urlpatterns = [
          views.references,
          name='references'
          ),
-    path('RDG/',
-         views.rdg_view,
-         name='rdg_view'
-         ),
+     path('RDG/',
+          views.rdg_view,
+          name='rdg_view'
+          ),
     ]

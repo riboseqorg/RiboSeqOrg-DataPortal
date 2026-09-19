@@ -27,13 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-giqdf1&g8(oxblv-tjh@5ra)w#%^@ox)*l3cxf=5cthim^)^ha"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-local-dev-only")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # True
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -55,6 +54,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
+CSRF_COOKIE_SECURE = True
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -149,3 +149,5 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+SESSION_COOKIE_SECURE = True

@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+	    <!--meta http-equiv="Content-Security-Policy" content="script-src 'self';"-->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon"
@@ -27,12 +28,57 @@
         <link href="{% static 'css/riboseq-css.css' %}"
               rel="stylesheet"
               type="text/css">
+	<!-- Google tag (gtag.js) -->
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1JDHL4P9Y7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-1JDHL4P9Y7');
+</script>
+
+<!--script async src="https://www.googletagmanager.com/gtag/js?id=G-F18067YS4L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-F18067YS4L');
+</script-->
         <title>
             {% block title %}RiboSeq.Org{% endblock %}
         </title>
         {% block head_static %}{% endblock %}
     </head>
     <body>
+<!-- Added by anmol on 24/05/2025 
+        <div id="notice" style="text-align: center">
+      <style>
+        #blink {
+          font-size: 20px;
+          font-weight: bold;
+          font-family: sans-serif;
+          color: red;
+        }
+      </style>
+      <p id="blink">
+        Dear Users, RDP is currently experiencing high demand, which is
+        impacting performance. We appreciate your patience as we work to resolve
+        this issue promptly.
+      </p>
+      <script type="text/javascript">
+        let blink = document.getElementById("blinkx");
+
+        setInterval(function () {
+          blink.style.opacity = blink.style.opacity == 0 ? 1 : 0;
+        }, 1000);
+      </script>
+    </div>
+
+         End -->
+
         <!-- Navbar -->
         <div id="content" name="content">
             {% block content %}{% endblock %}

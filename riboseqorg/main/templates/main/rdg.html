@@ -44,7 +44,13 @@
                     Allow Reinitiation
                 </label>
             </div>
-            
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Translon Length Reinitation Limit:</label>
+                <div class="col-sm-9">
+                    <input type="range" class="form-control-range" id="reinitiation-limit" min="0" max="500" step="1" value="50">
+                    <span id="reinitiation-limit-value">50</span> nt
+                </div>
+            </div>
             <h3>Translon Configuration</h3>
             <p class="text-muted">Drag the sliders to set start and stop positions for each translon</p>
             
@@ -100,6 +106,13 @@
                 <label class="form-check-label" for="seq-allow-reinitiation">
                     Allow Reinitiation
                 </label>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Translon Length Reinitation Limit:</label>
+                <div class="col-sm-9">
+                    <input type="range" class="form-control-range" id="seq-reinitiation-limit" min="0" max="500" step="1" value="50">
+                    <span id="seq-reinitiation-limit-value">50</span> nt
+                </div>
             </div>
         </div>
         
@@ -164,6 +177,13 @@
                     Allow Reinitiation
                 </label>
             </div>
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Translon Length Reinitation Limit:</label>
+                <div class="col-sm-9">
+                    <input type="range" class="form-control-range" id="gene-reinitiation-limit" min="0" max="500" step="1" value="50">
+                    <span id="gene-reinitiation-limit-value">50</span> nt
+                </div>
+            </div>
         </div>
     </div>
     
@@ -198,226 +218,310 @@
     </div>
 </div>
 
-<script>
+<!-- Add custom styles for download buttons -->
+<style>
+.download-btn {
+    display: inline-block;
+    margin: 5px;
+    padding: 8px 15px;
+    background-color: #4a6fa5;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
 
-    document.addEventListener('DOMContentLoaded', function() {
-        $('#rdgTabs a').on('click', function (e) {
-            e.preventDefault();
-            $(this).tab('show');
+.download-btn:hover {
+    background-color: #3a5a85;
+    color: white;
+    text-decoration: none;
+}
+
+.download-btn i {
+    margin-right: 5px;
+}
+
+.viz-wrapper {
+    position: relative;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.rdg-visualization {
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    $('#rdgTabs a').on('click', function (e) {
+        e.preventDefault();
+        $(this).tab('show');
+    });
+    
+    // Update values when sliders change
+    document.getElementById('transcript-length').addEventListener('input', function() {
+        document.getElementById('transcript-length-value').textContent = this.value;
+        // Update max values for all translon sliders
+        updateTranslonMaxValues(this.value);
+    });
+    
+    document.getElementById('reinitiation-limit').addEventListener('input', function() {
+        document.getElementById('reinitiation-limit-value').textContent = this.value;
+    });
+    
+    document.getElementById('min-length').addEventListener('input', function() {
+        document.getElementById('min-length-value').textContent = this.value;
+    });
+    
+    document.getElementById('max-starts').addEventListener('input', function() {
+        document.getElementById('max-starts-value').textContent = this.value;
+    });
+    
+    // Fix: Add event listener for sequence tab reinitiation limit
+    document.getElementById('seq-reinitiation-limit').addEventListener('input', function() {
+        document.getElementById('seq-reinitiation-limit-value').textContent = this.value;
+    });
+    
+    document.getElementById('gene-min-length').addEventListener('input', function() {
+        document.getElementById('gene-min-length-value').textContent = this.value;
+    });
+    
+    document.getElementById('gene-max-starts').addEventListener('input', function() {
+        document.getElementById('gene-max-starts-value').textContent = this.value;
+    });
+    
+    // Fix: Add event listener for gene tab reinitiation limit
+    document.getElementById('gene-reinitiation-limit').addEventListener('input', function() {
+        document.getElementById('gene-reinitiation-limit-value').textContent = this.value;
+    });
+    
+    // Translon management
+    let translonCount = 0;
+    
+    function updateTranslonMaxValues(maxValue) {
+        const translonSliders = document.querySelectorAll('.translon-range-slider');
+        translonSliders.forEach(slider => {
+            slider.max = maxValue;
         });
-        // Update values when sliders change
-        document.getElementById('transcript-length').addEventListener('input', function() {
-            document.getElementById('transcript-length-value').textContent = this.value;
-            // Update max values for all translon sliders
-            updateTranslonMaxValues(this.value);
-        });
+    }
+    
+    function addTranslon() {
+        translonCount++;
+        const transcriptLength = parseInt(document.getElementById('transcript-length').value);
+        const defaultStart = Math.min(100 * translonCount, transcriptLength - 300);
+        const defaultEnd = Math.min(defaultStart + 300, transcriptLength);
         
-        document.getElementById('min-length').addEventListener('input', function() {
-            document.getElementById('min-length-value').textContent = this.value;
-        });
+        const translonContainer = document.getElementById('translon-container');
+        const translonDiv = document.createElement('div');
+        translonDiv.className = 'translon-item mb-3';
+        translonDiv.id = `translon-${translonCount}`;
         
-        document.getElementById('max-starts').addEventListener('input', function() {
-            document.getElementById('max-starts-value').textContent = this.value;
-        });
+        translonDiv.innerHTML = `
+            <label class="mr-2">Translon ${translonCount}:</label>
+            <div class="d-flex align-items-center w-100">
+                <input type="number" class="form-control translon-start" value="${defaultStart}" min="0" max="${transcriptLength}" style="width: 80px;">
+                <div class="mx-2">to</div>
+                <input type="number" class="form-control translon-end" value="${defaultEnd}" min="0" max="${transcriptLength}" style="width: 80px;">
+                <div class="mx-2">Length: <span class="translon-length">${defaultEnd - defaultStart}</span> nt</div>
+            </div>
+        `;
         
-        document.getElementById('gene-min-length').addEventListener('input', function() {
-            document.getElementById('gene-min-length-value').textContent = this.value;
-        });
+        translonContainer.appendChild(translonDiv);
         
-        document.getElementById('gene-max-starts').addEventListener('input', function() {
-            document.getElementById('gene-max-starts-value').textContent = this.value;
-        });
+        // Add event listeners to update length display
+        const startInput = translonDiv.querySelector('.translon-start');
+        const endInput = translonDiv.querySelector('.translon-end');
+        const lengthSpan = translonDiv.querySelector('.translon-length');
         
-        // Translon management
-        let translonCount = 0;
-        
-        function updateTranslonMaxValues(maxValue) {
-            const translonSliders = document.querySelectorAll('.translon-range-slider');
-            translonSliders.forEach(slider => {
-                slider.max = maxValue;
-            });
+        function updateLength() {
+            const start = parseInt(startInput.value);
+            const end = parseInt(endInput.value);
+            lengthSpan.textContent = end - start;
         }
         
-        function addTranslon() {
-            translonCount++;
-            const transcriptLength = parseInt(document.getElementById('transcript-length').value);
-            const defaultStart = Math.min(100 * translonCount, transcriptLength - 300);
-            const defaultEnd = Math.min(defaultStart + 300, transcriptLength);
-            
+        startInput.addEventListener('input', updateLength);
+        endInput.addEventListener('input', updateLength);
+    }
+    
+    function removeTranslon() {
+        if (translonCount > 1) {
             const translonContainer = document.getElementById('translon-container');
-            const translonDiv = document.createElement('div');
-            translonDiv.className = 'translon-item mb-3';
-            translonDiv.id = `translon-${translonCount}`;
+            translonContainer.removeChild(document.getElementById(`translon-${translonCount}`));
+            translonCount--;
+        }
+    }
+    
+    document.getElementById('add-translon').addEventListener('click', addTranslon);
+    document.getElementById('remove-translon').addEventListener('click', removeTranslon);
+    
+    // Add initial translons
+    addTranslon();
+    addTranslon();
+    addTranslon();
+    
+    // Generate Graph Button
+    document.getElementById('generate-graph').addEventListener('click', function() {
+        const activeTab = document.querySelector('.tab-pane.active').id;
+        let data = {};
+        
+        if (activeTab === 'manual') {
+            // Collect data from manual tab
+            const translonItems = document.querySelectorAll('.translon-item');
+            const translons = [];
             
-            translonDiv.innerHTML = `
-                <label class="mr-2">Translon ${translonCount}:</label>
-                <div class="d-flex align-items-center w-100">
-                    <input type="number" class="form-control translon-start" value="${defaultStart}" min="0" max="${transcriptLength}" style="width: 80px;">
-                    <div class="mx-2">to</div>
-                    <input type="number" class="form-control translon-end" value="${defaultEnd}" min="0" max="${transcriptLength}" style="width: 80px;">
-                    <div class="mx-2">Length: <span class="translon-length">${defaultEnd - defaultStart}</span> nt</div>
-                </div>
-            `;
+            translonItems.forEach(item => {
+                const start = parseInt(item.querySelector('.translon-start').value);
+                const end = parseInt(item.querySelector('.translon-end').value);
+                if (start !== end) {
+                    translons.push({ start, stop: end });
+                }
+            });
             
-            translonContainer.appendChild(translonDiv);
-            
-            // Add event listeners to update length display
-            const startInput = translonDiv.querySelector('.translon-start');
-            const endInput = translonDiv.querySelector('.translon-end');
-            const lengthSpan = translonDiv.querySelector('.translon-length');
-            
-            function updateLength() {
-                const start = parseInt(startInput.value);
-                const end = parseInt(endInput.value);
-                lengthSpan.textContent = end - start;
+            data = {
+                type: 'manual',
+                locus_name: document.getElementById('locus-name').value,
+                transcript_length: parseInt(document.getElementById('transcript-length').value),
+                allow_reinitiation: document.getElementById('allow-reinitiation').checked,
+                reinitiation_limit: parseInt(document.getElementById('reinitiation-limit').value),
+                translons: translons
+            };
+        } 
+        else if (activeTab === 'sequence') {
+            // Collect data from sequence tab
+            const sequence = document.getElementById('sequence-input').value.trim();
+            if (!sequence) {
+                alert('Please enter a sequence');
+                return;
             }
             
-            startInput.addEventListener('input', updateLength);
-            endInput.addEventListener('input', updateLength);
+            data = {
+                type: 'sequence',
+                sequence: sequence,
+                start_codons: document.getElementById('seq-start-codons').value,
+                min_length: parseInt(document.getElementById('min-length').value),
+                max_starts: parseInt(document.getElementById('max-starts').value),
+                allow_reinitiation: document.getElementById('seq-allow-reinitiation').checked,
+                reinitiation_limit: parseInt(document.getElementById('seq-reinitiation-limit').value)
+            };
+        } 
+        else if (activeTab === 'gene') {
+            // Collect data from gene tab
+            const geneName = document.getElementById('gene-name').value.trim();
+            if (!geneName) {
+                alert('Please enter a gene name');
+                return;
+            }
+            
+            data = {
+                type: 'gene',
+                organism: document.getElementById('organism-input').value,
+                gene_name: geneName,
+                transcript_id: document.getElementById('transcript-id').value.trim(),
+                start_codons: document.getElementById('gene-start-codons').value,
+                min_length: parseInt(document.getElementById('gene-min-length').value),
+                max_starts: parseInt(document.getElementById('gene-max-starts').value),
+                allow_reinitiation: document.getElementById('gene-allow-reinitiation').checked,
+                reinitiation_limit: parseInt(document.getElementById('gene-reinitiation-limit').value)
+            };
         }
         
-        function removeTranslon() {
-            if (translonCount > 1) {
-                const translonContainer = document.getElementById('translon-container');
-                translonContainer.removeChild(document.getElementById(`translon-${translonCount}`));
-                translonCount--;
-            }
-        }
+        // Show loading indicator
+        document.getElementById('rdg-loading').style.display = 'block';
+        document.getElementById('rdg-output').innerHTML = '';
         
-        document.getElementById('add-translon').addEventListener('click', addTranslon);
-        document.getElementById('remove-translon').addEventListener('click', removeTranslon);
-        
-        // Add initial translons
-        addTranslon();
-        addTranslon();
-        addTranslon();
-        
-        // Generate Graph Button
-        document.getElementById('generate-graph').addEventListener('click', function() {
-            const activeTab = document.querySelector('.tab-pane.active').id;
-            let data = {};
+        // Send AJAX request
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading indicator
+            document.getElementById('rdg-loading').style.display = 'none';
             
-            if (activeTab === 'manual') {
-                // Collect data from manual tab
-                const translonItems = document.querySelectorAll('.translon-item');
-                const translons = [];
+            if (data.success) {
+                // Display the graph and provide download options
+                const outputDiv = document.getElementById('rdg-output');
+                outputDiv.innerHTML = '';
                 
-                translonItems.forEach(item => {
-                    const start = parseInt(item.querySelector('.translon-start').value);
-                    const end = parseInt(item.querySelector('.translon-end').value);
-                    if (start !== end) {
-                        translons.push({ start, stop: end });
-                    }
-                });
+                // Create visualization wrapper
+                const vizWrapper = document.createElement('div');
+                vizWrapper.className = 'viz-wrapper';
                 
-                data = {
-                    type: 'manual',
-                    locus_name: document.getElementById('locus-name').value,
-                    transcript_length: parseInt(document.getElementById('transcript-length').value),
-                    allow_reinitiation: document.getElementById('allow-reinitiation').checked,
-                    translons: translons
-                };
-            } 
-            else if (activeTab === 'sequence') {
-                // Collect data from sequence tab
-                const sequence = document.getElementById('sequence-input').value.trim();
-                if (!sequence) {
-                    alert('Please enter a sequence');
-                    return;
+                // Add PNG image
+                const img = document.createElement('img');
+                img.src = 'data:image/png;base64,' + data.image;
+                img.alt = 'Ribosome Decision Graph';
+                img.className = 'rdg-visualization img-fluid';
+                vizWrapper.appendChild(img);
+                
+                // Add download buttons container
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'mt-3';
+                
+                // Add PNG download button
+                const pngBtn = document.createElement('a');
+                pngBtn.href = 'data:image/png;base64,' + data.image;
+                pngBtn.download = 'rdg_graph.png';
+                pngBtn.className = 'download-btn';
+                pngBtn.innerHTML = '<i class="fas fa-download"></i> Download PNG';
+                btnContainer.appendChild(pngBtn);
+                
+                // Add SVG download button if available
+                if (data.svg_data) {
+                    const svgBtn = document.createElement('a');
+                    svgBtn.href = 'data:image/svg+xml;base64,' + data.svg_data;
+                    svgBtn.download = data.filename || 'rdg_graph.svg';
+                    svgBtn.className = 'download-btn';
+                    svgBtn.innerHTML = '<i class="fas fa-download"></i> Download SVG';
+                    btnContainer.appendChild(svgBtn);
                 }
                 
-                data = {
-                    type: 'sequence',
-                    sequence: sequence,
-                    start_codons: document.getElementById('seq-start-codons').value,
-                    min_length: parseInt(document.getElementById('min-length').value),
-                    max_starts: parseInt(document.getElementById('max-starts').value),
-                    allow_reinitiation: document.getElementById('seq-allow-reinitiation').checked
-                };
-            } 
-            else if (activeTab === 'gene') {
-                // Collect data from gene tab
-                const geneName = document.getElementById('gene-name').value.trim();
-                if (!geneName) {
-                    alert('Please enter a gene name');
-                    return;
-                }
-                
-                data = {
-                    type: 'gene',
-                    organism: document.getElementById('organism-input').value,
-                    gene_name: geneName,
-                    transcript_id: document.getElementById('transcript-id').value.trim(),
-                    start_codons: document.getElementById('gene-start-codons').value,
-                    min_length: parseInt(document.getElementById('gene-min-length').value),
-                    max_starts: parseInt(document.getElementById('gene-max-starts').value),
-                    allow_reinitiation: document.getElementById('gene-allow-reinitiation').checked
-                };
-            }
-            
-            // Show loading indicator
-            document.getElementById('rdg-loading').style.display = 'block';
-            document.getElementById('rdg-output').innerHTML = '';
-            
-            // Send AJAX request
-            fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Hide loading indicator
-                document.getElementById('rdg-loading').style.display = 'none';
-                
-                if (data.success) {
-                    // Display the graph
-                    document.getElementById('rdg-output').innerHTML = `
-                        <img src="data:image/png;base64,${data.image}" alt="Ribosome Decision Graph" class="img-fluid">
-                        <div class="mt-2">
-                            <a href="data:image/png;base64,${data.image}" download="rdg_graph.png" class="btn btn-primary">
-                                Download Graph
-                            </a>
-                        </div>
-                    `;
-                } else {
-                    // Display error
-                    document.getElementById('rdg-output').innerHTML = `
-                        <div class="alert alert-danger">
-                            Error: ${data.error || 'An unknown error occurred'}
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                document.getElementById('rdg-loading').style.display = 'none';
+                vizWrapper.appendChild(btnContainer);
+                outputDiv.appendChild(vizWrapper);
+            } else {
+                // Display error
                 document.getElementById('rdg-output').innerHTML = `
                     <div class="alert alert-danger">
-                        Error: ${error.message || 'An unknown error occurred'}
+                        Error: ${data.error || 'An unknown error occurred'}
                     </div>
                 `;
-            });
+            }
+        })
+        .catch(error => {
+            document.getElementById('rdg-loading').style.display = 'none';
+            document.getElementById('rdg-output').innerHTML = `
+                <div class="alert alert-danger">
+                    Error: ${error.message || 'An unknown error occurred'}
+                </div>
+            `;
         });
-        
-        // Helper function to get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+    });
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
         }
-    });
-    </script>
-
+        return cookieValue;
+    }
+});
+</script>
 {% endblock %}

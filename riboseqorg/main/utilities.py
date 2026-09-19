@@ -385,6 +385,8 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                     'organism': 'None of the Selected Runs are available on GWIPS-Viz',
                 }
             ]
+    # with open("/tmp/anmol.txt","w") as fout:
+      #  fout.write(gwips)
     return gwips
 
 

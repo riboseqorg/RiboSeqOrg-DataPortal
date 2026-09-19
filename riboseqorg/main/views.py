@@ -753,7 +753,6 @@ def sample_select_form(request: HttpRequest) -> str:
     - (render): the rendered HTTP response for the page
     """
     selected = dict(request.GET.lists())
-    print(selected)
     if 'download-metadata' in selected:
         return generate_samples_csv(request)
     elif 'link-all' in selected:
@@ -1022,7 +1021,8 @@ def links(request: HttpRequest) -> str:
 def generate_samples_csv(request) -> HttpResponse:
     '''
     Generate and return a csv file containing the metadata for the samples in
-    the database based on the request, using chunked processing for large queries
+    the database based on the request, using chunked processing for large queries.
+    If no specific query is provided, returns all metadata.
     '''
     selected = dict(request.GET.lists())
     
@@ -1042,11 +1042,9 @@ def generate_samples_csv(request) -> HttpResponse:
         offset = 0
         total_processed = 0
         
-        
         while True:
             chunk = base_query.order_by('id')[offset:offset + chunk_size]
             chunk_data = list(chunk)  # Evaluate the chunk
-            
             
             if not chunk_data:
                 break
@@ -1056,7 +1054,6 @@ def generate_samples_csv(request) -> HttpResponse:
                 yield item
                 
             offset += chunk_size
-            
 
     def get_initial_query():
         if 'download-metadata' in selected:
@@ -1075,34 +1072,33 @@ def generate_samples_csv(request) -> HttpResponse:
         elif 'bioproject' in selected:
             return build_bioproject_query(selected['bioproject'])
             
-        return None
+        # Return empty Q object for all records instead of None
+        return Q()
 
     sample_query = get_initial_query()
     
-    if sample_query is not None:
-        base_queryset = Sample.objects.filter(sample_query)
-        
-        response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
+    # No need to check if sample_query is None since we always return a Q object
+    base_queryset = Sample.objects.filter(sample_query)
+    
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="RiboSeqOrg_Metadata.csv"'
 
-        fields = [field.name for field in Sample._meta.get_fields() 
-                 if field.name not in exclude_fields]
+    fields = [field.name for field in Sample._meta.get_fields() 
+             if field.name not in exclude_fields]
 
-        writer = csv.writer(response)
-        writer.writerow(fields)  # Write header row
+    writer = csv.writer(response)
+    writer.writerow(fields)  # Write header row
+    
+    rows_written = 0  # Debug counter
+    
+    # Process the queryset in chunks
+    for item in process_queryset_in_chunks(base_queryset, CHUNK_SIZE):
+        row_data = [getattr(item, field) for field in fields 
+                   if field not in exclude_fields]
+        writer.writerow(row_data)
+        rows_written += 1  # Debug counter
         
-        rows_written = 0  # Debug counter
-        
-        # Process the queryset in chunks
-        for item in process_queryset_in_chunks(base_queryset, CHUNK_SIZE):
-            row_data = [getattr(item, field) for field in fields 
-                       if field not in exclude_fields]
-            writer.writerow(row_data)
-            rows_written += 1  # Debug counter
-            
-        return response
-    else:
-        return HttpResponseNotFound("No Samples Selected")
+    return response
 
 def build_run_query(runs):
     """
@@ -1317,6 +1313,60 @@ from RDG.sequence_to_RDG import extract_translons
 
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+# Add this function to clean your sequence
+def clean_sequence(sequence):
+    """
+    Clean a nucleotide sequence by removing spaces, line breaks and non-standard characters.
+    Only allows A, T, G, C, U, N (and their lowercase variants).
+    """
+    # Convert to uppercase
+    sequence = sequence.upper()
+    
+    # Remove spaces, newlines, and other whitespace
+    sequence = ''.join(sequence.split())
+    
+    # Keep only valid nucleotide characters
+    valid_chars = set('ATGCUN')
+    sequence = ''.join(char for char in sequence if char in valid_chars)
+    
+    return sequence
+
+
+import requests
+import json
+
+def get_mature_transcript(transcript_id, seq_type="cdna"):
+    """
+    Get mature transcript sequence from Ensembl REST API
+    
+    Parameters:
+    transcript_id (str): Ensembl transcript ID (e.g., 'ENST00000288602')
+    seq_type (str): Type of sequence to retrieve:
+                    'cdna' - full transcript (including UTRs)
+                    'cds' - just the coding sequence
+    
+    Returns:
+    dict: Response from Ensembl containing the sequence
+    """
+    server = "https://rest.ensembl.org"
+    ext = f"/sequence/id/{transcript_id}?type={seq_type}"
+    
+    headers = {"Content-Type": "application/json"}
+    
+    response = requests.get(server + ext, headers=headers)
+    
+    if response.ok:
+        return response.json()
+    else:
+        response.raise_for_status()
+
+# # Example usage
+# transcript_id = "ENST00000288602"  # KRAS transcript
+# result = get_mature_transcript(transcript_id)
+# print(f"Transcript ID: {result['id']}")
+# print(f"Sequence length: {len(result['seq'])}")
+# print(f"Sequence: {result['seq'][:50]}...")  # Print first 50 bases
+
 @ensure_csrf_cookie
 def rdg_view(request: HttpRequest) -> str:
     """
@@ -1333,7 +1383,7 @@ def rdg_view(request: HttpRequest) -> str:
         try:
             data = json.loads(request.body)
             visualization_type = data.get('type', 'manual')
-            
+          
             if visualization_type == 'manual':
                 # Process manual input
                 locus_name = data.get('locus_name', 'Unnamed Locus')
@@ -1341,10 +1391,10 @@ def rdg_view(request: HttpRequest) -> str:
                 allow_reinitiation = data.get('allow_reinitiation', True)
                 reinitiation_limit = int(data.get('reinitiation_limit', 1))
                 translons = data.get('translons', [])
-                
+              
                 # Build the graph
                 g = RDG(name=locus_name, locus_stop=transcript_length)
-                
+              
                 for t in translons:
                     start_pos = int(t['start'])
                     stop_pos = int(t['stop'])
@@ -1355,32 +1405,32 @@ def rdg_view(request: HttpRequest) -> str:
                             reinitiation=allow_reinitiation,
                             upstream_limit=reinitiation_limit
                         )
-                
+              
             elif visualization_type == 'sequence':
                 # Process sequence input
-                sequence = data.get('sequence', '')
+                sequence = clean_sequence(data.get('sequence', ''))
                 start_codons = data.get('start_codons', 'ATG,CTG,GTG').split(',')
                 min_length = int(data.get('min_length', 30))
                 max_starts = int(data.get('max_starts', 5))
                 allow_reinitiation = data.get('allow_reinitiation', True)
                 reinitiation_limit = int(data.get('reinitiation_limit', 1))
-                
-                # Extract translons from sequence
+
+                #  Extract translons from sequence
                 translons = extract_translons(sequence, 
                                               starts=start_codons, 
                                               min_length=min_length)
-                
+              
                 # Build the graph
                 g = RDG(name="Sequence-based RDG", locus_stop=len(sequence))
-                
-                for t in translons[:max_starts]:
+              
+                for t in translons[:max_starts + 1]:
                     g.add_open_reading_frame(
                         start_codon_position=t[0],
                         stop_codon_position=t[1],
                         reinitiation=allow_reinitiation,
                         upstream_limit=reinitiation_limit
                     )
-            
+          
             elif visualization_type == 'gene':
                 # Process gene name input
                 organism = data.get('organism', 'homo_sapiens')
@@ -1391,11 +1441,11 @@ def rdg_view(request: HttpRequest) -> str:
                 max_starts = int(data.get('max_starts', 5))
                 allow_reinitiation = data.get('allow_reinitiation', True)
                 reinitiation_limit = int(data.get('reinitiation_limit', 1))
-                
+              
                 try:
                     # Import gget for sequence fetching
                     import gget
-                    
+                  
                     # Step 1: Get the Ensembl ID if gene name is provided
                     if not transcript_id and gene_name:
                         search_results = gget.search([gene_name], species=organism, release=111)
@@ -1403,33 +1453,35 @@ def rdg_view(request: HttpRequest) -> str:
                             return JsonResponse({
                                 'error': f'Could not find gene {gene_name} in {organism}'
                             }, status=404)
-                        
+                      
                         # Get the first ensembl_id
                         ensg = search_results['ensembl_id'][0]
-                        
+                      
                         # Get all transcripts for this gene
-                        seq_results = gget.seq(ensg, translate=False, isoforms=True)
+                        seq_results = get_mature_transcript(ensg)
+                        # seq_results = gget.seq(ensg, translate=False, isoforms=True)
                         if not seq_results or len(seq_results) < 2:
                             return JsonResponse({
                                 'error': f'No transcripts found for {gene_name}'
                             }, status=404)
-                        
+                      
                         # Use the first transcript
-                        tx_id = seq_results[0].split(' ')[0][1:]
-                        tx_seq = seq_results[1]
+                        tx_id = seq_results['id']
+                        tx_seq = seq_results['seq']
                         display_name = f"{gene_name} ({tx_id})"
-                        
+                      
                     else:  # Use provided transcript_id
                         tx_id = transcript_id
-                        seq_results = gget.seq(tx_id, translate=False)
+                        seq_results = get_mature_transcript(tx_id)
+                        # seq_results = gget.seq(tx_id, translate=False)
                         if not seq_results or len(seq_results) < 2:
                             return JsonResponse({
                                 'error': f'No sequence found for transcript {tx_id}'
                             }, status=404)
-                        
-                        tx_seq = seq_results[1]
+                      
+                        tx_seq = seq_results['seq']
                         display_name = f"Transcript {tx_id}"
-                    
+                  
                     # Step 2: Get transcript information (exon structure)
                     tx_info_df = gget.info([tx_id])[['exon_starts', 'exon_ends']]
                     if tx_info_df.empty:
@@ -1439,51 +1491,52 @@ def rdg_view(request: HttpRequest) -> str:
                         # Process exon structure to get the complete transcript sequence
                         exon_starts = tx_info_df.loc[tx_id, 'exon_starts']
                         exon_ends = tx_info_df.loc[tx_id, 'exon_ends']
-                        
+                      
                         # Calculate base offset
                         base = min(min(exon_starts), min(exon_ends))
-                        
+                      
                         # Adjust exon coordinates
                         updated_starts = [i - base for i in exon_starts]
                         updated_ends = [i - base for i in exon_ends]
                         updated_exons = zip(updated_starts, updated_ends)
-                        
+                      
                         # Extract sequences for each exon and join them
                         seqs = [tx_seq[exon[0]:exon[1] + 1] for exon in updated_exons]
                         sequence = ''.join(seqs)
-                    
+
+                    sequence = clean_sequence(sequence)
                     # Step 3: Extract translons from the sequence
                     translons = extract_translons(sequence, 
                                                   starts=start_codons, 
                                                   min_length=min_length)
-                    
+                  
                     if not translons:
                         return JsonResponse({
                             'error': f'No translons found in the sequence with the given parameters'
                         }, status=404)
-                    
+                   
                     # Step 4: Build the RDG
                     g = RDG(name=display_name, locus_stop=len(sequence))
-                    
+                  
                     # Add open reading frames in order of appearance
-                    for translon_start, translon_stop in sorted(translons)[:max_starts]:
+                    for translon_start, translon_stop in sorted(translons)[:max_starts + 1]:
                         g.add_open_reading_frame(
                             start_codon_position=translon_start,
                             stop_codon_position=translon_stop,
                             reinitiation=allow_reinitiation,
                             upstream_limit=reinitiation_limit
                         )
-                        
+                      
                 except Exception as e:
                     return JsonResponse({
                         'error': f'Error processing gene sequence: {str(e)}'
                     }, status=500)
-            
+          
             else:
                 return JsonResponse({
                     'error': f'Unknown visualization type: {visualization_type}'
                 }, status=400)
-            
+          
             # Set up color scheme for the graph
             color_dict = {
                 "edge_colors": {
@@ -1502,21 +1555,34 @@ def rdg_view(request: HttpRequest) -> str:
             
             # Create visualization
             plt.figure(figsize=(10, 6))
-            plot(g, color_dict=color_dict)
-            
-            # Convert plot to image
-            buffer = io.BytesIO()
-            plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
-            buffer.seek(0)
-            image_png = buffer.getvalue()
-            buffer.close()
+            plot(g, color_dict=color_dict, reinit_base_limit=reinitiation_limit, allow_reinitiation=allow_reinitiation)
+
+            # Generate PNG for display
+            png_buffer = io.BytesIO()
+            plt.savefig(png_buffer, format='png', dpi=100, bbox_inches='tight')
+            png_buffer.seek(0)
+            image_png = png_buffer.getvalue()
+            png_buffer.close()
+
+            # Generate SVG for download
+            svg_buffer = io.BytesIO()
+            plt.savefig(svg_buffer, format='svg', bbox_inches='tight')
+            svg_buffer.seek(0)
+            svg_data = svg_buffer.getvalue()
+            svg_buffer.close()
+
             plt.close()  # Close the figure to free memory
-            
-            # Encode image to base64
-            graphic = base64.b64encode(image_png).decode('utf-8')
-            
+
+            # Encode PNG to base64 for embedding in HTML
+            png_b64 = base64.b64encode(image_png).decode('utf-8')
+
+            # Encode SVG to base64 for download link
+            svg_b64 = base64.b64encode(svg_data).decode('utf-8')
+
             return JsonResponse({
-                'image': graphic,
+                'image': png_b64,          # PNG for display
+                'svg_data': svg_b64,       # SVG for download
+                'filename': g.locus.replace(' ', '_') + '.svg',  # Suggested filename
                 'success': True
             })
             
@@ -1527,3 +1593,8 @@ def rdg_view(request: HttpRequest) -> str:
     
     # For GET requests, render the template
     return render(request, "main/rdg.html")
+
+
+#from . import single_transcript_routes
+#def pplot(request: HttpRequest) -> str:
+ #   return HttpResponse(single_transcript_routes.query_plot())

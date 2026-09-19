@@ -36,3 +36,8 @@ urllib3==1.26.15
 xmltodict==0.13.0
 djangorestframework==3.14.0
 zipp==3.6.0
+matplotlib==3.3.4
+pyahocorasick==2.1.0
+sqlitedict==2.1.0
+rich==12.6.0
+gff2bed @ git+https://gitlab.com/salk-tm/gff2bed.git@9e39b41f58645a695c1da7ca373bd86521142d0a
