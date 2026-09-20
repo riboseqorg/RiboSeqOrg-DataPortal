@@ -12,7 +12,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.paginator import Paginator
-from django.db.models import CharField, Count, F, IntegerField, Q, Value
+from django.db.models import (Case, CharField, Count, F, IntegerField, Q,
+                              Value, When)
 from django.db.models.functions import Cast, Concat, Length
 from django.db.models.query import QuerySet
 from django.http import (HttpRequest, HttpResponse, HttpResponseBadRequest,
@@ -145,6 +146,20 @@ SAMPLE_SORTS = {
     'library': 'LIBRARYTYPE',
     'inhibitor': 'INHIBITOR',
 }
+# Ribo-seq is what the portal is for, so it leads the default listing.
+# Ordering by LIBRARYTYPE alone sorted descending, and SQLite compares bytes,
+# so lowercase names won: the first page was tRNA-Seq. Rank Ribo-Seq first,
+# then its close variants, then everything else alphabetically.
+LIBRARYTYPE_RANK = Case(
+    When(LIBRARYTYPE='Ribo-Seq', then=0),
+    When(LIBRARYTYPE__in=['Selective Ribo-Seq', 'RiboTag', 'Mito-Ribo-Seq',
+                          'Disome-Seq', 'QTI-Seq', 'RMS', 'LSU', 'SSU'],
+         then=1),
+    default=2, output_field=IntegerField())
+# Within a rank, samples that record an inhibitor come before those that
+# don't, which is what the old '-INHIBITOR' lead was for.
+SAMPLE_DEFAULT_SORT = [LIBRARYTYPE_RANK, 'LIBRARYTYPE', '-INHIBITOR', '-pk']
+
 STUDY_SORTS = {
     'name': 'Name',
     'bioproject': 'BioProject',
@@ -219,6 +234,7 @@ class SearchView(View):
         "trips_id",
         "gwips_id",
         "ribocrypt_id",
+        "processed",
         "readfile",
         "BioProject",
     ]
@@ -395,6 +411,7 @@ def samples(request: HttpRequest) -> str:
         'gwips_id',
         'ribocrypt_id',
         'FASTA_file',
+        'processed',
         'verified',
     ]
     clean_names = get_clean_names()
@@ -446,8 +463,7 @@ def samples(request: HttpRequest) -> str:
     query = build_query(request, query_params, clean_names)
     # get entries to populate table (only the page shown is fetched)
     sample_entries = Sample.objects.filter(query).order_by(
-        *sort_order(request, SAMPLE_SORTS,
-                    ['-INHIBITOR', '-LIBRARYTYPE', '-pk']))
+        *sort_order(request, SAMPLE_SORTS, SAMPLE_DEFAULT_SORT))
 
     # Paginate the samples
     paginator = Paginator(sample_entries, page_size(request))
@@ -461,6 +477,7 @@ def samples(request: HttpRequest) -> str:
         'gwips_toggle_state': request.GET.get('gwips_id', False),
         'ribocrypt_toggle_state': request.GET.get('ribocrypt_id', False),
         'FASTA_file_toggle_state': request.GET.get('FASTA_file', False),
+        'processed_toggle_state': request.GET.get('processed', False),
         'verified_toggle_state': request.GET.get('verified', False),
     }
     # Render the studies template with the filtered and paginated studies
@@ -1042,6 +1059,7 @@ def generate_samples_csv(request) -> HttpResponse:
         "trips_id",
         "gwips_id",
         "ribocrypt_id",
+        "processed",
         "readfile",
     ]
 
@@ -1247,7 +1265,7 @@ def genome_track_lines(request) -> HttpResponse:
 
 PIVOT_EXCLUDE = frozenset([
     'id', 'verified', 'Experiment', 'InsertDev', 'trips_id', 'gwips_id',
-    'ribocrypt_id', 'FASTA_file', 'sample_title', 'MONTH', 'YEAR',
+    'ribocrypt_id', 'FASTA_file', 'processed', 'sample_title', 'MONTH', 'YEAR',
     'ENA_last_update', 'ENA_checklist', 'ENA_first_public',
     'INSDC_center_alias', 'INSDC_center_name', 'INSDC_first_public',
     'INSDC_last_update', 'INSDC_status', 'spots', 'SampleName', 'CenterName',

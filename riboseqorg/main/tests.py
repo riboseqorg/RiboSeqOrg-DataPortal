@@ -129,6 +129,48 @@ class TestDataFiles(TestCase):
             self.assertEqual(sample.reads_link, '')
 
 
+class TestSampleOrdering(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        study = Study.objects.create(BioProject='PRJ1')
+        for run, lib in [('SRR1', 'tRNA-Seq'), ('SRR2', 'Ribo-Seq'),
+                         ('SRR3', 'miRNA-Seq'), ('SRR4', 'RiboTag'),
+                         ('SRR5', 'RNA-Seq')]:
+            Sample.objects.create(Run=run, BioProject=study, LIBRARYTYPE=lib,
+                                  ScientificName='Homo sapiens')
+
+    def test_ribo_seq_leads_the_default_listing(self):
+        """SQLite compares bytes, so '-LIBRARYTYPE' used to put tRNA-Seq first."""
+        from .views import SAMPLE_DEFAULT_SORT
+        order = list(Sample.objects.order_by(*SAMPLE_DEFAULT_SORT)
+                     .values_list('LIBRARYTYPE', flat=True))
+        self.assertEqual(order[0], 'Ribo-Seq')
+        # Close variants next, unrelated library types last
+        self.assertEqual(order[1], 'RiboTag')
+        self.assertEqual(order[-1], 'tRNA-Seq')
+
+    def test_explicit_sort_still_wins(self):
+        response = self.client.get(reverse('samples'), {'sort': '-library'})
+        first = response.context['page_obj'][0]
+        self.assertEqual(first.LIBRARYTYPE, 'tRNA-Seq')
+
+
+class TestProcessedFilter(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        study = Study.objects.create(BioProject='PRJ2')
+        Sample.objects.create(Run='SRR10', BioProject=study, processed=True)
+        Sample.objects.create(Run='SRR11', BioProject=study, FASTA_file=True)
+
+    def test_processed_toggle_filters_samples(self):
+        response = self.client.get(reverse('samples'), {'processed': 'on'})
+        self.assertEqual([s.Run for s in response.context['page_obj']], ['SRR10'])
+
+    def test_fasta_toggle_still_works(self):
+        response = self.client.get(reverse('samples'), {'FASTA_file': 'on'})
+        self.assertEqual([s.Run for s in response.context['page_obj']], ['SRR11'])
+
+
 class TestViewerLinks(TestCase):
     @classmethod
     def setUpTestData(cls):

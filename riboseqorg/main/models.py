@@ -162,6 +162,8 @@ class Sample(models.Model):
     ribocrypt_id = models.BooleanField(default=False)
     process_status = models.CharField(max_length=200, blank=True)
     FASTA_file = models.BooleanField(default=False)
+    # Run is in the list of runs the RDP pipeline has processed
+    processed = models.BooleanField(default=False, db_index=True)
     BioProject = models.ForeignKey(
         Study,
         on_delete=models.CASCADE,

@@ -107,6 +107,7 @@ def get_clean_names() -> dict:
         'gwips_id': 'gwips_id',
         'ribocrypt_id': 'ribocrypt_id',
         'FASTA_file': 'FASTA_file',
+        'processed': 'processed',
     }
     return clean_names
 
@@ -146,7 +147,8 @@ def build_query(
     - (Q): the query
     """
     query = Q()
-    toggle_fields = {'trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'verified'}
+    toggle_fields = {'trips_id', 'gwips_id', 'ribocrypt_id', 'FASTA_file', 'processed',
+                     'verified'}
     for field, values in query_params:
         if field in ('page', 'csrfmiddlewaretoken'):
             continue

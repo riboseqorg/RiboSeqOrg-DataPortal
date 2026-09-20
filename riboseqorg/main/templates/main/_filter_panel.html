@@ -51,6 +51,11 @@ Expects: param_options, reset_url, and optionally show_toggles plus the
                                 <label class="form-check-label" for="toggle-fasta">Processed reads available</label>
                             </div>
                             <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggle-processed"
+                                       data-toggle-param="processed" {% if processed_toggle_state == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-processed">Processed by RDP pipeline</label>
+                            </div>
+                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="toggle-verified"
                                        data-toggle-param="verified" {% if verified_toggle_state == 'on' %}checked{% endif %}>
                                 <label class="form-check-label" for="toggle-verified">Manually verified</label>
