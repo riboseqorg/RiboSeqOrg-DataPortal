@@ -10,8 +10,16 @@ GWIPS-viz gets two links, because there are two different things to show:
 
 Each link is a dict with the keys used by the templates: trips_link,
 trips_name, gwips_link, gwips_name, gwips_native_link, gwips_native_name,
-ribocrypt_link, ribocrypt_name. An unavailable viewer gets its home page as
-the link and an empty name.
+ribocrypt_link, ribocrypt_name, plus a has_* boolean per viewer. An
+unavailable viewer gets its home page as the link, an empty name and a false
+has_*. Templates test the boolean, never the name.
+
+A single run is never ambiguous, so its links stay singular. A *set* of runs
+can span organisms, and no viewer can plot two organisms at once, so the
+study-level links are grouped: one link per organism (per transcriptome for
+Trips, per assembly for GWIPS), in the *_groups keys. 62 of 1,401 studies
+span more than one organism and 39 of those more than one assembly, so
+collapsing to the first silently hid most of those studies' runs.
 '''
 from . import genome_tracks
 from .models import GWIPS, RiboCrypt, Trips
@@ -26,6 +34,16 @@ CHUNK_SIZE = 500
 
 def _unique(values):
     return list(dict.fromkeys(values))
+
+
+def clean_organism(value: str) -> str:
+    '''e.g. "homo_sapiens" -> "Homo sapiens"'''
+    return value.replace('_', ' ').capitalize() if value else ''
+
+
+def _by_size(groups: list, key: str = 'runs') -> list:
+    '''Biggest group first, so the obvious one to click comes first.'''
+    return sorted(groups, key=lambda g: -g[key])
 
 
 def trips_file_id(value: str) -> str:
@@ -49,6 +67,32 @@ def _trips(rows: list) -> tuple:
             f"/interactive_plot/?files={','.join(ids)}", 'Visit Trips-Viz')
 
 
+def trips_links(rows: list) -> list:
+    '''
+    One Trips-Viz link per (organism, transcriptome) among the given rows.
+
+    Trips plots one transcriptome at a time, so a selection spanning two gets
+    two links rather than one that silently covers half the runs.
+
+    Returns:
+    - (list): dicts with organism, transcriptome, link and runs (how many)
+    '''
+    groups: dict = {}
+    for row in rows:
+        groups.setdefault((row.organism, row.transcriptome), []).append(row)
+    out = []
+    for (organism, transcriptome), rs in groups.items():
+        ids = _unique(trips_file_id(r.Trips_id) for r in rs)
+        out.append({
+            'organism': clean_organism(organism),
+            'transcriptome': transcriptome,
+            'link': f"https://trips.ucc.ie/{organism}/{transcriptome}"
+                    f"/interactive_plot/?files={','.join(ids)}",
+            'runs': len(_unique(r.Run for r in rs)),
+        })
+    return _by_size(out)
+
+
 def _ribocrypt(rows: list) -> tuple:
     '''
     Link to the first (ribocrypt_id, Organism) group of the given rows.
@@ -61,6 +105,30 @@ def _ribocrypt(rows: list) -> tuple:
     dff = f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}"
     return (f"https://ribocrypt.org/?dff={dff}&library={','.join(runs)}"
             "&go=TRUE&go=TRUE", 'Visit RiboCrypt')
+
+
+def ribocrypt_links(rows: list) -> list:
+    '''
+    One RiboCrypt link per (ribocrypt_id, Organism) among the given rows.
+
+    Nothing renders these yet - RiboCrypt is deferred until its sample names
+    are verified and main_ribocrypt is still empty - but it is grouped like
+    the others so wiring it up later needs no new shape.
+    '''
+    groups: dict = {}
+    for row in rows:
+        groups.setdefault((row.ribocrypt_id, row.Organism), []).append(row)
+    out = []
+    for (ribocrypt_id, organism), rs in groups.items():
+        runs = _unique(r.Run for r in rs)
+        dff = f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}"
+        out.append({
+            'organism': organism,
+            'link': f"https://ribocrypt.org/?dff={dff}"
+                    f"&library={','.join(runs)}&go=TRUE&go=TRUE",
+            'runs': len(runs),
+        })
+    return _by_size(out)
 
 
 def _gwips(link) -> tuple:
@@ -86,6 +154,38 @@ def gwips_native_link(rows: list) -> tuple:
             'Visit GWIPS-viz')
 
 
+def gwips_native_links(rows: list) -> list:
+    '''
+    One curated GWIPS-viz link per assembly among the given GWIPS rows.
+
+    A study loaded against two assemblies (PRJNA279785 is in ce10 and
+    sacCer3) gets one link each, with every track for that assembly on it.
+
+    Returns:
+    - (list): dicts with organism, assembly, link and studies (how many).
+      There is no run count: these tracks are curated per study, and GWIPS
+      does not tell us which runs went into them.
+    '''
+    rows = [r for r in rows if r.gwips_db and
+            (r.GWIPS_Elong_Suffix or r.GWIPS_Init_Suffix)]
+    groups: dict = {}
+    for row in rows:
+        groups.setdefault(row.gwips_db, []).append(row)
+    out = []
+    for assembly, rs in groups.items():
+        tracks = _unique(t for r in rs for t in
+                         (r.GWIPS_Elong_Suffix, r.GWIPS_Init_Suffix) if t)
+        params = ''.join(f'&{track}=full' for track in tracks)
+        out.append({
+            'organism': rs[0].Organism or assembly,
+            'assembly': assembly,
+            'link': f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={assembly}"
+                    f"{params}",
+            'studies': len(_unique(r.BioProject for r in rs)),
+        })
+    return _by_size(out, 'studies')
+
+
 def _as_dict(trips, gwips, gwips_native, ribocrypt) -> dict:
     return {
         'trips_link': trips[0], 'trips_name': trips[1],
@@ -93,6 +193,11 @@ def _as_dict(trips, gwips, gwips_native, ribocrypt) -> dict:
         'gwips_native_link': gwips_native[0],
         'gwips_native_name': gwips_native[1],
         'ribocrypt_link': ribocrypt[0], 'ribocrypt_name': ribocrypt[1],
+        # What the templates test. The name is a label and may be reworded;
+        # these say whether the viewer actually has this run.
+        'has_trips': bool(trips[1]), 'has_gwips': bool(gwips[1]),
+        'has_gwips_native': bool(gwips_native[1]),
+        'has_ribocrypt': bool(ribocrypt[1]),
     }
 
 
@@ -160,6 +265,13 @@ def sample_links(samples, selection: dict = None) -> tuple:
         combined_link = genome_tracks.selection_link(browser_organism, selection)
     combined = _as_dict(_trips(all_trips), _gwips(combined_link),
                         gwips_native_link(all_gwips), _ribocrypt(all_ribocrypt))
+    # One link per organism, for callers that show every organism rather than
+    # just the first. The singular keys above stay for single-run callers.
+    combined['trips_groups'] = trips_links(all_trips)
+    combined['gwips_native_groups'] = gwips_native_links(all_gwips)
+    combined['ribocrypt_groups'] = ribocrypt_links(all_ribocrypt)
+    combined['gwips_groups'] = genome_tracks.selection_links(
+        samples, selection) if selection else []
     return per_run, combined
 
 

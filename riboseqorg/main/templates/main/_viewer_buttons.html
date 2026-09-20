@@ -1,0 +1,23 @@
+{% comment %}
+One viewer's buttons for a set of runs.
+
+`groups` is a list of {organism, link, runs?} from viewer_links.py: one entry
+per organism, because no viewer plots two organisms at once. One entry is the
+normal case and renders a single button; several render one button each,
+labelled by organism, so nothing is hidden. `runs` is optional - curated GWIPS
+tracks have no run count - and the tooltip leaves it out when it is absent.
+
+Expects: groups, label, title.
+{% endcomment %}
+{% if groups|length == 1 %}
+    {% for group in groups %}
+        <a href="{{ group.link }}" class="btn btn-outline-primary btn-sm" title="{{ title }}"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>{{ label }}</a>
+    {% endfor %}
+{% elif groups %}
+    <div class="btn-group btn-group-sm" role="group" aria-label="{{ label }}, one per organism">
+        <span class="btn btn-sm btn-light disabled text-muted border">{{ label }}</span>
+        {% for group in groups %}
+            <a href="{{ group.link }}" class="btn btn-outline-primary btn-sm" title="{{ title }}{% if group.runs %} — {{ group.runs }} run{{ group.runs|pluralize }}{% endif %}"><em>{{ group.organism }}</em></a>
+        {% endfor %}
+    </div>
+{% endif %}

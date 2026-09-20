@@ -280,11 +280,75 @@ class TestViewerLinks(TestCase):
                          ('https://gwips.ucc.ie/', ''))
 
     def test_study_page_query_count_is_constant(self):
-        # Study, samples, then one query per link table
+        # Study, samples, then one query per link table. Grouping the links
+        # per organism must not add a query: it reuses the loaded samples.
         with self.assertNumQueries(5):
             response = self.client.get(reverse('study', args=['PRJ1']))
         self.assertEqual(response.status_code, 200)
-        self.assertIn('tracks%2Fucsc.txt', response.context['bioproject_gwips_link'])
+        gwips = response.context['bioproject_gwips']
+        self.assertEqual([g['organism'] for g in gwips], ['Homo sapiens'])
+        self.assertIn('tracks%2Fucsc.txt', gwips[0]['link'])
+
+    def test_trips_links_one_per_transcriptome(self):
+        """A study spanning two organisms gets a link for each, not just one."""
+        from .viewer_links import trips_links
+        rows = list(Trips.objects.order_by('pk'))
+        groups = trips_links(rows)
+        # Human has two runs and mouse one, so human comes first
+        self.assertEqual([(g['organism'], g['runs']) for g in groups],
+                         [('Homo sapiens', 2), ('Mus musculus', 1)])
+        self.assertEqual(
+            groups[0]['link'],
+            'https://trips.ucc.ie/homo_sapiens/homo_tx/interactive_plot/'
+            '?files=10,11')
+        self.assertEqual(
+            groups[1]['link'],
+            'https://trips.ucc.ie/mus_musculus/mus_tx/interactive_plot/'
+            '?files=12')
+        self.assertEqual(trips_links([]), [])
+
+    def test_study_page_shows_every_organism(self):
+        """The rendered page links both organisms, not just the bigger one."""
+        response = self.client.get(reverse('study', args=['PRJ1']))
+        html = response.content.decode()
+        self.assertIn('homo_sapiens/homo_tx', html)
+        self.assertIn('mus_musculus/mus_tx', html)
+
+    def test_native_gwips_links_one_per_assembly(self):
+        """PRJNA279785 is loaded in two assemblies; each needs its own link."""
+        from .viewer_links import gwips_native_links
+        rows = [
+            GWIPS(BioProject='PRJ1', Organism='Homo sapiens', gwips_db='hg38',
+                  GWIPS_Elong_Suffix='S_Elong', GWIPS_Init_Suffix='S_Init'),
+            GWIPS(BioProject='PRJ1', Organism='Mus musculus', gwips_db='mm10',
+                  GWIPS_Elong_Suffix='M_Elong', GWIPS_Init_Suffix=''),
+            # No tracks: not a link, and must not create an empty group
+            GWIPS(BioProject='PRJ1', gwips_db='ce10'),
+        ]
+        groups = gwips_native_links(rows)
+        self.assertEqual([g['assembly'] for g in groups], ['hg38', 'mm10'])
+        self.assertEqual(groups[0]['link'],
+                         'https://gwips.ucc.ie/cgi-bin/hgTracks?db=hg38'
+                         '&S_Elong=full&S_Init=full')
+        self.assertEqual(groups[1]['link'],
+                         'https://gwips.ucc.ie/cgi-bin/hgTracks?db=mm10'
+                         '&M_Elong=full')
+        # Curated tracks are per study and carry no run count, so the button
+        # tooltip must not claim one
+        self.assertEqual([g['studies'] for g in groups], [1, 1])
+        self.assertNotIn('runs', groups[0])
+        self.assertEqual(gwips_native_links([]), [])
+
+    def test_availability_booleans(self):
+        """Templates test has_*, so it must not depend on the button label."""
+        from .viewer_links import sample_links
+        per_run, _ = sample_links(list(Sample.objects.order_by('pk')),
+                                  {'bioproject': ['PRJ1']})
+        self.assertTrue(per_run['SRR1']['has_gwips'])
+        self.assertTrue(per_run['SRR1']['has_trips'])
+        # SRR3 has no bigWigs, so no custom track
+        self.assertFalse(per_run['SRR3']['has_gwips'])
+        self.assertFalse(per_run['SRR1']['has_gwips_native'])
 
 
 class TestLoadViewerLinks(TestCase):

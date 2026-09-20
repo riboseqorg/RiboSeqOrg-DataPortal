@@ -21,18 +21,12 @@
                 {% if Study.Samples|present %}<span class="status-pill">{{ Study.Samples }} sample{{ Study.Samples|pluralize }}</span>{% endif %}
                 {% if Study.Release_Date|present %}<span class="status-pill">Released {{ Study.Release_Date|slice:":10" }}</span>{% endif %}
             </div>
-            {% if bioproject_gwips_name or bioproject_gwips_native_name or bioproject_trips_name %}
+            {% if bioproject_gwips or bioproject_gwips_native or bioproject_trips %}
+                {% comment %}Curated GWIPS-viz tracks for the study, then the portal's own coverage as a custom track, then Trips-Viz. Each is a list with one entry per organism. See viewer_links.py.{% endcomment %}
                 <div class="d-flex flex-wrap gap-2 mt-3">
-                    {% comment %}Curated GWIPS-viz tracks for the study, then the portal's own coverage as a custom track. See viewer_links.py.{% endcomment %}
-                    {% if bioproject_gwips_native_name %}
-                        <a href="{{ bioproject_gwips_native_link }}" class="btn btn-outline-primary btn-sm" title="Curated GWIPS-viz tracks for this study"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>Open in GWIPS-viz</a>
-                    {% endif %}
-                    {% if bioproject_gwips_name %}
-                        <a href="{{ bioproject_gwips_link }}" class="btn btn-outline-primary btn-sm" title="This study's coverage from the portal, as a GWIPS-viz custom track"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>View portal tracks in GWIPS-viz</a>
-                    {% endif %}
-                    {% if bioproject_trips_name %}
-                        <a href="{{ bioproject_trips_link }}" class="btn btn-outline-primary btn-sm"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>Open in Trips-Viz</a>
-                    {% endif %}
+                    {% include 'main/_viewer_buttons.html' with groups=bioproject_gwips_native label="Open in GWIPS-viz" title="Curated GWIPS-viz tracks for this study" %}
+                    {% include 'main/_viewer_buttons.html' with groups=bioproject_gwips label="View portal tracks in GWIPS-viz" title="This study's coverage from the portal, as a GWIPS-viz custom track" %}
+                    {% include 'main/_viewer_buttons.html' with groups=bioproject_trips label="Open in Trips-Viz" title="This study's runs in Trips-Viz" %}
                 </div>
             {% endif %}
         </div>

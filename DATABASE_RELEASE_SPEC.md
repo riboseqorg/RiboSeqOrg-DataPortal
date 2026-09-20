@@ -135,9 +135,10 @@ Check `release_2026-09/output/summary.json` and the verify log:
 
 - `[verify] ... 0 problems`. Any problem line is a stop.
 - Sample count within a few hundred of 20,055.
-- `authorship.by_source` has `pubmed` in the 1,100–1,200 range and `none` in
-  single or low double digits. If `pubmed` is near zero the run silently went
-  offline (network failure returns `''` from `Web._get`, which looks like a miss).
+- `authorship.by_source` has `pubmed` around 900-950 and `none` in single or
+  low double digits. If `pubmed` is near zero the run silently went offline
+  (network failure returns `''` from `Web._get`, which looks like a miss).
+  (The 2026-09 build: 912 pubmed, 356 submitters, 114 europepmc, 18 none.)
 - Zero rows match the bogus author strings:
 
   ```bash
@@ -157,8 +158,10 @@ set changes slightly, so the link rows and the per-sample flags must be resynced
 against the new runs.
 
 ```bash
+# --install-only, NOT --install: plain --install rebuilds first and would
+# throw away the review decisions patched in at task 5.
 python -m scripts.metadata_rebuild.pipeline \
-  --out build/metadata_rebuild/release_2026-09 --skip-fetch --install
+  --out build/metadata_rebuild/release_2026-09 --install-only
 # then, in riboseqorg/
 python manage.py migrate
 python manage.py load_viewer_links \
@@ -177,7 +180,7 @@ study-level thing and overwriting the flag with them would break the
 **Done when:** `main_trips` ≈ 2,551, `main_gwips` = 115, no orphan link rows,
 44 app tests and 45 rebuild tests pass, and the pages listed in task 7 render.
 
-### 5. The 62 review decisions  — optional for this release
+### 5. Patch in the 62 review decisions  — required, after the build
 
 `check_output/review_queue.csv` holds 62 rows, down from 622 once the v2 SRA
 evidence landed: 18 with no data type, 23 typed from study text only, 15 where
@@ -186,9 +189,42 @@ signal. Columns carry the evidence needed to decide (`rule_suggestion`,
 `rule_evidence`, `library_construction_protocol`, `other_types_in_study`,
 `labelled_siblings`, `sra_url`).
 
-62 unresolved rows out of 20,000 is not glaring. Ship with them flagged if time
-is short; curate them into `resources/` and rebuild if not. Regenerate this file
-from the release build rather than reusing the `check_output` copy.
+**Decided.** All 62 were reviewed by hand: 22 RNA-Seq, 15 Ribo-Seq, 13 SSU,
+4 Selective Ribo-Seq, 2 QTI-Seq, and 6 excluded (PRJEB7207 miRNA-Seq runs, not
+Ribo-seq). They are stored in `scripts/metadata_rebuild/inputs/review_decisions_2026-09.csv`.
+The rebuild has no run-level override for data types, so patch them in after the
+build instead of curating into `resources/`.
+
+**Patch, after task 3 and before task 4's `--install`:**
+
+```bash
+cd /Users/jackt/projects/RiboSeqOrg-DataPortal
+python3 -m scripts.metadata_rebuild.apply_review_decisions build/metadata_rebuild/release_2026-09/output          # dry run
+python3 -m scripts.metadata_rebuild.apply_review_decisions build/metadata_rebuild/release_2026-09/output --apply
+```
+
+It relabels or removes each run in `db.sqlite3`, `samples.csv` and
+`RiboSeqOrg_Metadata_v2026.09.csv`, recomputes `seq_types` and `Samples` on the
+affected studies, and saves `db.sqlite3.pre-review-decisions` first. An excluded
+run also loses its `main_trips` and `main_ribocrypt` rows, so no link points at
+a run that is no longer in the catalogue; the six miRNA runs had none, and the
+count is reported. `main_gwips` is untouched on purpose: it is per study, and
+PRJEB7207 keeps its curated tracks because its Ribo-seq runs remain. Expect
+"62 runs found, 0 not in this build", "0 link rows removed" and the CSVs to
+lose 6 rows. The dry run
+exits non-zero if any run is missing; a missing run means the release build's
+selection differs from the check build, so look before applying.
+
+The install step reads `db.sqlite3` from the output directory, so the patch
+must come first. Install with `--install-only`: plain `--install` re-runs the
+build and silently discards the patch, as does re-running the pipeline into the
+same directory. If either happens, apply the patch again. The queue's leftover 62 rows should not
+reappear if the patch was applied, but a fresh `review_queue.csv` will still
+list them because the rules are unchanged.
+
+**Still open:** SRR1630811 and SRR1630813 (PRJNA246023) both report 46,414,543
+spots. Their titles say QTI-Seq and Ribo-Seq, but one may be a duplicated run.
+Check on SRA before release.
 
 ### 6. Release artefacts
 
@@ -211,6 +247,10 @@ Before this goes to prod:
 - [ ] 0 studies matching the Vogel / Shen / Theofanidis author strings
 - [ ] `Authorship_source` non-empty for >95% of studies; every author list traceable
 - [ ] Sample count within ±5% of 20,055
+- [ ] Review decisions applied: `apply_review_decisions` reported 62 found / 0
+      missing, and `db.sqlite3.pre-review-decisions` exists beside the build
+- [ ] The 6 PRJEB7207 miRNA runs are gone, and no `main_trips` /
+      `main_ribocrypt` row references a run that is not in `main_sample`
 - [ ] `manage.py check` clean; 44 app tests pass on the pinned Django 3.2.25
 - [ ] 45 `scripts/metadata_rebuild` tests pass
 - [ ] `main_trips` and `main_gwips` populated and consistent with `main_sample`

@@ -636,17 +636,14 @@ def study_detail(request: HttpRequest, query: str) -> str:
 
     # Return all results from Sample and query the sqlite too and add this to
     # the table
+    # One link per organism: a study spanning two assemblies needs two, or
+    # the button silently covers only one of them (see viewer_links.py).
     context = {
         'Study': study_model,
         'ls': ls,
-        'bioproject_trips_link': urls['trips_link'],
-        'bioproject_trips_name': urls['trips_name'],
-        'bioproject_gwips_link': urls['gwips_link'],
-        'bioproject_gwips_name': urls['gwips_name'],
-        'bioproject_gwips_native_link': urls['gwips_native_link'],
-        'bioproject_gwips_native_name': urls['gwips_native_name'],
-        'bioproject_ribocrypt_link': urls['ribocrypt_link'],
-        'bioproject_ribocrypt_name': urls['ribocrypt_name'],
+        'bioproject_trips': urls['trips_groups'],
+        'bioproject_gwips': urls['gwips_groups'],
+        'bioproject_gwips_native': urls['gwips_native_groups'],
     }
     return render(request, 'main/study.html', context)
 

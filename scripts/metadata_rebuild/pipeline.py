@@ -4,6 +4,7 @@ Rebuild the portal database end to end.
     python -m metadata_rebuild.pipeline               # fetch, build, verify
     python -m metadata_rebuild.pipeline --install     # ... and install it
     python -m metadata_rebuild.pipeline --skip-fetch  # reuse the SRA cache
+    python -m metadata_rebuild.pipeline --install-only  # verify + install, no rebuild
 
 Steps:
   baseline  extract the October 2024 database from git (the last load before
@@ -15,6 +16,11 @@ Steps:
   install   back up the live database and put the new one in its place
 
 Everything except `install` leaves the live database untouched.
+
+`--install` rebuilds first, so it discards anything applied to the built
+database after the build - the curator decisions from
+apply_review_decisions.py, above all. Use `--install-only` to verify and
+install what is already in the output directory.
 """
 import argparse
 import shutil
@@ -170,24 +176,33 @@ def main(argv=None):
     p.add_argument('--offline', action='store_true',
                    help='Skip PubMed/BioProject lookups for study details')
     p.add_argument('--install', action='store_true',
-                   help='Install the built database as the live one')
+                   help='Rebuild, then install the result as the live database')
+    p.add_argument('--install-only', action='store_true',
+                   help='Verify and install the existing build without '
+                        'rebuilding it, keeping any patches applied to it')
     p.add_argument('--live-db', type=Path, default=LIVE_DB)
     args = p.parse_args(argv)
     cache = args.cache or args.out / 'sra_cache'
 
     started = time.time()
-    baseline = step_baseline(args.out)
-    if args.skip_fetch:
-        log('fetch', f'skipped; using {cache}')
+    install = args.install or args.install_only
+    if args.install_only:
+        # Verify and install what is already there. Rebuilding would throw
+        # away the review decisions patched in after the build.
+        log('build', f'skipped; installing {args.out / "output"} as built')
     else:
-        step_fetch(cache, args.workers, args.api_key)
-    step_build(args.out, baseline, cache, args.release, args.offline,
-               args.api_key)
+        baseline = step_baseline(args.out)
+        if args.skip_fetch:
+            log('fetch', f'skipped; using {cache}')
+        else:
+            step_fetch(cache, args.workers, args.api_key)
+        step_build(args.out, baseline, cache, args.release, args.offline,
+                   args.api_key)
     problems = step_verify(args.out, args.live_db)
-    if problems and args.install:
+    if problems and install:
         log('install', 'skipped: verification found problems')
         return 1
-    if args.install:
+    if install:
         step_install(args.out, args.live_db)
     log('done', f'{time.time() - started:.0f}s; reports in '
                 f'{args.out / "output"}')

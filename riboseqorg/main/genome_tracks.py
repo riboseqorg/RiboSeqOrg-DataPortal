@@ -156,11 +156,18 @@ def selection_links(samples, selection: dict) -> list:
     - (list): dicts with clean_organism, link and runs (number with tracks)
     '''
     counts: dict = {}
-    for sample in samples.only('Run', 'ScientificName', 'BioProject'):
+    # A queryset can be trimmed to the three fields this needs; a list of
+    # already-loaded samples (the study page) is used as it is.
+    rows = (samples.only('Run', 'ScientificName', 'BioProject')
+            if hasattr(samples, 'only') else samples)
+    for sample in rows:
         if has_tracks(sample):
             counts[sample.ScientificName] = counts.get(sample.ScientificName, 0) + 1
+    # `clean_organism` is what links.html already reads; `organism` is the
+    # key the shared viewer-button partial uses for every viewer.
     return [{
         'clean_organism': organism,
+        'organism': organism,
         'link': selection_link(organism, selection),
         'runs': n,
     } for organism, n in sorted(counts.items(), key=lambda item: -item[1])]
