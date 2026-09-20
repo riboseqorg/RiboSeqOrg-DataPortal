@@ -136,3 +136,11 @@ data/
 *bak*
 *.bkp
 *broken*
+# macOS
+.DS_Store
+
+# Claude Code launch config (machine-specific paths)
+.claude/
+
+# Local sqlite schema dump
+/schema
