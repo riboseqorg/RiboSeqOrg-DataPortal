@@ -1,0 +1,8 @@
+<div class="d-flex align-items-center gap-2 small text-muted">
+    <label for="per-page-{{ id|default:'main' }}" class="text-nowrap">Rows per page</label>
+    <select class="form-select form-select-sm w-auto" id="per-page-{{ id|default:'main' }}" data-per-page>
+        <option value="25" {% if request.GET.per_page != '50' and request.GET.per_page != '100' %}selected{% endif %}>25</option>
+        <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50</option>
+        <option value="100" {% if request.GET.per_page == '100' %}selected{% endif %}>100</option>
+    </select>
+</div>

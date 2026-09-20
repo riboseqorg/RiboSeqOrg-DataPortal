@@ -1,0 +1,287 @@
+column,value,suggestion,rule,rows,status,note
+Adapter,0.0,,missing_marker,13870,proposed,
+Age,0.0,,missing_marker,11579,proposed,Numeric column: confirm 0.0 is not a real measurement.
+Age,Adult,adult,spelling_variant,6,proposed,Other spellings of this value exist; suggest 'adult'.
+Age,young,Young,spelling_variant,4,proposed,Other spellings of this value exist; suggest 'Young'.
+Age,8 weeks,8 weeks,whitespace,16,proposed,
+Antibody,0.0,,missing_marker,13940,proposed,
+Antibody,Null,,missing_marker,1,proposed,
+Antibody,none,,missing_marker,8,proposed,
+Barcode,0.0,,missing_marker,13805,proposed,
+CELL_LINE,0.0,,missing_marker,8409,proposed,
+CELL_LINE,NA_17Cl1,17Cl1,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Adult neural stem cells,Adult neural stem cells,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_AgRP+ ARH neurons,AgRP+ ARH neurons,na_prefix,17,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_B cell,B cell,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_BMDC,BMDC,na_prefix,12,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Bacterial cell,Bacterial cell,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_CD4 T-cells,CD4 T-cells,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_CD8+ T cells,CD8+ T cells,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Cortical neuron sorted from brain,Cortical neuron sorted from brain,na_prefix,9,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_EL4,EL4,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_ES,ES,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_ES cell derived neurons,ES cell derived neurons,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Embryonic kidney 293 cell,Embryonic kidney 293 cell,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Embryonic stem cell,Embryonic stem cell,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Erythroid progenitors,Erythroid progenitors,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_GV oocyte,GV oocyte,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_HEK-TtH cells stably expressing fused ER:HRasG12V,HEK-TtH cells stably expressing fused ER:HRasG12V,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_HFSC organoid culture,HFSC organoid culture,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_HSPC,HSPC,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Human CD14+ monocytes,Human CD14+ monocytes,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_ICM,ICM,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_LN CD19+ B cells,LN CD19+ B cells,na_prefix,10,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Late-stage oocytes,Late-stage oocytes,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Liver - whole organ,Liver - whole organ,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Lung - whole organ,Lung - whole organ,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_MEF expressing SV40 T,MEF expressing SV40 T,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_MI oocyte,MI oocyte,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_MII oocyte,MII oocyte,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Macrophage,macrophage,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Mettl1 knockdown,Mettl1 knockdown,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Mutiple Myeloma,Mutiple Myeloma,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Nasopharyngeal carcinoma 5-8F cells,Nasopharyngeal carcinoma 5-8F cells,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Neuronally differentiated SH-SY5Y,Neuronally differentiated SH-SY5Y,na_prefix,5,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Primary Keratinocytes,Primary Keratinocytes,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Primary basophilic erythroblasts,Primary basophilic erythroblasts,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Primary hippocampal neurons,Primary hippocampal neurons,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Primary keratinocytes from P0 back skin,Primary keratinocytes from P0 back skin,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_RD,RD,na_prefix,22,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_SK1,SK1,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Spontaneously Immortalized Mouse Keratinocyte Culture,Spontaneously Immortalized Mouse Keratinocyte Culture,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Squamous cell carcinoma,Squamous cell carcinoma,na_prefix,15,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Striatal,Striatal,na_prefix,9,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_T-cell,T-cell,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_TS543 glioblastoma,TS543 glioblastoma,na_prefix,10,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Thymocytes,Thymocytes,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Yeast cells,Yeast cells,na_prefix,5,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_Yeast whole cells,Yeast whole cells,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_all cells,all cells,na_prefix,9,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_archaea,archaea,na_prefix,5,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_archaeal cell,archaeal cell,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_bacteria,bacteria,na_prefix,12,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_bacterial cell,bacterial cell,na_prefix,13,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_blastocyst,blastocyst,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_bone marrow-derived macrophages (BMDMs)_immortalized primary cells,bone marrow-derived macrophages (BMDMs)_immortalized primary cells,na_prefix,9,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_cell line,cell line,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_early prediv M2G,early prediv M2G,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_early stalk M2G,early stalk M2G,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_embryonic stem (ES) cells,embryonic stem (ES) cells,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_embryonic stem cells,embryonic stem cells,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_epiblast like cells,epiblast like cells,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_excitatory neurons,excitatory neurons,na_prefix,11,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_fungal cells,fungal cells,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_hASC,hASC,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_immortalized bronchial epithelial cells,immortalized bronchial epithelial cells,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_inhibitory neurons,inhibitory neurons,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_late prediv M2G,late prediv M2G,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_late stalk M2G,late stalk M2G,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_lymphocyte of B lineage,lymphocyte of B lineage,na_prefix,7,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_morula,morula,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_mouse embryonic stem cell line,mouse embryonic stem cell line,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_mouse embryonic stem cells,mouse embryonic stem cells,na_prefix,24,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_n/a,n/a,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_neuron,neuron,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_neurons,neurons,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_oocyte,oocyte,na_prefix,10,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_patient-derived glioma stem cell,patient-derived glioma stem cell,na_prefix,5,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_post division M2G,post division M2G,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_primary B cell,primary B cell,na_prefix,9,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_primary neuronal culture (cortical),primary neuronal culture (cortical),na_prefix,24,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_primary splenic B cells,primary splenic B cells,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_resting state B cells,resting state B cells,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_resting state T cells,resting state T cells,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_somatic cells,somatic cells,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_swarmer M2G,swarmer M2G,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_ventricular cardiomyocytes,ventricular cardiomyocytes,na_prefix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_whole cell extract,whole cell extract,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_whole cells,whole cells,na_prefix,5,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_whole organism,whole organism,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_wild type,wild type,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_yeast,yeast,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_yeast cell,yeast cell,na_prefix,10,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,NA_yeast cells,yeast cells,na_prefix,25,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+CELL_LINE,HUVEC,huvec,spelling_variant,3,proposed,Other spellings of this value exist; suggest 'huvec'.
+CELL_LINE,hap1,HAP1,spelling_variant,16,proposed,Other spellings of this value exist; suggest 'HAP1'.
+CONDITION,0.0,,missing_marker,1180,proposed,
+Cancer,0.0,,missing_marker,13755,proposed,
+Disease,0.0,,missing_marker,13976,proposed,
+Dose,0.0,,missing_marker,13818,proposed,Numeric column: confirm 0.0 is not a real measurement.
+Ethnicity,0.0,,missing_marker,13976,proposed,
+Ethnicity,Caucasian,caucasian,spelling_variant,4,proposed,Other spellings of this value exist; suggest 'caucasian'.
+FRACTION,40s_40s,40s,duplicated_join,25,proposed,
+FRACTION,80s_80s,80S,duplicated_join,26,proposed,
+FRACTION,Ribosome protected fragments 25-34nt_Ribosome protected fragments 25-34nt,Ribosome protected fragments 25-34nt,duplicated_join,4,proposed,
+FRACTION,ribosome footprints_ribosome footprints,ribosome footprints,duplicated_join,3,proposed,
+FRACTION,ribosome protected fragments_ribosome protected fragments,ribosome protected fragments,duplicated_join,54,proposed,
+FRACTION,0.0,,missing_marker,12580,proposed,
+FRACTION,Ribosome protected fragments,ribosome protected fragments,spelling_variant,11,proposed,Other spellings of this value exist; suggest 'ribosome protected fragments'.
+FRACTION,total RNA,Total RNA,spelling_variant,4,proposed,Other spellings of this value exist; suggest 'Total RNA'.
+Feeding,0.0,,missing_marker,13089,proposed,
+GENE,0.0,,missing_marker,13365,proposed,
+Genotype,DWEORG1 mutant_DWEORG1 mutant,DWEORG1 mutant,duplicated_join,2,proposed,
+Genotype,NEW1 knockout_NEW1 knockout,NEW1 knockout,duplicated_join,3,proposed,
+Genotype,No RyhB expression_No RyhB expression,No RyhB expression,duplicated_join,4,proposed,
+Genotype,RF1 -/-_RF1 -/-,RF1 -/-,duplicated_join,2,proposed,
+Genotype,RyhB overexpression_RyhB overexpression,RyhB overexpression,duplicated_join,4,proposed,
+Genotype,TDP43 knockdown_TDP43 knockdown,TDP43 knockdown,duplicated_join,3,proposed,
+Genotype,Ythdf2 fl/fl; Vav-iCre_Ythdf2 fl/fl; Vav-iCre,Ythdf2 fl/fl; Vav-iCre,duplicated_join,3,proposed,
+Genotype,Ythdf2 fl/fl_Ythdf2 fl/fl,Ythdf2 fl/fl,duplicated_join,3,proposed,
+Genotype,control_control,control,duplicated_join,3,proposed,
+Genotype,dabp140 knockout_dabp140 knockout,dabp140 knockout,duplicated_join,2,proposed,
+Genotype,dtrm1 knockout_dtrm1 knockout,dtrm1 knockout,duplicated_join,3,proposed,
+Genotype,dtrm10 knockout_dtrm10 knockout,dtrm10 knockout,duplicated_join,3,proposed,
+Genotype,eIF2alpha-S52A_eIF2alpha-S52A,eIF2alpha-S52A,duplicated_join,20,proposed,
+Genotype,gcn2delta_gcn2delta,gcn2delta,duplicated_join,2,proposed,
+Genotype,sty1delta_sty1delta,sty1delta,duplicated_join,20,proposed,
+Genotype,wild type genotype_wild type genotype,wild type genotype,duplicated_join,127,proposed,
+Genotype,wild type_wild type,Wild type,duplicated_join,4,proposed,
+Genotype,0.0,,missing_marker,8491,proposed,
+Genotype,none,,missing_marker,3,proposed,
+Genotype,Balb/C,BALB/c,spelling_variant,3,proposed,Other spellings of this value exist; suggest 'BALB/c'.
+Genotype,Control,control,spelling_variant,3,proposed,Other spellings of this value exist; suggest 'control'.
+Genotype,RNAseL KO,RNASEL KO,spelling_variant,3,proposed,Other spellings of this value exist; suggest 'RNASEL KO'.
+Genotype,TSC2+/-,Tsc2+/-,spelling_variant,4,proposed,Other spellings of this value exist; suggest 'Tsc2+/-'.
+Genotype,Wild-Type,wild-type,spelling_variant,10,proposed,Other spellings of this value exist; suggest 'wild-type'.
+Genotype,Wild-type,wild-type,spelling_variant,23,proposed,Other spellings of this value exist; suggest 'wild-type'.
+Genotype,Ythdf1-/-,ythdf1-/-,spelling_variant,2,proposed,Other spellings of this value exist; suggest 'ythdf1-/-'.
+Genotype,mutant,Mutant,spelling_variant,6,proposed,Other spellings of this value exist; suggest 'Mutant'.
+Genotype,wild type,Wild type,spelling_variant,281,proposed,Other spellings of this value exist; suggest 'Wild type'.
+Genotype,wildtype,Wildtype,spelling_variant,27,proposed,Other spellings of this value exist; suggest 'Wildtype'.
+Genotype,wt,WT,spelling_variant,40,proposed,Other spellings of this value exist; suggest 'WT'.
+Growth_Condition,Nitrogen source_Nitrogen source,Nitrogen source,duplicated_join,8,proposed,
+Growth_Condition,No nitrogen source_No nitrogen source,No nitrogen source,duplicated_join,8,proposed,
+Growth_Condition,0.0,,missing_marker,12475,proposed,
+Growth_Condition,none,,missing_marker,5,proposed,
+Host,0.0,,missing_marker,13937,proposed,
+Host,Missing,missing,spelling_variant,8,proposed,Other spellings of this value exist; suggest 'missing'.
+INHIBITOR,0.0,,missing_marker,8761,proposed,
+INHIBITOR,na_apidaecin,apidaecin,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+INHIBITOR,na_harringtonine-puromycin,harringtonine-puromycin,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,0.0,,missing_marker,13729,proposed,
+Individual,NA_106,106,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_107,107,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_108,108,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_109,109,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_111,111,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_113,113,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_118,118,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_119,119,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_120,120,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_122,122,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_125,125,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_127,127,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_13,13,na_prefix,5,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_14,14,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_15,15,na_prefix,6,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_16,16,na_prefix,5,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_23,23,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_24,24,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_25,25,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_26,26,na_prefix,9,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_27,27,na_prefix,8,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_28,28,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_29,29,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_43,43,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_44,44,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_45,45,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_50,50,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_51,51,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_52,52,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_53,53,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_54,54,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_70,70,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_71,71,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_72,72,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_73,73,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_74,74,na_prefix,2,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_75,75,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_76,76,na_prefix,1,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_77,77,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_78,78,na_prefix,3,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_A,A,na_prefix,36,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_B,B,na_prefix,36,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant.
+Individual,NA_1NA,1,na_prefix+na_suffix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant. Looks like a value with 'NA' appended.
+Individual,NA_2NA,2,na_prefix+na_suffix,19,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant. Looks like a value with 'NA' appended.
+Individual,NA_3NA,3,na_prefix+na_suffix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant. Looks like a value with 'NA' appended.
+Individual,NA_4NA,4,na_prefix+na_suffix,4,proposed,Looks like 'NA' joined to a value with '_'; confirm what the prefix meant. Looks like a value with 'NA' appended.
+Infected,MHV-A59_MHV-A59,MHV-A59,duplicated_join,19,proposed,
+Infected,0.0,,missing_marker,13543,proposed,
+Infected,none,,missing_marker,12,proposed,
+Infected,Mock,mock,spelling_variant,13,proposed,Other spellings of this value exist; suggest 'mock'.
+Kit,0.0,,missing_marker,13900,proposed,
+LIBRARYTYPE,0.0,,missing_marker,1022,proposed,
+Nuclease,0.0,,missing_marker,13930,proposed,
+Plasmid,0.0,,missing_marker,13760,proposed,
+REPLICATE,0.0,,missing_marker,7425,proposed,Numeric column: confirm 0.0 is not a real measurement.
+REPLICATE,10NA,10,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,11NA,11,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,12NA,12,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,13NA,13,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,14NA,14,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,15NA,15,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,16NA,16,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,17NA,17,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,18NA,18,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,1NA,1,na_suffix,61,proposed,Looks like a value with 'NA' appended.
+REPLICATE,2NA,2,na_suffix,77,proposed,Looks like a value with 'NA' appended.
+REPLICATE,3NA,3,na_suffix,10,proposed,Looks like a value with 'NA' appended.
+REPLICATE,4NA,4,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,5NA,5,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,6NA,6,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,7NA,7,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,8NA,8,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,9NA,9,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+REPLICATE,1.0,1,spelling_variant,2377,proposed,Other spellings of this value exist; suggest '1'.
+REPLICATE,2.0,2,spelling_variant,2487,proposed,Other spellings of this value exist; suggest '2'.
+REPLICATE,3.0,3,spelling_variant,740,proposed,Other spellings of this value exist; suggest '3'.
+REPLICATE,4.0,4,spelling_variant,126,proposed,Other spellings of this value exist; suggest '4'.
+REPLICATE,5.0,5,spelling_variant,49,proposed,Other spellings of this value exist; suggest '5'.
+REPLICATE,6.0,6,spelling_variant,21,proposed,Other spellings of this value exist; suggest '6'.
+REPLICATE,rep 1NA,Rep 1NA,spelling_variant,11,proposed,Other spellings of this value exist; suggest 'Rep 1NA'.
+REPLICATE,rep 2NA,Rep 2NA,spelling_variant,11,proposed,Other spellings of this value exist; suggest 'Rep 2NA'.
+REPLICATE,replicate 1NA,Replicate 1NA,spelling_variant,6,proposed,Other spellings of this value exist; suggest 'Replicate 1NA'.
+REPLICATE,replicate 2NA,Replicate 2NA,spelling_variant,6,proposed,Other spellings of this value exist; suggest 'Replicate 2NA'.
+STAGE,0.0,,missing_marker,11600,proposed,
+STAGE,Adult,adult,spelling_variant,10,proposed,Other spellings of this value exist; suggest 'adult'.
+STAGE,Diploid,diploid,spelling_variant,5,proposed,Other spellings of this value exist; suggest 'diploid'.
+STAGE,early 2-cell,Early 2-cell,spelling_variant,4,proposed,Other spellings of this value exist; suggest 'Early 2-cell'.
+Separation,0.0,,missing_marker,13463,proposed,
+Separation,na,,missing_marker,2,proposed,
+Sex,0.0,,missing_marker,12705,proposed,
+SgRNA,mixed_mixed,mixed,duplicated_join,2,proposed,
+SgRNA,0.0,,missing_marker,13982,proposed,
+ShRNA,0.0,,missing_marker,13934,proposed,
+SiRNA,0.0,,missing_marker,13962,proposed,
+SiRNA,none,,missing_marker,8,proposed,
+Stimulation,0.0,,missing_marker,13894,proposed,
+Strain,0.0,,missing_marker,7233,proposed,
+Strain,none,,missing_marker,10,proposed,
+Strain,C57Bl/6,C57BL/6,spelling_variant,11,proposed,Other spellings of this value exist; suggest 'C57BL/6'.
+Strain,WT,wt,spelling_variant,3,proposed,Other spellings of this value exist; suggest 'wt'.
+Strain,wild type,Wild type,spelling_variant,2,proposed,Other spellings of this value exist; suggest 'Wild type'.
+Strain,BY derivative MJY1171BY derivative  MJY1171,BY derivative MJY1171BY derivative MJY1171,whitespace,4,proposed,
+Strain,BY derivative MJY1173BY derivative  MJY1173,BY derivative MJY1173BY derivative MJY1173,whitespace,4,proposed,
+Stress,0.0,,missing_marker,13789,proposed,
+Stress,none,,missing_marker,81,proposed,
+TIMEPOINT,NANA,,missing_marker,11387,proposed,
+TIMEPOINT,1.0NA,1.0,na_suffix,10,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,18NA,18,na_suffix,3,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,2.5NA,2.5,na_suffix,4,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,24NA,24,na_suffix,6,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,5.0NA,5.0,na_suffix,5,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,5NA,5,na_suffix,4,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,6NA,6,na_suffix,1,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,8.0NA,8.0,na_suffix,8,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,8NA,8,na_suffix,2,proposed,Looks like a value with 'NA' appended.
+TIMEPOINT,NANA_mock,NANA_Mock,spelling_variant,2,proposed,Other spellings of this value exist; suggest 'NANA_Mock'.
+TIMEPOINT,day 0NANANA,Day 0NANANA,spelling_variant,2,proposed,Other spellings of this value exist; suggest 'Day 0NANANA'.
+TIMEPOINT,day 5NANANA,Day 5NANANA,spelling_variant,2,proposed,Other spellings of this value exist; suggest 'Day 5NANANA'.
+TISSUE,0.0,,missing_marker,4813,proposed,
+TISSUE,Inflorescence,inflorescence,spelling_variant,2,proposed,Other spellings of this value exist; suggest 'inflorescence'.
+TISSUE,whole cells,Whole cells,spelling_variant,7,proposed,Other spellings of this value exist; suggest 'Whole cells'.
+Temperature,0.0,,missing_marker,13810,proposed,Numeric column: confirm 0.0 is not a real measurement.
+UMI,0.0,,missing_marker,13919,proposed,
+microRNA,0.0,,missing_marker,13948,proposed,
+rRNA_depletion,0.0,,missing_marker,13645,proposed,
+rRNA_depletion,none,,missing_marker,2,proposed,

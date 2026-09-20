@@ -1,0 +1,105 @@
+{% load portal %}
+{% comment %}
+Filter sidebar shared by the Samples and Studies pages.
+Expects: param_options, reset_url, and optionally show_toggles plus the
+*_toggle_state context variables from the samples view.
+{% endcomment %}
+<div class="card filter-panel">
+    <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-center px-1 pb-2">
+            <span class="fw-semibold">Filters</span>
+            <div class="d-flex gap-1">
+                <button type="button"
+                        class="btn btn-sm btn-link text-muted"
+                        data-bs-toggle="popover"
+                        data-bs-placement="bottom"
+                        data-bs-trigger="focus"
+                        data-help-template="filter-help"
+                        title="How filtering works"
+                        aria-label="How filtering works">
+                    <i class="fa fa-circle-question" aria-hidden="true"></i>
+                </button>
+                <a href="{{ reset_url }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </div>
+        <div class="accordion" id="filterAccordion">
+            {% if show_toggles %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#toggle-collapse"
+                                aria-expanded="true"
+                                aria-controls="toggle-collapse">Availability</button>
+                    </h2>
+                    <div id="toggle-collapse" class="accordion-collapse collapse show">
+                        <div class="accordion-body filter-toggles">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggle-trips"
+                                       data-toggle-param="trips_id" {% if trips_toggle_state == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-trips">Available on Trips-Viz</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggle-gwips"
+                                       data-toggle-param="gwips_id" {% if gwips_toggle_state == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-gwips">Available on GWIPS-viz</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggle-fasta"
+                                       data-toggle-param="FASTA_file" {% if FASTA_file_toggle_state == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-fasta">Processed reads available</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggle-verified"
+                                       data-toggle-param="verified" {% if verified_toggle_state == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-verified">Manually verified</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% for field, options in param_options.items %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#filter-{{ forloop.counter }}"
+                                aria-expanded="false"
+                                aria-controls="filter-{{ forloop.counter }}">{{ field|label }}</button>
+                    </h2>
+                    <div id="filter-{{ forloop.counter }}" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            {% if options|length > 8 %}
+                                <input type="search"
+                                       class="form-control form-control-sm"
+                                       placeholder="Filter {{ field|lower }}…"
+                                       aria-label="Filter {{ field|lower }} options"
+                                       data-filter-list="filter-list-{{ forloop.counter }}">
+                            {% endif %}
+                            <ul class="filter-options" id="filter-list-{{ forloop.counter }}">
+                                {% for option in options %}
+                                    <li>
+                                        <a class="sidenav-link"
+                                           data-field="{{ field }}"
+                                           data-value="{% if option.value != 'None' %}{{ option.value }}{% endif %}"
+                                           href="{% if option.value != 'None' %}{% query_toggle field option.value %}{% else %}{% query_toggle field '' %}{% endif %}">
+                                            <span class="option-label">{% if option.value == 'None' %}<span class="text-muted fst-italic">Not specified</span>{% else %}{{ option.value }}{% endif %}</span>
+                                            <span class="badge rounded-pill badge-count">{{ option.count }}</span>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<template id="filter-help">
+    <p class="mb-2"><strong>Field filters.</strong> Open a field and click a value. Numbers show how many records match.</p>
+    <p class="mb-2"><strong>Combining filters.</strong> Values within a field are combined with <em>OR</em>; different fields are combined with <em>AND</em>. For example, <em>Homo sapiens</em> + <em>Mus musculus</em> + <em>Ribo-Seq</em> finds Ribo-Seq runs from either species.</p>
+    <p class="mb-0"><strong>Removing filters.</strong> Click the × on a filter above the table, or <em>Reset</em> to clear them all.</p>
+</template>

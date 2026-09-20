@@ -1,0 +1,24 @@
+{% load portal %}
+{% comment %}
+Pagination for a Django Page object.
+Expects: page (the Page) and optionally page_param (query key, default "page").
+{% endcomment %}
+{% with key=page_param|default:"page" %}
+    {% if page.paginator.num_pages > 1 %}
+        <nav aria-label="Pagination">
+            <ul class="pagination pagination-sm flex-wrap">
+                {% if page.has_previous %}
+                    <li class="page-item"><a class="page-link" href="{% query_set key 1 %}" aria-label="First page">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="{% query_set key page.previous_page_number %}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link page-status">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                </li>
+                {% if page.has_next %}
+                    <li class="page-item"><a class="page-link" href="{% query_set key page.next_page_number %}">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="{% query_set key page.paginator.num_pages %}" aria-label="Last page">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% endwith %}

@@ -1,7 +1,9 @@
 
+from functools import cached_property
+
 from django.db import models
 
-import os
+from .datafiles import find_run_file
 
 
 def generate_link(project, run, type="reads"):
@@ -17,9 +19,8 @@ def generate_link(project, run, type="reads"):
     Returns:
     - (str): the link to the file
     OR
-    - (None): if the link is not valid
+    - (""): if the link is not valid
     """
-    server_base = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"
     path_suffixes = {
         "reads": ".collapsed.fa.gz",
         "counts": "_counts.txt",
@@ -42,17 +43,10 @@ def generate_link(project, run, type="reads"):
         "bigwig (forward)": "bigwig",
         "bigwig (reverse)": "bigwig",
     }
-    project = str(project)
-    run = str(run)
-    if os.path.exists(
-            os.path.join(server_base, path_dirs[type], run[:6],
-                         run + path_suffixes[type])):
-        return f"https://rdp.ucc.ie/static2/{path_dirs[type]}/{run[:6]}/{run + path_suffixes[type]}"
-
-    elif os.path.exists(
-            os.path.join(server_base, path_dirs[type], run[:6],
-                         run + "_1" + path_suffixes[type])):
-        return f"https://rdp.ucc.ie/static2/{path_dirs[type]}/{run[:6]}/{run}_1{path_suffixes[type]}"
+    suffix = path_suffixes[type]
+    path = find_run_file(path_dirs[type], run, [suffix, "_1" + suffix])
+    if path:
+        return f"https://rdp.ucc.ie/static2/{path}"
     return ""
 
 
@@ -146,6 +140,12 @@ class Study(models.Model):
     Journal = models.CharField(max_length=200, blank=True)
     Paper_abstract = models.CharField(max_length=1500, blank=True)
     Email = models.CharField(max_length=200, blank=True)
+    # Who submitted the data, and where the credit above came from. A study
+    # with no paper is credited to its submitters, never to a guess.
+    Submitters = models.CharField(max_length=1000, blank=True)
+    Institution = models.CharField(max_length=500, blank=True)
+    Authorship_source = models.CharField(max_length=20, blank=True)
+    PMID_source = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return self.BioProject
@@ -171,7 +171,7 @@ class Sample(models.Model):
         null=True,
         )
     GEO = models.CharField(max_length=200, blank=True)
-    Run = models.CharField(max_length=200, blank=True)
+    Run = models.CharField(max_length=200, blank=True, db_index=True)
     spots = models.IntegerField(blank=True, null=True)
     bases = models.IntegerField(blank=True, null=True)
     avgLength = models.IntegerField(blank=True, null=True)
@@ -262,41 +262,41 @@ class Sample(models.Model):
     def __str__(self):
         return self.Run
 
-    @property
+    @cached_property
     def fastqc_link(self):
-        return generate_link(self.BioProject, self.Run, "fastqc")
+        return generate_link(self.BioProject_id, self.Run, "fastqc")
 
-    @property
+    @cached_property
     def fastp_link(self):
-        return generate_link(self.BioProject, self.Run, "fastp")
+        return generate_link(self.BioProject_id, self.Run, "fastp")
 
-    @property
+    @cached_property
     def adapter_report_link(self):
-        return generate_link(self.BioProject, self.Run, "adapter_report")
+        return generate_link(self.BioProject_id, self.Run, "adapter_report")
 
-    @property
+    @cached_property
     def ribometric_link(self):
-        return generate_link(self.BioProject, self.Run, "ribometric")
+        return generate_link(self.BioProject_id, self.Run, "ribometric")
 
-    @property
+    @cached_property
     def reads_link(self):
-        return generate_link(self.BioProject, self.Run, "reads")
+        return generate_link(self.BioProject_id, self.Run, "reads")
 
-    @property
+    @cached_property
     def counts_link(self):
-        return generate_link(self.BioProject, self.Run, "counts")
+        return generate_link(self.BioProject_id, self.Run, "counts")
 
-    @property
+    @cached_property
     def bam_link(self):
-        return generate_link(self.BioProject, self.Run, "bams")
+        return generate_link(self.BioProject_id, self.Run, "bams")
 
-    @property
+    @cached_property
     def bigwig_forward_link(self):
-        return generate_link(self.BioProject, self.Run, "bigwig (forward)")
+        return generate_link(self.BioProject_id, self.Run, "bigwig (forward)")
 
-    @property
+    @cached_property
     def bigwig_reverse_link(self):
-        return generate_link(self.BioProject, self.Run, "bigwig (reverse)")
+        return generate_link(self.BioProject_id, self.Run, "bigwig (reverse)")
 
 
 class OpenColumns(models.Model):
@@ -309,8 +309,8 @@ class OpenColumns(models.Model):
 
 
 class Trips(models.Model):
-    BioProject = models.CharField(max_length=100)
-    Run = models.CharField(max_length=100)
+    BioProject = models.CharField(max_length=100, db_index=True)
+    Run = models.CharField(max_length=100, db_index=True)
     Trips_id = models.CharField(max_length=100)
     file_name = models.CharField(max_length=100)
     study_name = models.CharField(max_length=100)
@@ -325,7 +325,7 @@ class Trips(models.Model):
 
 
 class GWIPS(models.Model):
-    BioProject = models.CharField(max_length=100)
+    BioProject = models.CharField(max_length=100, db_index=True)
     Organism = models.CharField(max_length=100)
     gwips_db = models.CharField(max_length=100)
     GWIPS_Elong_Suffix = models.CharField(max_length=100)
@@ -336,10 +336,10 @@ class GWIPS(models.Model):
 
 
 class RiboCrypt(models.Model):
-    BioProject = models.CharField(max_length=100)
+    BioProject = models.CharField(max_length=100, db_index=True)
     Organism = models.CharField(max_length=100)
     ribocrypt_id = models.CharField(max_length=100)
-    Run = models.CharField(max_length=100)
+    Run = models.CharField(max_length=100, db_index=True)
 
     def __str__(self):
         return f"RiboCrypt {self.pk}: {self.ribocrypt_id}"

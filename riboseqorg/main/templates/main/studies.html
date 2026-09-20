@@ -1,418 +1,111 @@
 {% extends 'main/base.html' %}
-{% load static %}
-{% block title %}Studies{% endblock %}
-{% block head_static %}
-
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/select/1.5.0/css/select.bootstrap5.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.dataTables.min.css">
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/select/1.6.2/css/select.dataTables.min.css">
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          crossorigin="anonymous">
-    <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script>
-    <link rel="stylesheet"
-          type="text/css"
-          href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
-    <script type="text/javascript"
-            charset="utf8"
-            src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
-    <link href="{% static 'css/riboseq-css.css' %}"
-          rel="stylesheet"
-          type="text/css">
-    <script>
-    //   $(document).ready(function() {
-    //       var table = $('#studies-table').DataTable({
-    //           dom: 'Plfrtip',
-    //           scrollY: '100vh',
-    //           searching: false,
-    //           paging: false,
-    //             // scrollX: true,
-    //           scrollCollapse: true,
-    //           fixedColumns: {
-    //               leftColumns: 1,
-    //           }
-    //       });
-    //   });
-      $(document).ready(function() {
-          var table = $('#studies-table').DataTable({
-              paging: false,
-              searching: false,
-              info: false,
-              scrollY: '100vh',
-              scrollX: true,
-              scrollCollapse: true,
-          });
-      });
-      function selectAll() {
-        var table = $('#studies-table').DataTable();
-        var checkboxes = table.column(0).nodes().to$().find('input[type="checkbox"]');
-        
-        for (var i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-                checkboxes[i].checked = false;
-            } else
-            checkboxes[i].checked = true;
-        }
-      }
-      function updateAccordion(ulId, inputId) {
-        // Get the UL element
-        var ul = document.getElementById(ulId);
-
-        // Get the input element
-        var input = document.getElementById(inputId);
-
-        // Get the filter value
-        var filter = input.value.toUpperCase();
-
-        // Get the list items
-        var li = ul.getElementsByTagName('li');
-
-        // Loop through all list items, and hide or show them based on the filter
-        for (var i = 0; i < li.length; i++) {
-            var a = li[i].getElementsByTagName("a")[0];
-            var txtValue = a.textContent || a.innerText;
-
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            li[i].style.display = "";
-            } else {
-            li[i].style.display = "none";
-            }
-        }
-    }
-    function redirectToLink(element, url, field, value) {
-        // Get the current state of the toggle
-        const toggleState = element.checked;
-
-        // Construct the query string parameter for the toggle state
-        const toggleParam = `${field}=${encodeURIComponent(value)}`;
-
-        // Get the current URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-
-        // Update the toggle state in the URL parameters
-        if (toggleState) {
-            urlParams.set(field, value);
-        } else {
-            urlParams.delete(field);
-        }
-
-        // Construct the new URL with the updated toggle state
-        const newURL = `${url}?${urlParams.toString()}`;
-
-        // Redirect to the new URL
-        window.location.href = newURL;
-    }
-    function checkform() {
-        var table = document.getElementById('studies-table');
-        var checkboxes = table.querySelectorAll('input[type="checkbox"]');
-        var form = document.forms['study_select'];
-        var atleastOneChecked = false;
-
-        // Get existing hidden inputs
-        var existingInputs = form.querySelectorAll('input[type="hidden"][name="bioproject"]');
-        
-        for (var i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-                atleastOneChecked = true;
-                var value = checkboxes[i].value;
-                
-                // Check if this value already exists in hidden inputs
-                var valueExists = Array.from(existingInputs).some(input => input.value === value);
-                
-                if (!valueExists) {
-                    var hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'bioproject';
-                    hiddenInput.value = value;
-                    form.appendChild(hiddenInput);
-                    // Add the new input to our list of existing inputs
-                    existingInputs = form.querySelectorAll('input[type="hidden"][name="bioproject"]');
-                }
-            }
-        }
-        
-        // Remove hidden inputs for unchecked boxes
-        existingInputs.forEach(function(input) {
-            if (!Array.from(checkboxes).some(checkbox => checkbox.checked && checkbox.value === input.value)) {
-                form.removeChild(input);
-            }
-        });
-
-        document.getElementById('submit').disabled = !atleastOneChecked;
-        document.getElementById('metadata').disabled = !atleastOneChecked;
-    }
-    window.onload = checkform;
-    document.addEventListener('DOMContentLoaded', function() {
-            var popoverContent = `
-                    <div style="max-width: 300px;">
-                        <h6>Toggles</h6>
-                        <p>Use switches to filter samples based on availability or attributes.</p>
-                        
-                        <h6>Field Filters</h6>
-                        <ol>
-                            <li>Click a field name to expand options.</li>
-                            <li>Use the search box to find specific values.</li>
-                            <li>Click a value to filter samples.</li>
-                            <li>Numbers show matching sample count.</li>
-                        </ol>
-                        
-                        <h6>Combining Filters</h6>
-                        <p>Combine filters to refine your search.</p>
-                        <p> <u>OR operator is used within fields.</u> Example: Choosing Homo sapiens and Mus musculus will search "'Homo sapiens'[Organism] OR 'Mus musculus'[Organism]"</p>
-                        <p> <u>AND operator is used between fields.</u>  Example: Choosing Homo sapiens and PubMed will search "'Homo sapiens'[Organism] AND 'TRUE'[PubMed]"</p>
-                        
-                        <h6>Resetting Filters</h6>
-                        <p>Click "Reset" to clear all filters and start over.</p>
-                    </div>
-                `;
-
-                var popover = new bootstrap.Popover(document.getElementById('helpButton'), {
-                    html: true,
-                    content: popoverContent,
-                    sanitize: false
-                });
-            });
-    </script>
-{% endblock %}
+{% load portal %}
+{% block title %}Studies | RiboSeq Data Portal{% endblock %}
 {% block content %}
-{% include 'main/navbar.html' %}
-    <section id="database">
-        <div id="side-panel" style="padding-bottom: 5px;">
-            <a class="btn btn-primary"
-               data-bs-toggle="collapse"
-               href="#side-panel-collapse"
-               role="button"
-               aria-expanded="false"
-               aria-controls="side-panel-collapse">Toggle Filters</a>
+    <div class="container-fluid site-gutter">
+        <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-2">
+            <div>
+                <h1>Studies</h1>
+                <p class="lead">{{ page_obj.paginator.count|thousands }} stud{{ page_obj.paginator.count|pluralize:"y,ies" }} match the current filters</p>
+            </div>
+            <button class="btn btn-outline-secondary d-lg-none"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#filterCollapse"
+                    aria-expanded="false"
+                    aria-controls="filterCollapse">
+                <i class="fa fa-filter me-1" aria-hidden="true"></i>Filters
+            </button>
         </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="collapse show" id="side-panel-collapse">
-                    <div class="col-md-3 d-md-block order-1" style="width: 250px; float: left">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-3">
-                                    <a href="{% url 'studies' %}" class="btn btn-secondary">Reset</a>
-                                    <button type="button" class="btn btn-outline-dark" id="helpButton" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="focus" title="How to Use the Filter Panel">
-                                        ⓘ
-                                    </button>
-                                </div>
-                                <div class="mb-3 accordion", id="filterAccordion">
-                                    {% for field, options in param_options.items %}
-                                        <h2 class="accordion-header" id="{{ field }}">
-                                            <button class="accordion-button bg-default"
-                                                    type="button"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#{{ field }}-collapse"
-                                                    aria-expanded="false"
-                                                    aria-controls="{{ field }}-collapse">{{ field }}</button>
-                                        </h2>
-                                        <div id="{{ field }}-collapse"
-                                             class="accordion-collapse collapse"
-                                             aria-labelledby="{{ field }}"
-                                             data-bs-parent="#filterAccordion"
-                                             data-live-search="true"
-                                             style="width: 98%">
-                                            <div class="accordion-body" style="padding: 0 0;">
-                                                <input type="text"
-                                                       id="{{ field }}-Input"
-                                                       onkeyup="updateAccordion('{{ field }}-UL','{{ field }}-Input')"
-                                                       placeholder="Search for names.."
-                                                       style="max-width: 100%;
-                                                              justify-content: center"
-                                                       class="form-control">
-                                                <ul class="list-group overflow-auto"
-                                                    id="{{ field }}-UL"
-                                                    style="list-style-type: none">
-                                                    {% for option in options %}
-                                                        {% url 'studies' as url %}
-                                                        <li style="width: 100%"
-                                                            class="list-group-item justify-content-between align-items-center"
-                                                            style="justify-content: space-between">
-                                                            <div>
-                                                                <a class="sidenav-link link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
-                                                                   href="{{ url }}?{{ request.GET.urlencode }}&{{ field }}={% if option.value != 'None' %}{{ option.value|urlencode }}{% else %}{% endif %}">
-                                                                    {{ option.value }}
-                                                                </a>
-                                                            </div>
-                                                            <div style="display: inline;">
-                                                                <span class="badge bg-success rounded-pill">{{ option.count }}</span>
-                                                            </div>
-                                                        </li>
-                                                    {% endfor %}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="row g-4">
+            <aside class="col-lg-3 col-xxl-2">
+                <div class="collapse d-lg-block" id="filterCollapse">
+                    {% url 'studies' as reset_url %}
+                    {% include 'main/_filter_panel.html' with reset_url=reset_url %}
                 </div>
-
-                <!-- Table column -->
-                <div class="col-md-9 order-2">
-                    <div class="fw-container">
-                        <div class="fw-body">
-                            <div class="content">
-                                <form action="{% url 'sample_select_form' %}" method="get" name="study_select">
-                                    <div class="fw-header d-flex flex-column flex-md-row align-items-start align-items-md-center">
-                                        <h1 class="flex-grow-1 mb-3 mb-md-0">Studies</h1>
-                                        <div class="d-flex flex-column flex-md-row">
-                                          <button type="button" class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="selectAll(); checkform()">Select All</button>
-                                        <div class="dropdown">
-                                            <button class="btn btn-primary dropdown-toggle" type="button" id="studyOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                              <i class="fas fa-cog me-2"></i>Options
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="studyOptionsDropdown">
-                                              <li>
-                                                <h6 class="dropdown-header">Actions</h6>
-                                              </li>
-                                              <li>
-                                                <button type="submit" class="dropdown-item d-flex align-items-center" name="download-metadata" value="{{ request.GET.urlencode }}">
-                                                  <i class="fas fa-download me-2 text-primary"></i>
-                                                  <span>Download All Metadata</span>
-                                                </button>
-                                              </li>
-                                              <li>
-                                                <button type="submit" class="dropdown-item d-flex align-items-center" name="query" value="{{ request.GET.urlencode }}">
-                                                  <i class="fas fa-search me-2 text-primary"></i>
-                                                  <span>Explore All Studies</span>
-                                                </button>
-                                              </li>
-                                            </ul>
-                                          </div>
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <table id="studies-table"
-                                           class="table table-striped nowrap"
-                                           style="width:90%;
-                                                  margin-left:auto;
-                                                  margin-right:auto">
-                                        <thead>
-                                            <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for study in page_obj %}
-                                                <tr>
-                                                    <td style="background-color: rgba(255, 255, 255, 1); width: 20px;">
-                                                        <input type="checkbox" name="bioproject" value="{{ study.BioProject }}" onchange="checkform()"/>
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="/Study/{{ study.BioProject }}">{{ study.Name }}</a>
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ study.BioProject }}">{{ study.BioProject }}</a>
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ study.ScientificName }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Samples }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">{{ study.Release_Date }}</td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}">{{ study.SRA }}</a>
-                                                    </td>
-                                                    <td style="background-color: rgba(255, 255, 255, 1);">
-                                                        <a href="https://www.ncbi.nlm.nih.gov/sra/{{ study.SRA }}">{{ study.SRA }}</a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th style="background-color: rgba(255, 255, 255, 1); width: 20px;" scope="col"></th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Name</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Study Accession</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Organism</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);"># Samples</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">Date</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">ENA</th>
-                                                <th style="background-color: rgba(255, 255, 255, 1);">SRA</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                                        <nav aria-label="Page navigation example" class="mb-3 mb-md-0">
-                                            <ul class="pagination">
-                                                {% if page_obj.has_previous %}
-                                                    <li class="page-item">
-                                                        <a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a>
-                                                    </li>
-                                                    <li class="page-item">
-                                                        <a class="page-link"
-                                                        href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
-                                                    </li>
-                                                {% endif %}
-                                                <span class="current">
-                                                    <li class="page-item">
-                                                        <a class="page-link active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
-                                                    </li>
-                                                </span>
-                                                {% if page_obj.has_next %}
-                                                    <li class="page-item">
-                                                        <a class="page-link"
-                                                        href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
-                                                    </li>
-                                                    <li class="page-item">
-                                                        <a class="page-link"
-                                                        href="{{ url }}?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
-                                                    </li>
-                                                {% endif %}
-                                            </ul>
-                                        </nav>
-                                        <div class="d-flex justify-content-end">
-                                            <div class="btn-group">
-                                                <button type="submit" class="btn btn-primary" id="submit" name="links">Generate Links</button>
-                                            </div>
-                                            <div class="btn-group">
-                                                <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
-                                            </div>
-                                        </div>
-
-                                </form>
+            </aside>
+            <div class="col-lg-9 col-xxl-10">
+                <div id="filters" class="active-filters" aria-label="Active filters"></div>
+                <form action="{% url 'sample_select_form' %}" method="get" name="study_select" data-selection-form>
+                    <div class="results-toolbar">
+                        <span class="text-muted small" data-selection-count data-noun="study" data-noun-plural="studies">No studies selected</span>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm" name="links" data-busy-label="Preparing…" data-needs-selection disabled>
+                                Download &amp; Visualise selected<i class="fa fa-arrow-right ms-1" aria-hidden="true"></i>
+                            </button>
+                            <button type="submit" class="btn btn-outline-primary btn-sm" name="metadata" data-download data-busy-label="Preparing CSV…" data-needs-selection disabled>
+                                <i class="fa fa-download me-1" aria-hidden="true"></i>Metadata for selected
+                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">All {{ page_obj.paginator.count|thousands }} results</button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li>
+                                        <button type="submit" class="dropdown-item" name="query" value="{{ request.GET.urlencode }}" data-busy-label="Preparing…">
+                                            <i class="fa fa-arrow-right me-2 text-primary" aria-hidden="true"></i>Download &amp; Visualise all results
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button type="submit" class="dropdown-item" name="download-metadata" value="{{ request.GET.urlencode }}" data-download data-busy-label="Preparing CSV…">
+                                            <i class="fa fa-download me-2 text-primary" aria-hidden="true"></i>Download metadata for all results
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
-
                         </div>
                     </div>
+                    <div class="table-wrap">
+                        <table class="table table-hover data-table" id="studies-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-check" scope="col">
+                                        <input type="checkbox" class="form-check-input" data-check-all aria-label="Select all studies on this page">
+                                    </th>
+                                    {% sort_header 'name' 'Name' %}
+                                    {% sort_header 'bioproject' 'BioProject' %}
+                                    {% sort_header 'organism' 'Organism' %}
+                                    {% sort_header 'samples' 'Samples' 'text-end' %}
+                                    {% sort_header 'released' 'Released' %}
+                                    {% sort_header 'sra' 'SRA / ENA' %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for study in page_obj %}
+                                    <tr>
+                                        <td class="col-check">
+                                            <input type="checkbox" class="form-check-input" name="bioproject" value="{{ study.BioProject }}" aria-label="Select {{ study.BioProject }}">
+                                        </td>
+                                        <td><a href="{% url 'study' study.BioProject %}">{{ study.Name }}</a></td>
+                                        <td class="col-id">
+                                            <a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ study.BioProject }}" title="Open in NCBI BioProject">{{ study.BioProject }}</a>
+                                        </td>
+                                        <td><em>{{ study.ScientificName }}</em></td>
+                                        <td class="text-end">{{ study.Samples }}</td>
+                                        <td class="col-id">{{ study.Release_Date|short_date|default:"–" }}</td>
+                                        <td class="col-id">
+                                            <a href="https://www.ncbi.nlm.nih.gov/sra/{{ study.SRA }}" title="Open in SRA">{{ study.SRA }}</a>
+                                            <a href="https://ebi.ac.uk/ena/browser/view/{{ study.SRA }}" class="small ms-1" title="Open in ENA">ENA</a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-5">No studies match these filters. <a href="{% url 'studies' %}">Reset filters</a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+                <div class="results-footer">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        {% include 'main/_pagination.html' with page=page_obj %}
+                        {% include 'main/_page_size.html' %}
+                    </div>
+                    <span class="small text-muted"><i class="fa fa-circle-info me-1" aria-hidden="true"></i>Column definitions are on the <a href="{% url 'about' %}#study-descriptions">About page</a>.</span>
                 </div>
             </div>
         </div>
-        <div>
-            <p> ⓘ For more Information on the columns shown here see: <a href="/about#study-descriptions">About</a></p>
-        </div>
-        </section>
-        <script>
-            document.forms['sample_select'].addEventListener('submit', function(event) {
-                checkform();
-            });
-        </script>
-    {% endblock %}
+    </div>
+{% endblock %}

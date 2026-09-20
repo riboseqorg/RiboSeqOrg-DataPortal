@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'files')
@@ -26,13 +28,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-local-dev-only")
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['*']
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "Set DJANGO_SECRET_KEY (or DJANGO_DEBUG=True for local development)")
+    SECRET_KEY = "django-insecure-local-dev-only"
+
+# Comma-separated, e.g. DJANGO_ALLOWED_HOSTS=rdp.ucc.ie,localhost
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS", "rdp.ucc.ie,localhost,127.0.0.1").split(",")
 
 # Application definition
 
@@ -149,5 +158,17 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Public address of the site, used in links that external sites fetch
+# (e.g. genome browser track files)
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://rdp.ucc.ie")
+
+# Processed files (reads, bams, bigwigs, reports) served under /static2/
+RIBOSEQORG_DATA_DIR = os.environ.get(
+    "RIBOSEQORG_DATA_DIR", "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg")
+
+# Seconds to cache directory listings of RIBOSEQORG_DATA_DIR, so file links
+# don't need a filesystem check per sample per file type
+DATA_DIR_LISTING_TTL = int(os.environ.get("DATA_DIR_LISTING_TTL", "300"))
 
 SESSION_COOKIE_SECURE = True

@@ -1,223 +1,98 @@
 {% extends 'main/base.html' %}
-{% load static %}
-{% block title %}Datasets{% endblock %}
-{% block head_static %}
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.1.0/css/searchPanes.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.5.0/css/select.bootstrap5.min.css">
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          crossorigin="anonymous">
-    <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
-    <link href="{% static 'css/riboseq-css.css' %}"
-        rel="stylesheet"
-        type="text/css">
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
-{% endblock %}
+{% load portal %}
+{% block title %}{{ Sample.Run }} | RiboSeq Data Portal{% endblock %}
+{% block og_title %}{{ Sample.Run }} · RiboSeq Data Portal{% endblock %}
+{% block og_description %}{% if Sample.sample_title|present %}{{ Sample.sample_title }}{% else %}Ribo-Seq sample {{ Sample.Run }} from {{ Sample.BioProject_id }}{% endif %}{% endblock %}
+{% block description %}{% if Sample.sample_title|present %}{{ Sample.sample_title }}{% else %}Ribo-Seq sample {{ Sample.Run }} from {{ Sample.BioProject_id }}{% endif %}{% endblock %}
 {% block content %}
-{% include 'main/navbar.html' %}
+    <div class="container-xl site-gutter">
+        <nav aria-label="breadcrumb" class="pt-3">
+            <ol class="breadcrumb small mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'samples' %}">Samples</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'study' Sample.BioProject_id %}">{{ Sample.BioProject_id }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ Sample.Run }}</li>
+            </ol>
+        </nav>
+        <div class="page-header">
+            <h1>{{ Sample.Run }}</h1>
+            {% if Sample.sample_title|present %}<p class="lead text-break-anywhere">{{ Sample.sample_title }}</p>{% endif %}
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a class="id-pill" href="{% url 'study' Sample.BioProject_id %}" title="View study">{{ Sample.BioProject_id }}</a>
+                {% if Sample.ScientificName|present %}<span class="status-pill"><em>{{ Sample.ScientificName }}</em></span>{% endif %}
+                {% if Sample.LIBRARYTYPE|present %}<span class="status-pill">{{ Sample.LIBRARYTYPE }}</span>{% endif %}
+                {% if Sample.process_status|present %}
+                    <span class="status-pill">
+                        {% if Sample.process_status == 'Completed' %}<i class="fa fa-circle-check text-primary" aria-hidden="true"></i>{% else %}<i class="fa fa-clock" aria-hidden="true"></i>{% endif %}
+                        Processing: {{ Sample.process_status }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
 
-    <section id="study">
-        <h1>{{ Sample.Run }} (<a href="/Study/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a>)</h1>
-        <h4><b>Processing Status:</b>  {{ Sample.process_status }}</h4>
-        <h4>General Details</h4>
-        <p><a href="/reports/{{ Sample.Run }}" >View quality reports</a></p>
-        <table class="table table-bordered" id="study-general">
-            <tr>
-                <th>Sample Name</th>
-                <td>{{ Sample.SampleName }}</td>
-            </tr>
-            <tr>
-                <th>Organism</th>
-                <td>{{ Sample.ScientificName }}</td>
-            </tr>
-            <tr>
-                <th>Release Date</th>
-                <td>{{ Sample.MONTH }}/{{ Sample.YEAR }}</td>
-            </tr>
-        </table>
-        <h4>Sample Links</h4>
-        <table class="table table-bordered" id="study-links">
-            <tr>
-                <th>GWIPS-viz</th>
-                <th>Trips-Viz</th>
-                <!-- <th>RiboCrypt</th> -->
-                <th>Custom Track</th>
-            </tr>
-            <tr>
-                <td><a href="{{ trips }}">{{ trips_name }}</a></td>
-                <td><a href="{{ gwips }}">{{ gwips_name }}</a></td>
-                <!-- <td><a href="{{ ribocrypt }}">{{ ribocrypt_name }}</a></td> -->
-                <td><a href="{{ request.path }}custom">{{ custom_track }}</a></td>
-            </tr>
-        </table> 
-        <h4>Run Details</h4>
-        <table class="table table-bordered" id="sample-run">
-            <tr>
-                <th>Spots</th>
-                <td>{{ Sample.spots }}</td>
-            </tr>
-            <tr>
-                <th>Total Bases</th>
-                <td>{{ Sample.bases }}</td>
-            </tr>
-            <tr>
-                <th>Total Bases</th>
-                <td>{{ Sample.bases }}</td>
-            </tr>
-        </table>
-        <h4>Repository Details</h4>
-        <table class="table table-bordered" id="sample-repos">
-            <tr>
-                <th>SRA</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/sra/{{ Sample.Run }}">{{ Sample.Run }}</a></td>
-            </tr>
-            <tr>
-                <th>ENA</th>
-                <td><a href="https://ebi.ac.uk/ena/browser/view/{{ Sample.Run }}">{{ Sample.Run}}</a></td>
-            <tr>
-                <th>BioProject</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ Sample.BioProject }}">{{ Sample.BioProject }}</a></td>
-            </tr>
-        </table>
-        <h4>Experiment Details</h4>
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-bordered" id="study-pub">
-                    <tr>
-                        <th>Title</th>
-                        <td>{{ Sample.sample_title }}</td>
-                    </tr>
-                </table>
+        <div class="row g-4">
+            <div class="col-lg-8 order-2 order-lg-1">
+                <div class="card detail-card">
+                    <div class="card-header">Sample metadata</div>
+                    <dl class="detail-list cols-2">
+                        {% for field, value in ks %}
+                            {% if value|present %}
+                                <div><dt>{{ field }}</dt><dd>{{ value }}</dd></div>
+                            {% endif %}
+                        {% endfor %}
+                    </dl>
+                </div>
+                <p class="small text-muted"><i class="fa fa-circle-info me-1" aria-hidden="true"></i>Empty fields are hidden. Field definitions are on the <a href="{% url 'about' %}#sample-descriptions">About page</a>.</p>
             </div>
-        </div>
-        <h4>Sample Details</h4>
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-bordered" id="study-pub">
-                    {% for field, value in ks %}
-                    <tr>
-                        <th>{{ field|title }}</th>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </div>
-        </div>
-        <div class="fw-container">
-            <div class="fw-header">                
-                <div class="nav-wrapper">
-                    <div class="nav-search">
-                        <div class="nav-item i-user">
-                            <div class="account"></div>
-                        </div>
+            <div class="col-lg-4 order-1 order-lg-2">
+                <div class="card detail-card">
+                    <div class="card-header">Processed files</div>
+                    <ul class="list-group list-group-flush">
+                        {% include 'main/_file_row.html' with link=Sample.reads_link label="Reads (collapsed FASTA)" %}
+                        {% include 'main/_file_row.html' with link=Sample.bam_link label="Alignments (BAM)" %}
+                        {% include 'main/_file_row.html' with link=Sample.bigwig_forward_link label="Profile, forward (BigWig)" %}
+                        {% include 'main/_file_row.html' with link=Sample.bigwig_reverse_link label="Profile, reverse (BigWig)" %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Quality reports</span>
+                            <a href="{% url 'reports' Sample.Run %}" class="btn btn-sm btn-outline-primary">View</a>
+                        </li>
+                        {% if custom_track %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>UCSC custom track</span>
+                                <a href="{% url 'custom_track' Sample.Run %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="card detail-card">
+                    <div class="card-header">Browse this sample</div>
+                    <div class="card-body d-grid gap-2">
+                        {% comment %}Two GWIPS-viz links: the study's curated tracks on GWIPS-viz, and this run's own coverage as a custom track. See viewer_links.py.{% endcomment %}
+                        {% if gwips_native_name %}
+                            <a href="{{ gwips_native }}" class="btn btn-outline-primary btn-sm" title="Curated GWIPS-viz tracks for this study"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>Open in GWIPS-viz</a>
+                        {% endif %}
+                        {% if gwips_name %}
+                            <a href="{{ gwips }}" class="btn btn-outline-primary btn-sm" title="This run's coverage from the portal, as a GWIPS-viz custom track"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>View portal tracks in GWIPS-viz</a>
+                        {% endif %}
+                        {% if not gwips_name and not gwips_native_name %}
+                            <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Not available on GWIPS-viz</button>
+                        {% endif %}
+                        {% if trips_name %}
+                            <a href="{{ trips }}" class="btn btn-outline-primary btn-sm"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>Open in Trips-Viz</a>
+                        {% else %}
+                            <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Not available on Trips-Viz</button>
+                        {% endif %}
                     </div>
                 </div>
-                <div class="nav-ad">
-                    <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
-                </div>
-            </div>
-            <div class="fw-body">
-                <div class="content">
-                    <table id="samples" class="table table-striped" style="width:100%; margin-left:auto; margin-right:auto">
-                        <thead>
-                            <tr>
-                                <th scope="col"></th>
-                                <th>Run Accession</th>
-                                <th>Study Accession</th>
-                                <th>Scientific Name</th>
-                                <th>Description</th>
-                                <th>Cell Line</th>
-                                <th>Library Type</th>
-                                <th>Treatment</th>
-                                <th>Trips-Viz</th>
-                                <th>GWIPS-viz</th>
-                                <!-- <th>RiboCrypt</th> -->
-                                <th>Reads</th>
-                                <th>BAM</th>
-                                <th>BigWig (F)</th>
-                                <th>BigWig (R)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sample in ls %}
-                                <tr>
-                                    <td><input type="checkbox" /></td>
-                                    <td>{{ sample.Run }}</td>
-                                    <td>{{ sample.Study_Accession }}</td>
-                                    <td>{{ sample.ScientificName }}</td>
-                                    <td>{{ sample.sample_source }}</td>
-                                    <td>{{ sample.CELL_LINE }}</td>
-                                    <td>{{ sample.LIBRARYTYPE }}</td>
-                                    <td>{{ sample.INHIBITOR }}</td>
-                                    {% if sample.gwips_name == "Visit GWIPS-viz" %}
-                                        <td><a href="{{ sample.gwips }}"><img src="{% static 'images/GWIPS-viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/GWIPS-viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.trips_name == "Visit Trips-Viz" %}
-                                        <td><a href="{{ sample.trips }}"><img src="{% static 'images/Trips-Viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    <!-- {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
-                                        <td><a href="{{ sample.ribocrypt }}"><img src="{% static 'images/RiboCrypt-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %} -->
-                                    {% if sample.reads_link != "" %}
-                                        <td><a href="{{ sample.reads_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bam_link != "" %}
-                                        <td><a href="{{ sample.bam_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bigwig_forward_link != "" %}
-                                        <td><a href="{{ sample.bigwig_forward_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bigwig_reverse_link != "" %}
-                                        <td><a href="{{ sample.bigwig_reverse_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th scope="col"></th>
-                                <th>Run Accession</th>
-                                <th>Study Accession</th>
-                                <th>Scientific Name</th>
-                                <th>Description</th>
-                                <th>Cell Line</th>
-                                <th>Library Type</th>
-                                <th>Treatment</th>
-                                <th>Trips-Viz</th>
-                                <th>GWIPS-viz</th>
-                                <!-- <th>RiboCrypt</th> -->
-                                <th>Reads</th>
-                                <th>BAM</th>
-                                <th>BigWig (F)</th>
-                                <th>BigWig (R)</th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="card detail-card">
+                    <div class="card-header">Repositories</div>
+                    <dl class="detail-list">
+                        <div><dt>SRA</dt><dd><a href="https://www.ncbi.nlm.nih.gov/sra/{{ Sample.Run }}">{{ Sample.Run }}</a></dd></div>
+                        <div><dt>ENA</dt><dd><a href="https://ebi.ac.uk/ena/browser/view/{{ Sample.Run }}">{{ Sample.Run }}</a></dd></div>
+                        <div><dt>BioProject</dt><dd><a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ Sample.BioProject_id }}">{{ Sample.BioProject_id }}</a></dd></div>
+                        {% if Sample.BioSample|present %}<div><dt>BioSample</dt><dd><a href="https://www.ncbi.nlm.nih.gov/biosample/{{ Sample.BioSample }}">{{ Sample.BioSample }}</a></dd></div>{% endif %}
+                    </dl>
                 </div>
             </div>
         </div>
-        <div>
-            <p> ⓘ For more Information on the columns shown here see: <a href="/about#sample-descriptions">About</a></p>
-        </div>
-    </section>
+    </div>
 {% endblock %}

@@ -1,0 +1,23 @@
+{% load static %}
+{% comment %}
+Availability and download cells for one sample row. Expects `sample` with
+the gwips_*/trips_* and *_link attributes set by attach_links().
+{% endcomment %}
+<td class="col-icon">
+    {% if sample.gwips_name == "Visit GWIPS-viz" %}
+        <a href="{{ sample.gwips_link }}" title="Open {{ sample.Run }} in GWIPS-viz"><img src="{% static 'images/GWIPS-viz-Potato.png' %}" alt="GWIPS-viz" class="resource-icon"></a>
+    {% else %}
+        <img src="{% static 'images/GWIPS-viz-Potato-Greyscale.png' %}" alt="Not on GWIPS-viz" title="Not available on GWIPS-viz" class="resource-icon is-unavailable">
+    {% endif %}
+</td>
+<td class="col-icon">
+    {% if sample.trips_name == "Visit Trips-Viz" %}
+        <a href="{{ sample.trips_link }}" title="Open {{ sample.Run }} in Trips-Viz"><img src="{% static 'images/Trips-Viz-Potato.png' %}" alt="Trips-Viz" class="resource-icon"></a>
+    {% else %}
+        <img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" alt="Not on Trips-Viz" title="Not available on Trips-Viz" class="resource-icon is-unavailable">
+    {% endif %}
+</td>
+{% include 'main/_download_cell.html' with link=sample.reads_link kind="reads" label="reads" %}
+{% include 'main/_download_cell.html' with link=sample.bam_link kind="bam" label="BAM" %}
+{% include 'main/_download_cell.html' with link=sample.bigwig_forward_link kind="bigwig" label="forward BigWig" %}
+{% include 'main/_download_cell.html' with link=sample.bigwig_reverse_link kind="bigwig" label="reverse BigWig" %}

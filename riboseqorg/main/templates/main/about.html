@@ -1,246 +1,164 @@
 {% extends 'main/base.html' %}
-{% block title %}About Us | RiboSeq.Org{% endblock %}
-{% block head_static %}
-{% load static %}
-    <style>
-        .section {
-            padding-top: 80px;
-        }
-    </style>
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          crossorigin="anonymous">
-    <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script>
-    <link href="{% static 'css/riboseq-css.css' %}"
-            rel="stylesheet"
-            type="text/css">
-{% endblock %}
+{% block title %}About | RiboSeq Data Portal{% endblock %}
 {% block content %}
-    {% include 'main/navbar.html' %}
-    <div class="container"
-         data-spy="scroll"
-         data-target="#myNavbar"
-         data-offset="70">
-        <nav>
-            <ul class="nav nav-pills">
-                <li class="nav-item">
-                    <a class="nav-link smooth-scroll" href="#vocab">Workflow</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link smooth-scroll" href="#about-us">About Us</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link smooth-scroll" href="#sample-descriptions">Sample Descriptions</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link smooth-scroll" href="#study-descriptions">Study Descriptions</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link smooth-scroll" href="#download-files">Download Files</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link smooth-scroll" href="#versions">Versions</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link smooth-scroll" href="#Funding">Funding</a>
-                </li>
-                <!-- Add more links for additional sections -->
-            </ul>
-        </nav>
-
-        <div class="section" id="about-us">
-            <h1>About Us</h1>
-            <p>
-                RiboSeq.Org is a platform for sharing and analyzing ribosome profiling data. Our goal is to provide a user-friendly interface for exploring publicly available ribosome profiling datasets and facilitating data-driven discoveries in the field of translation regulation.
-            </p>
-            <h3>Current Development Team</h3>
-            <ul>
-                <li>
-                    <a href="https://linkfree.io/JackCurragh">Jack Tierney</a>
-                </li>
-                <li>
-                    <a href="https://www.researchgate.net/profile/Michal-Swirski">Michał Świrski</a>
-                </li>
-                <li>
-                    <a href="https://www.uib.no/en/persons/H%C3%A5kon.Tjeldnes">Håkon Tjeldnes</a>
-                </li>
-                <li>
-                    <a href="https://scholar.google.com/citations?user=WxRTULsAAAAJ">Giomattia Carancini</a>
-                </li>
-                <li>
-                    <a href="https://0-scholar-google-com.brum.beds.ac.uk/citations?user=Qg_fuGYAAAAJ&hl=en">Anmol Kiran</a>
-                </li>
-                <br>
-                <li>
-                    <a href="https://valenlab.com/">Prof. Eivind Valen</a>
-                </li>
-                <li>
-                    <a href="https://lapti.ucc.ie/people.html">Prof. Pavel Baranov</a>
-                </li>
-            </ul>
-            <h3>Past Developers/Current Advisors</h3>
-            <ul>
-                <li>
-                    <a href="https://scholar.google.com/citations?user=O7YAFQ4AAAAJ">Dr. Audrey Michel</a>
-                </li>
-                <li>
-                    <a href="https://www.researchgate.net/scientific-contributions/Stephen-J-Kiniry-2133633943">Dr. Stephen Kiniry</a>
-                </li>
-            </ul>
-            <h3>Contact Us</h3>
-            <p>If you have any questions or feedback, please email us at riboseq@gmail.com.</p>
+    <div class="container-xl site-gutter">
+        <div class="page-header">
+            <h1>About the RiboSeq Data Portal</h1>
+            <p class="lead">A platform for sharing and analysing ribosome profiling data.</p>
         </div>
-        <div class="container mt-4" id="vocab">
-            <h1>Workflow Details</h1>
-            <div class="row">
-                <!-- Vocabulary Panel -->
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h2 class="card-title">Controlled Vocabularies</h2>
-                            <p class="card-text">To examine the controlled vocabularies used in RDPs Metadata Cleaning please see:</p>
-                            <div class="text-center">
-                                <a href="{% url 'vocabularies' %}" class="btn btn-primary">Vocabularies</a>
+        <div class="row g-5">
+            <nav class="col-lg-3 d-none d-lg-block" aria-label="On this page">
+                <div class="section-nav nav flex-column" id="about-nav">
+                    <a class="nav-link" href="#about-us">About us</a>
+                    <a class="nav-link" href="#workflow">Workflow details</a>
+                    <a class="nav-link" href="#sample-descriptions">Sample fields</a>
+                    <a class="nav-link" href="#study-descriptions">Study fields</a>
+                    <a class="nav-link" href="#download-files">Download files</a>
+                    <a class="nav-link" href="#versions">Versions</a>
+                    <a class="nav-link" href="#funding">Funding</a>
+                </div>
+            </nav>
+            <div class="col-lg-9" data-bs-spy="scroll" data-bs-target="#about-nav" data-bs-offset="100" tabindex="0">
+                <section class="content-section" id="about-us">
+                    <h2>About us</h2>
+                    <p>RiboSeq.Org is a platform for sharing and analysing ribosome profiling data. Our goal is to provide a user-friendly interface for exploring publicly available ribosome profiling datasets and facilitating data-driven discoveries in the field of translation regulation.</p>
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <h3 class="h6 text-uppercase text-muted">Current development team</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="https://linkfree.io/JackCurragh">Jack Tierney</a></li>
+                                <li><a href="https://www.researchgate.net/profile/Michal-Swirski">Michał Świrski</a></li>
+                                <li><a href="https://www.uib.no/en/persons/H%C3%A5kon.Tjeldnes">Håkon Tjeldnes</a></li>
+                                <li><a href="https://scholar.google.com/citations?user=WxRTULsAAAAJ">Giomattia Carancini</a></li>
+                                <li><a href="https://scholar.google.com/citations?user=Qg_fuGYAAAAJ&hl=en">Anmol Kiran</a></li>
+                                <li class="mt-2"><a href="https://valenlab.com/">Prof. Eivind Valen</a></li>
+                                <li><a href="https://lapti.ucc.ie/people.html">Prof. Pavel Baranov</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-sm-6">
+                            <h3 class="h6 text-uppercase text-muted">Past developers / current advisors</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="https://scholar.google.com/citations?user=O7YAFQ4AAAAJ">Dr. Audrey Michel</a></li>
+                                <li><a href="https://www.researchgate.net/scientific-contributions/Stephen-J-Kiniry-2133633943">Dr. Stephen Kiniry</a></li>
+                            </ul>
+                            <h3 class="h6 text-uppercase text-muted mt-4">Contact us</h3>
+                            <p class="mb-0">Questions or feedback? Email <a href="mailto:riboseq@gmail.com">riboseq@gmail.com</a>.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="content-section" id="workflow">
+                    <h2>Workflow details</h2>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <h3 class="h6">Controlled vocabularies</h3>
+                                    <p class="card-text small text-muted flex-grow-1">The vocabularies used when cleaning the portal's metadata.</p>
+                                    <a href="{% url 'vocabularies' %}" class="btn btn-outline-primary btn-sm align-self-start">View vocabularies</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <h3 class="h6">Reference genomes</h3>
+                                    <p class="card-text small text-muted flex-grow-1">The genome and annotation used to process each species.</p>
+                                    <a href="{% url 'references' %}" class="btn btn-outline-primary btn-sm align-self-start">View references</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <h3 class="h6">Tool versions</h3>
+                                    <p class="card-text small text-muted flex-grow-1">The version of each tool used in data processing.</p>
+                                    <a href="https://rdp.ucc.ie/static2/RiboSeq_Data_Portal-Tools.tsv" class="btn btn-outline-primary btn-sm align-self-start">Download (TSV)</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-    
-                <!-- Reference Details Panel -->
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h2 class="card-title">Reference Genomes</h2>
-                            <p class="card-text">To find which genome and annotation was used to process the for a given species please see:</p>
-                            <div class="text-center">
-                                <a href="{% url 'references' %}" class="btn btn-primary">References</a>
-                            </div>
-                        </div>
+                </section>
+
+                <section class="content-section" id="sample-descriptions">
+                    <h2>Sample fields</h2>
+                    <p>Fields shown on the <a href="{% url 'samples' %}">Samples page</a>:</p>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Run</dt><dd class="col-sm-9">The unique run identifier for the dataset.</dd>
+                        <dt class="col-sm-3">Study</dt><dd class="col-sm-9">The BioProject accession from which this run originated.</dd>
+                        <dt class="col-sm-3">Organism</dt><dd class="col-sm-9">The species from which the data were generated.</dd>
+                        <dt class="col-sm-3">Library type</dt><dd class="col-sm-9">The library type of this run, inferred from metadata.</dd>
+                        <dt class="col-sm-3">Inhibitor</dt><dd class="col-sm-9">The inhibitor used to stall ribosomes in the Ribo-Seq protocol.</dd>
+                        <dt class="col-sm-3">Cell line</dt><dd class="col-sm-9">The cell line used in the Ribo-Seq protocol.</dd>
+                        <dt class="col-sm-3">Sex</dt><dd class="col-sm-9">The inferred sex of the sample.</dd>
+                    </dl>
+                </section>
+
+                <section class="content-section" id="study-descriptions">
+                    <h2>Study fields</h2>
+                    <p>Fields shown on the <a href="{% url 'studies' %}">Studies page</a>:</p>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Name</dt><dd class="col-sm-9">Study name for this BioProject, typically “{First author} et al. {Year}”.</dd>
+                        <dt class="col-sm-3">BioProject</dt><dd class="col-sm-9">The unique BioProject identifier for the dataset.</dd>
+                        <dt class="col-sm-3">Organism</dt><dd class="col-sm-9">The species from which the data were generated.</dd>
+                        <dt class="col-sm-3">Samples</dt><dd class="col-sm-9">The number of unique samples in this study.</dd>
+                        <dt class="col-sm-3">Released</dt><dd class="col-sm-9">Date the data were deposited.</dd>
+                        <dt class="col-sm-3">SRA / ENA</dt><dd class="col-sm-9">Links to the study on the Sequence Read Archive and the European Nucleotide Archive.</dd>
+                    </dl>
+                </section>
+
+                <section class="content-section" id="download-files">
+                    <h2>Download files</h2>
+                    <p>The following files can be downloaded for each processed sample:</p>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Reads</dt><dd class="col-sm-9">Collapsed reads in FASTA format. Unique reads from the raw file, with counts stored in the header as <code>&gt;seq{read_number}_x{read_count}</code>.</dd>
+                        <dt class="col-sm-3">Alignment</dt><dd class="col-sm-9">Reads aligned to the reference genome, in collapsed BAM format. Read names follow the same scheme.</dd>
+                        <dt class="col-sm-3">Profiles</dt><dd class="col-sm-9">Ribosome footprint positions in <a href="https://genome.ucsc.edu/goldenPath/help/bigWig.html">BigWig format</a>, one file per strand.</dd>
+                        <dt class="col-sm-3">FastQC report</dt><dd class="col-sm-9">Quality report generated by FastQC.</dd>
+                        <dt class="col-sm-3">fastp report</dt><dd class="col-sm-9">Trimming and quality report generated by fastp.</dd>
+                    </dl>
+                </section>
+
+                <section class="content-section" id="versions">
+                    <h2>Versions</h2>
+                    <p>Metadata from each release of the portal:</p>
+                    <div class="table-wrap" style="max-width: 560px;">
+                        <table class="table data-table mb-0">
+                            <thead><tr><th scope="col">Release</th><th scope="col">Metadata</th><th scope="col"></th></tr></thead>
+                            <tbody>
+                                <tr>
+                                    <td>November 2024</td>
+                                    <td><a href="https://rdp.ucc.ie/static2/RiboSeqOrg_Metadata_v2024.11.csv">RDP-2024-11 (CSV)</a></td>
+                                    <td><span class="badge rounded-pill badge-count">Latest</span></td>
+                                </tr>
+                                <tr>
+                                    <td>October 2024</td>
+                                    <td><a href="https://rdp.ucc.ie/static2/RiboSeqOrg_Metadata_v2024.10.csv">RDP-2024-10 (CSV)</a></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>September 2024</td>
+                                    <td><a href="https://rdp.ucc.ie/static2/RiboSeqOrg_Metadata_v2024.9.csv">RDP-2024-09 (CSV)</a></td>
+                                    <td><span class="badge rounded-pill text-bg-light border">Published</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-    
-                <!-- Workflow Details Panel -->
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h2 class="card-title">Tool Versions</h2>
-                            <p class="card-text">To find which version of each tool was utilised in data processing please see:</p>
-                            <div class="text-center">
-                                <a href="https://rdp.ucc.ie/static2/RiboSeq_Data_Portal-Tools.tsv" class="btn btn-primary">Versions</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </section>
+
+                <section class="content-section" id="funding">
+                    <h2>Funding</h2>
+                    <ul>
+                        <li>Science Foundation Ireland [18/CRT/6214]</li>
+                        <li>Science Foundation Ireland [20/FFP-A/8929]</li>
+                        <li>Poland National Science Centre [UMO-2021/41/B/NZ2/03036]</li>
+                        <li>TRANSLACORE COST action (CA21154)</li>
+                        <li>Wellcome Trust [210692/Z/18/]</li>
+                        <li>Research Council of Norway [#314216]</li>
+                        <li>Wellcome Trust (open access funding)</li>
+                    </ul>
+                </section>
             </div>
         </div>
-        <div class="section" id="sample-descriptions">
-            <h1>Sample Column Descriptions</h1>
-            <p>
-                Metadata fields found in the RiboSeq Data Portal <a href="https://rdp.ucc.ie/samples">Samples Page</a>are explained below:
-            </p>
-            <ul>
-                <li>
-                    <b>Run Accession</b>: The unique run identifier for the dataset.
-                </li>
-                <li>
-                    <b>Study Accession</b>: The BioProject Accession from which this run originated.
-                </li>
-                <li>
-                    <b>Organism</b>: The species of the organism from which the data was generated.
-                </li>
-                <li>
-                    <b>Library Type</b>: The library type of this run inferred from metadata
-                </li>
-                <li>
-                    <b>Inhibitor</b>: The inhibitor used to stall ribosomes in the Ribo-Seq protocol of this run.
-                </li>
-                <li>
-                    <b>Cell Line</b>: The cell line used in the Ribo-Seq protocol of this run.
-                </li>
-                <li>
-                    <b>Sex</b>: The inferred sex of the sample
-                </li>
-            </ul>
-        </div>
-
-        <div class="section" id="study-descriptions">
-            <h1>Study Column Descriptions</h1>
-            <p>
-                Metadata fields found in the RiboSeq Data Portal <a href="https://rdp.ucc.ie/studies">Studies Page</a> are explained below:
-            </p>
-            <ul>
-                <li>
-                    <b>Name</b>: Study Name assigned to this BioProject. Typically "{First Author} et al. {Year}"
-                </li>
-                <li>
-                    <b>BioProject</b>: The BioProject unique identifier for the dataset.
-                </li>
-                <li>
-                    <b>Organism</b>: The species of the organism from which the data was generated.
-                </li>
-                <li>
-                    <b># Samples</b>: The number of unique samples for this study
-                </li>
-                <li>
-                    <b>Date</b>: Date of data deposition
-                </li>
-                <li>
-                    <b>ENA/SRA</b>: Links to the study on the Sequence Read Archive and European Nucleotide Archive
-                </li>
-            </ul>
-        </div>
-        <div class="section" id="download-files">
-            <h1>Download Files</h1>
-            <p>Users can download the following files from the RiboSeq Data Portal:</p>
-            <ul>
-                <li>
-                    <b>Reads</b>: Collapsed Read Files in FASTA format. Unique reads from raw file with counts stored in FASTA header '>seq{read_number}_x{read_count}'
-                </li>
-                <li>
-                    <b>Alignment</b>: The alignment of the reads to the reference genome in collapsed BAM format. Read name same as above
-                </li>
-                <li>
-                    <b>Profiles</b>: The ribosome footprint positions in <a href="https://genome.ucsc.edu/goldenPath/help/bigWig.html">BigWig format</a> (forward and reverse strand)
-                </li>
-                <li>
-                    <b>FastQC report</b>: Report generated by FastQC
-                </li>
-                <li>
-                    <b>FastP report</b>: Report generated by FastP
-                </li>
-            </ul>
-        </div>
-        <div class="section" id="versions">
-            <h1>RDP Versions</h1>
-            <p>Users can download the metadata from past versions:</p>
-            <ul>
-                <li>
-                    <b>September 2024</b> (Published): <a href="https://rdp.ucc.ie/static2/RiboSeqOrg_Metadata_v2024.9.csv">RDP-2024-09</a>
-                </li>
-                <li>
-                    <b>October 2024</b>: <a href="https://rdp.ucc.ie/static2/RiboSeqOrg_Metadata_v2024.11.csv">RDP-2024-11</a>
-                </li>
-                <li>
-                    <b>November 2024</b> (Latest): <a href="https://rdp.ucc.ie/static2/RiboSeqOrg_Metadata_v2024.10.csv">RDP-2024-11</a>
-                </li>
-            </ul>
-        </div>
-        <div class="section" id="funding">
-            <h1>Funding</h1>
-            <ul>
-                <li>Science Foundation Ireland [18/CRT/6214]</li>
-                <li>Science Foundation Ireland [20/FFP-A/8929]</li>
-                <li>Poland National Science Centre [UMO-2021/41/B/NZ2/03036]</li>
-                <li>TRANSLACORE COST action (CA21154)</li>
-                <li>Wellcome Trust [210692/Z/18/]</li>
-                <li>Research Council of Norway [#314216]</li>
-                <li>Wellcome Trust (open access funding)</li>
-            </ul>
-        </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 {% endblock %}

@@ -1,323 +1,173 @@
 {% extends 'main/base.html' %}
-{% block title %}RiboSeq.Org{% endblock %}
-{% load static %}
-
+{% load static portal %}
+{% block title %}Download &amp; Visualise | RiboSeq Data Portal{% endblock %}
 {% block content %}
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          crossorigin="anonymous">
-    <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <link href="{% static 'css/riboseq-css.css' %}"
-    rel="stylesheet"
-    type="text/css">
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileTypeSelect = document.getElementById('file-type-select');
-            const downloadBtn = document.getElementById('download-all-btn');
-            const baseUrl = downloadBtn.getAttribute('href');
-
-            fileTypeSelect.addEventListener('change', function() {
-                const selectedFileType = this.value;
-                downloadBtn.setAttribute('href', `${baseUrl}&file_type=${selectedFileType}`);
-            });
-        });
-    </script>
-    {% include 'main/navbar.html' %}
-    <div>
-    <section id="links">
-        <div class="fw-container">
-            <div class="fw-header">
-                <h1>Links</h1>
+    <div class="container-fluid site-gutter">
+        <div class="page-header">
+            <h1>Download &amp; Visualise</h1>
+            <p class="lead">{{ sample_results.paginator.count|thousands }} sample{{ sample_results.paginator.count|pluralize }} selected. Download the processed files or open them in a genome browser.</p>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5 card-title"><i class="fa fa-download text-primary me-2" aria-hidden="true"></i>Download files</h2>
+                        <p class="card-text text-muted">Download the available files for every sample in this selection.</p>
+                        <label for="file-type-select" class="form-label">File type</label>
+                        <div class="input-group">
+                            <select class="form-select" id="file-type-select">
+                                <option value="reads">Reads (collapsed FASTA)</option>
+                                <option value="bams">Alignments (BAM)</option>
+                                <option value="bigwigs">Profiles (BigWig)</option>
+                            </select>
+                            <a href="{% url 'download_all' %}?{{ current_url }}"
+                               class="btn btn-primary"
+                               id="download-all-btn"
+                               data-download
+                               data-busy-label="Preparing download…"
+                               data-base-href="{% url 'download_all' %}?{{ current_url }}"
+                               download>Download</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="fw-body">
-                <div class="content">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link active" id="download-tab" data-bs-toggle="tab" data-bs-target="#download" type="button" role="tab" aria-controls="download" aria-selected="true">Download</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="GWIPS-viz-tab" data-bs-toggle="tab" data-bs-target="#GWIPS-viz" type="button" role="tab" aria-controls="GWIPS-viz" aria-selected="false">GWIPS-viz</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="Trips-Viz-tab" data-bs-toggle="tab" data-bs-target="#Trips-Viz" type="button" role="tab" aria-controls="Trips-Viz" aria-selected="false">Trips-Viz</button>
-                        </li>
-                        <!-- <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="RiboCrypt-tab" data-bs-toggle="tab" data-bs-target="#RiboCrypt" type="button" role="tab" aria-controls="RiboCrypt" aria-selected="false">RiboCrypt</button>
-                          </li> -->
-                    </ul>
-                    <div class="tab-content" id="myTabContent">
-                        <div class="tab-pane fade show active" id="download" role="tabpanel" aria-labelledby="download-tab">
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <div class="card">
-                                        <img src="{% static 'images/download.png' %}" 
-                                             class="card-img-top" 
-                                             alt="Stock download image"
-                                             style="max-height:60%; max-width:60%; padding: 2%">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Download All</h5>
-                                            <p class="card-text">Download available files for all samples across all panels shown below</p>
-                                            <div class="form-group mb-3">
-                                                <label for="file-type-select">Select File Type:</label>
-                                                <select class="form-control" id="file-type-select">
-                                                    <option value="reads">Reads</option>
-                                                    <option value="bams">BAMs</option>
-                                                    <option value="bigwigs">BigWigs</option>
-                                                </select>
-                                            </div>
-                                            <a href="{% url 'download_all' %}?{{ current_url }}" 
-                                               class="btn btn-primary" 
-                                               id="download-all-btn" 
-                                               download>Download</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>                       
-                        <div class="tab-pane fade" id="GWIPS-viz" role="tabpanel" aria-labelledby="GWIPS-viz-tab">
-                            <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
-                                {% for genome in gwips %}
-                                <br>
-                                <div class="row">
-                                    <h4>{{ genome.clean_organism }}</h4>
-                                    <div class="col-sm-3">
-                                        <div class="card">
-                                            <img src="{% static 'images/GWIPS.png' %}" 
-                                                class="card-img-top" 
-                                                alt="Example image of a view in GWIPS-Viz"
-                                                style="
-                                                max-height:750px;
-                                                max-width:750px;">
-                                            <div class="card-body">
-                                            <h5 class="card-title">Visualise</h5>
-                                            <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
-                                            <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db={{ genome.gwipsDB }}&{{ genome.files }}" 
-                                            class="btn btn-primary" 
-                                            id="gwips-btn">Genomic View</a>
-                                        </div>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">
+                            <img src="{% static 'images/GWIPS-viz-Potato.png' %}" alt="" class="resource-icon me-1">GWIPS-viz
+                        </h2>
+                        <p class="card-text text-muted">View the selected datasets on the genome.</p>
+                        {% comment %}Curated GWIPS-viz tracks for studies it has loaded, then the portal's own bigWig coverage as custom tracks. See viewer_links.py.{% endcomment %}
+                        {% if gwips_native %}
+                            <ul class="list-unstyled mb-0 border-bottom pb-2">
+                                {% for study in gwips_native %}
+                                    <li class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-2">
+                                        <span>{{ study.bioproject }} <span class="fst-italic text-muted">{{ study.organism }}</span></span>
+                                        <a href="{{ study.link }}" class="btn btn-sm btn-outline-primary">GWIPS-viz tracks</a>
+                                    </li>
                                 {% endfor %}
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="Trips-Viz" role="tabpanel" aria-labelledby="Trips-Viz-tab">
-                            <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
-                                {% for transcriptome in trips %}
-                                <br>
-                                <div class="row">
-                                    <h4>{{ transcriptome.clean_organism }}</h4>
-                                    <div class="col-sm-3">
-                                        <div class="card">
-                                            <img src="{% static 'images/single_transcript_plot.png' %}" 
-                                            class="card-img-top" 
-                                            alt="Example image of single transcript plot of PEG10"
-                                            style="
-                                            max-height:750px;
-                                            max-width:750px;">
-                                            <div class="card-body">
-                                            <h5 class="card-title">Visualise</h5>
-                                            <p class="card-text">Visualise selected datasets on a transcriptome level</p>
-                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/interactive_plot/?{{ transcriptome.files}}" 
-                                            class="btn btn-primary" 
-                                            id="trips-btn">Single Transcript Plot</a>
-                                            </div>
+                            </ul>
+                        {% endif %}
+                        <ul class="list-unstyled mb-0">
+                            {% for genome in gwips %}
+                                <li class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                                    {% if genome.link %}
+                                        <span class="fst-italic">{{ genome.clean_organism }} ({{ genome.runs }} run{{ genome.runs|pluralize }})</span>
+                                        <a href="{{ genome.link }}"
+                                           class="btn btn-sm btn-outline-primary">Portal tracks</a>
+                                    {% else %}
+                                        <span class="text-muted">None of the selected runs are available on GWIPS-viz.</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100 tool-card">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">
+                            <img src="{% static 'images/Trips-Viz-Potato.png' %}" alt="" class="resource-icon me-1">Trips-Viz
+                        </h2>
+                        <p class="card-text text-muted">View the selected datasets on the transcriptome.</p>
+                        <ul class="list-unstyled mb-0">
+                            {% for transcriptome in trips %}
+                                <li class="py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                                    {% if transcriptome.files %}
+                                        <div class="fst-italic mb-2">{{ transcriptome.clean_organism }}</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/interactive_plot/?{{ transcriptome.files }}"
+                                               class="btn btn-sm btn-outline-primary">Single transcript plot</a>
+                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/metainfo_plot/?{{ transcriptome.files }}"
+                                               class="btn btn-sm btn-outline-primary">Meta-information plots</a>
                                         </div>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <div class="card">
-                                            <img src="{% static 'images/triplet_periodicity_plot.png' %}" class="card-img-top" alt="Example image of a triplet periodicity plot"
-                                            style="
-                                            max-height:750px;
-                                            max-width:750px;">
-                                            <div class="card-body">
-                                            <h5 class="card-title">Meta Information</h5>
-                                            <p class="card-text">Generate plots to understand the composition of your selection.</p>
-                                            <a href="https://trips.ucc.ie/{{ transcriptome.organism }}/{{ transcriptome.transcriptome }}/metainfo_plot/?{{ transcriptome.files}}"
-                                            class="btn btn-primary"
-                                            id="trips-meta-btn">Meta Information Plots</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <!-- <div class="tab-pane fade" id="RiboCrypt" role="tabpanel" aria-labelledby="RiboCrypt-tab">
-                            <div class="overflow-y-auto" style="max-height: 600px; overflow-x: hidden; scrollbar-width: thin;">
-
-                                {% for project in ribocrypt %}
-                                <div class="row">
-                                    <h4>{{ project.clean_organism }}</h4>
-                                    <div class="col-sm-3">
-                                        <div class="card">
-                                            <img src="{% static 'images/RiboCrypt.svg' %}" 
-                                            class="card-img-top" 
-                                            alt="Example image of a view in RiboCrypt"
-                                            style="
-                                            max-height:750px;
-                                            max-width:750px;">
-                                            <div class="card-body">
-                                            <h5 class="card-title">Visualise</h5>
-                                            <p class="card-text">Visualise selected datasets in RiboCrypt</p>
-                                            <a href="https://ribocrypt.org/?dff={{ project.dff }}&library={{ project.files }}&go=TRUE" class="btn btn-primary">Transcriptomic View</a>
-                                            <a href="https://ribocrypt.org/?dff={{ project.dff }}&library={{ project.files }}&viewMode=TRUE&go=TRUE" class="btn btn-primary">Genomic View</a>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div> -->
+                                    {% else %}
+                                        <span class="text-muted">None of the selected runs are available on Trips-Viz.</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="fw-body">
-            <div class="content" style="padding-top: 2%;">
-                <form action="{% url 'sample_select_form' %}" method="get" name="sample_select">
-                    <div style="float: right;">
-                        <button type="submit" class="btn btn-primary" id="metadata" name="metadata">Download Metadata</button>
-                        <button type="submit" class="btn btn-primary" id="submit" name="links">Subset</button>
-                    </div>
-                    <h1>Selected Entries</h1>
 
-                    <table class="table table-striped" style="width:90%;  margin-left:auto; margin-right:auto; overflow-x: auto">
-                        <thead>
-                            <tr>
-                                <th>Run Accession</th>
-                                <th>Study Accession</th>
-                                <th>Organism</th>
-                                <th>Library Type</th>
-                                <th>GWIPS-viz</th>
-                                <th>Trips-Viz</th>
-                                <!-- <th>RiboCrypt</th> -->
-                                <th>Reads</th>
-                                <th>BAM</th>
-                                <th>BigWig (F)</th>
-                                <th>BigWig (R)</th>
-
-                                <th style="background-color: rgba(255, 255, 255, 1);" scope="col"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sample in sample_results %}
-                                <tr>
-                                    <td><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                    <td><a href="/Study/{{ sample.BioProject }}">{{ sample.BioProject }}</a></td>
-                                    <td>{{ sample.ScientificName }}</td>
-                                    <td>{{ sample.LIBRARYTYPE }}</td>
-                                    {% if sample.gwips_name == "Visit GWIPS-viz" %}
-                                        <td><a href="{{ sample.gwips_link }}"><img src="{% static 'images/GWIPS-viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/GWIPS-viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.trips_name == "Visit Trips-Viz" %}
-                                        <td><a href="{{ sample.trips_link }}"><img src="{% static 'images/Trips-Viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    <!-- {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
-                                        <td><a href="{{ sample.ribocrypt_link }}"><img src="{% static 'images/RiboCrypt-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %} -->
-                                    {% if sample.reads_link != "" %}
-                                        <td><a href="{{ sample.reads_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bam_link != "" %}
-                                        <td><a href="{{ sample.bam_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bigwig_forward_link != "" %}
-                                        <td><a href="{{ sample.bigwig_forward_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bigwig_reverse_link != "" %}
-                                        <td><a href="{{ sample.bigwig_reverse_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <nav aria-label="Page navigation example">
-                        <ul class="pagination">
-                            {% if sample_results.has_previous %}
-                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page=1">&laquo; First</a></li>
-                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.previous_page_number }}">Previous</a></li>
-                            {% endif %}
-                            <span class="current">
-                            <li class="page-item"><a class="page-link active">Page {{ sample_page_obj.number }} of {{ sample_results.paginator.num_pages }}</a></li>
-                            </span>
-                            {% if sample_results.has_next %}
-                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.next_page_number }}">Next</a></li>
-                            <li class="page-item"><a class="page-link" href="{{ url }}?{{ request.GET.urlencode }}&page={{ sample_results.paginator.num_pages }}">Last &raquo;</a></li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </form>
+        <form action="{% url 'sample_select_form' %}" method="get" name="sample_select" data-selection-form>
+            <div class="results-toolbar">
+                <div>
+                    <h2 class="h4 mb-0">Selected samples</h2>
+                    <span class="text-muted small" data-selection-count>No samples selected</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-outline-primary btn-sm" name="metadata" data-download data-busy-label="Preparing CSV…" data-needs-selection>
+                        <i class="fa fa-download me-1" aria-hidden="true"></i>Download metadata
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-sm" name="links" data-busy-label="Preparing…" data-needs-selection
+                            title="Keep only the ticked samples">
+                        <i class="fa fa-filter me-1" aria-hidden="true"></i>Keep ticked only
+                    </button>
+                </div>
             </div>
+            <div class="table-wrap">
+                <table class="table table-hover data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-check" scope="col">
+                                <input type="checkbox" class="form-check-input" data-check-all aria-label="Select all samples on this page">
+                            </th>
+                            <th scope="col">Run</th>
+                            <th scope="col">Study</th>
+                            <th scope="col">Organism</th>
+                            <th scope="col">Library type</th>
+                            <th scope="col" class="col-icon">GWIPS-viz</th>
+                            <th scope="col" class="col-icon">Trips-Viz</th>
+                            <th scope="col" class="col-icon">Reads</th>
+                            <th scope="col" class="col-icon">BAM</th>
+                            <th scope="col" class="col-icon">BigWig (F)</th>
+                            <th scope="col" class="col-icon">BigWig (R)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in sample_results %}
+                            <tr>
+                                <td class="col-check">
+                                    <input type="checkbox" class="form-check-input" checked name="run" value="{{ sample.Run }}" aria-label="Select {{ sample.Run }}">
+                                </td>
+                                <td class="col-id"><a href="{% url 'sample' sample.Run %}">{{ sample.Run }}</a></td>
+                                <td class="col-id"><a href="{% url 'study' sample.BioProject %}">{{ sample.BioProject }}</a></td>
+                                <td><em>{{ sample.ScientificName }}</em></td>
+                                <td>{{ sample.LIBRARYTYPE }}</td>
+                                {% include 'main/_sample_file_cells.html' %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+        <div class="results-footer">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                {% include 'main/_pagination.html' with page=sample_results %}
+                {% include 'main/_page_size.html' %}
+            </div>
+            <span class="small text-muted"><i class="fa fa-circle-info me-1" aria-hidden="true"></i>Column definitions are on the <a href="{% url 'about' %}#sample-descriptions">About page</a>.</span>
         </div>
-        <div>
-            <p> ⓘ For more Information on the columns shown here see: <a href="/about#sample-descriptions">About</a></p>
-        </div>
-    </section>
     </div>
+{% endblock %}
+{% block extra_js %}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var sampleResults = [
-                {% for sample in sample_results %}
-                    { 
-                        reads_link: "{{ sample.reads_link }}",
-                        gwips_name: "{{ sample.gwips_name }}",
-                        trips_name: "{{ sample.trips_name }}"
-                    },
-                {% endfor %}
-            ];
-
-            function checkAndDisableButton(buttonId, checkFunction) {
-                var button = document.getElementById(buttonId);
-                if (button && !checkFunction()) {
-                    button.classList.add('disabled');
-                    button.setAttribute('aria-disabled', 'true');
-                    button.onclick = function(event) { event.preventDefault(); };
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            const select = document.getElementById('file-type-select');
+            const btn = document.getElementById('download-all-btn');
+            if (!document.querySelector('.dl-link[data-kind=reads]')) {
+                btn.classList.add('disabled');
+                btn.setAttribute('aria-disabled', 'true');
+                btn.title = 'No processed files are available for this selection';
             }
-
-            var hasValidReadsLink = function() {
-                return sampleResults.some(function(sample) {
-                    return sample.reads_link !== "";
-                });
-            };
-
-            var hasValidGwipsLink = function() {
-                return sampleResults.some(function(sample) {
-                    return sample.gwips_name === "Visit GWIPS-viz";
-                });
-            };
-
-            var hasValidTripsLink = function() {
-                return sampleResults.some(function(sample) {
-                    return sample.trips_name === "Visit Trips-Viz";
-                });
-            };
-
-            checkAndDisableButton('download-all-btn', hasValidReadsLink);
-            checkAndDisableButton('gwips-btn', hasValidGwipsLink);
-            checkAndDisableButton('trips-btn', hasValidTripsLink);
-            checkAndDisableButton('trips-meta-btn', hasValidTripsLink);
-
+            select.addEventListener('change', function () {
+                btn.href = btn.dataset.baseHref + '&file_type=' + encodeURIComponent(select.value);
+            });
         });
     </script>
 {% endblock %}

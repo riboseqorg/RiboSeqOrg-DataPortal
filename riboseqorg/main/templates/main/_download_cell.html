@@ -1,0 +1,7 @@
+<td class="col-icon">
+    {% if link %}
+        <a href="{{ link }}" class="dl-link" data-kind="{{ kind }}" title="Download {{ label }}" aria-label="Download {{ label }} for {{ sample.Run }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+    {% else %}
+        <span class="dl-missing" title="No {{ label }} file available" aria-label="No {{ label }} file">&ndash;</span>
+    {% endif %}
+</td>

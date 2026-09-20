@@ -6,9 +6,6 @@ urlpatterns = [
     path(
         '', views.index, name='home'
         ),
-#    path(
- #       'pplot', views.pplot, name='pplot'
-  #      ),
     path(
         'home', views.index, name='home'
         ),
@@ -55,6 +52,9 @@ urlpatterns = [
     path(
         'Sample/<str:query>/custom', views.custom_track, name='custom_track'
         ),
+    path(
+        'tracks/ucsc.txt', views.genome_track_lines, name='genome_track_lines'
+        ),
     # API views
     path(
         'api/samples/',
@@ -75,8 +75,4 @@ urlpatterns = [
          views.references,
          name='references'
          ),
-     path('RDG/',
-          views.rdg_view,
-          name='rdg_view'
-          ),
     ]

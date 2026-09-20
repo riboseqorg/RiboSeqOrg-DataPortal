@@ -1,227 +1,151 @@
 {% extends 'main/base.html' %}
-{% block title %}Datasets{% endblock %}
+{% load portal %}
+{% block title %}{{ Study.Name|default:Study.BioProject }} | RiboSeq Data Portal{% endblock %}
+{% block og_title %}{{ Study.Name|default:Study.BioProject }} ({{ Study.BioProject }}) · RiboSeq Data Portal{% endblock %}
+{% block og_description %}{% if Study.Title|present %}{{ Study.Title }}{% else %}Ribo-Seq study {{ Study.BioProject }}{% endif %}{% if Study.Samples|present %} · {{ Study.Samples }} samples{% endif %}{% endblock %}
+{% block description %}{% if Study.Title|present %}{{ Study.Title }}{% else %}Ribo-Seq study {{ Study.BioProject }}{% endif %}{% endblock %}
 {% block content %}
-{% include 'main/navbar.html' %}
+    <div class="container-xl site-gutter">
+        <nav aria-label="breadcrumb" class="pt-3">
+            <ol class="breadcrumb small mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'studies' %}">Studies</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ Study.BioProject }}</li>
+            </ol>
+        </nav>
+        <div class="page-header">
+            <h1 class="text-break-anywhere">{{ Study.Name|default:Study.BioProject }}</h1>
+            {% if Study.Title|present %}<p class="lead">{{ Study.Title }}</p>{% endif %}
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <span class="id-pill">{{ Study.BioProject }}</span>
+                {% if Study.ScientificName|present %}<span class="status-pill"><em>{{ Study.ScientificName }}</em></span>{% endif %}
+                {% if Study.Samples|present %}<span class="status-pill">{{ Study.Samples }} sample{{ Study.Samples|pluralize }}</span>{% endif %}
+                {% if Study.Release_Date|present %}<span class="status-pill">Released {{ Study.Release_Date|slice:":10" }}</span>{% endif %}
+            </div>
+            {% if bioproject_gwips_name or bioproject_gwips_native_name or bioproject_trips_name %}
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    {% comment %}Curated GWIPS-viz tracks for the study, then the portal's own coverage as a custom track. See viewer_links.py.{% endcomment %}
+                    {% if bioproject_gwips_native_name %}
+                        <a href="{{ bioproject_gwips_native_link }}" class="btn btn-outline-primary btn-sm" title="Curated GWIPS-viz tracks for this study"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>Open in GWIPS-viz</a>
+                    {% endif %}
+                    {% if bioproject_gwips_name %}
+                        <a href="{{ bioproject_gwips_link }}" class="btn btn-outline-primary btn-sm" title="This study's coverage from the portal, as a GWIPS-viz custom track"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>View portal tracks in GWIPS-viz</a>
+                    {% endif %}
+                    {% if bioproject_trips_name %}
+                        <a href="{{ bioproject_trips_link }}" class="btn btn-outline-primary btn-sm"><i class="fa fa-arrow-up-right-from-square me-1" aria-hidden="true"></i>Open in Trips-Viz</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
 
-{% load static %}
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          crossorigin="anonymous">
-    <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script>
-    <link href="{% static 'css/riboseq-css.css' %}"
-            rel="stylesheet"
-            type="text/css">
-    <section id="study">
-        <h1>{{ Study.Name }} ({{ Study.BioProject }})</h1>
-        <h4>General Details</h4>
-        <table class="table table-bordered" id="study-general">
-            <tr>
-                <th>Title</th>
-                <td>{{ Study.Title }}</td>
-            </tr>
-            <tr>
-                <th>Organism</th>
-                <td>{{ Study.Organism }}</td>
-            </tr>
-            <tr>
-                <th>Number of Samples</th>
-                <td>{{ Study.Samples }}</td>
-            </tr>
-            <tr>
-                <th>Release Date</th>
-                <td>{{ Study.Release_Date }}</td>
-            </tr>
-            <tr>
-                <th>Sequencing Types</th>
-                <td>{{ Study.seq_types }}</td>
-            </tr>
-            <tr>
-                <th>Protocol Details</th>
-                <td>{{ Study.All_protocols }}</td>
-            </tr>
-        </table>
-        <h4>Study Links</h4>
-        <table class="table table-bordered" id="study-links">
-            <tr>
-                <th>GWIPS-viz</th>
-                <th>Trips-Viz</th>
-                <!-- <th>RiboCrypt</th> -->
-            </tr>
-            <tr>
-                <td><a href="{{ bioproject_gwips_link }}">{{ bioproject_gwips_name }}</a></td>
-                <td><a href="{{ bioproject_trips_link }}">{{ bioproject_trips_name }}</a></td>
-                <!-- <td><a href="{{ bioproject_ribocrypt_link }}">{{ bioproject_ribocrypt_name }}</a></td> -->
-            </tr>
-        </table> 
-        <h4>Repository Details</h4>
-        <table class="table table-bordered" id="study-repos">
-            <tr>
-                <th>SRA</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/sra/{{ Study.SRA }}">{{ Study.SRA }}</a></td>
-            </tr>
-            <tr>
-                <th>ENA</th>
-                <td><a href="https://ebi.ac.uk/ena/browser/view/{{ Study.SRA }}">{{ Study.SRA}}</a></td>
-            <tr>
-                <th>GEO</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={{ Study.GSE }}">{{ Study.GSE }}</a></td>
-            </tr>
-            <tr>
-                <th>BioProject</th>
-                <td><a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ Study.BioProject }}">{{ Study.BioProject }}</a></td>
-            </tr>
-        </table>
-        <h4>Publication</h4>
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-bordered" id="study-pub">
-                    <tr>
-                        <th>Title</th>
-                        <td>{{ Study.Publication_Title }}</td>
-                    </tr>
-                    <tr>
-                        <th>Authors</th>
-                        <td>{{ Study.Authors }}</td>
-                    </tr>
-                    <tr>
-                        <th>Journal</th>
-                        <td>{{ Study.Journal }}</td>
-                    </tr>
-                    <tr>
-                        <th> Publication Date</th>
-                        <td>{{ Study.Date_published }}</td>
-                    </tr>
-                    <tr>
-                        <th> Abstract</th>
-                        <td>{{ Study.Paper_abstract }}</td>
-                    </tr>
-                    <tr>
-                        <th>PMC</th>
-                        <td><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/{{ Study.PMC }}">{{ Study.PMC }}</a></td>
-                    <tr>
-                        <th>PMID</th>
-                        {% if Study.PMID != "<NA>" %}
-                            <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ Study.PMID }}">{{ Study.PMID }}</a></td>
-                        {% else %}
-                            <td>None Available</a></td>
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card detail-card">
+                    <div class="card-header">Publication</div>
+                    {% comment %}A study's paper is only shown when it has a PMID: the fields are filled from that one record, or left empty.{% endcomment %}
+                    {% if Study.PMID|present %}
+                        <dl class="detail-list">
+                            {% if Study.Publication_title|present %}<div><dt>Title</dt><dd>{{ Study.Publication_title }}</dd></div>{% endif %}
+                            {% if Study.Authors|present %}<div><dt>Authors</dt><dd>{{ Study.Authors }}</dd></div>{% endif %}
+                            {% if Study.Journal|present %}<div><dt>Journal</dt><dd>{{ Study.Journal }}</dd></div>{% endif %}
+                            {% if Study.Date_published|present %}<div><dt>Published</dt><dd>{{ Study.Date_published }}</dd></div>{% endif %}
+                            {% if Study.PMID|present %}<div><dt>PubMed</dt><dd><a href="https://pubmed.ncbi.nlm.nih.gov/{{ Study.PMID }}/">{{ Study.PMID }}</a></dd></div>{% endif %}
+                            {% if Study.PMC|present %}<div><dt>PMC</dt><dd><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/{{ Study.PMC }}/">{{ Study.PMC }}</a></dd></div>{% endif %}
+                            {% if Study.doi|present %}<div><dt>DOI</dt><dd><a href="https://doi.org/{{ Study.doi }}">{{ Study.doi }}</a></dd></div>{% endif %}
+                        </dl>
+                    {% else %}
+                        <div class="card-body text-muted">
+                            No publication is linked to this study yet.
+                            {% if Study.Submitters|present or Study.Institution|present %}The data was submitted by {% if Study.Submitters|present %}{{ Study.Submitters }}{% if Study.Institution|present %} ({{ Study.Institution }}){% endif %}{% else %}{{ Study.Institution }}{% endif %}.{% endif %}
+                        </div>
+                    {% endif %}
+                    {% if Study.PMID|present and Study.Submitters|present %}
+                        <div class="card-footer text-muted small">Submitted by {{ Study.Submitters }}{% if Study.Institution|present %}, {{ Study.Institution }}{% endif %}.{% if Study.PMID_source == 'sra_only' %} No repository links this paper to the data.{% endif %}</div>
+                    {% endif %}
+                </div>
+                {% if Study.PMID|present and Study.Paper_abstract|present or Study.Study_abstract|present %}
+                    <div class="card detail-card">
+                        <div class="card-header">Abstract</div>
+                        <div class="card-body abstract">{% if Study.PMID|present and Study.Paper_abstract|present %}{{ Study.Paper_abstract }}{% else %}{{ Study.Study_abstract }}{% endif %}</div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-5">
+                <div class="card detail-card">
+                    <div class="card-header">Repositories</div>
+                    <dl class="detail-list">
+                        <div><dt>BioProject</dt><dd><a href="https://www.ncbi.nlm.nih.gov/bioproject/{{ Study.BioProject }}">{{ Study.BioProject }}</a></dd></div>
+                        {% if Study.SRA|present %}
+                            <div><dt>SRA</dt><dd><a href="https://www.ncbi.nlm.nih.gov/sra/{{ Study.SRA }}">{{ Study.SRA }}</a></dd></div>
+                            <div><dt>ENA</dt><dd><a href="https://ebi.ac.uk/ena/browser/view/{{ Study.SRA }}">{{ Study.SRA }}</a></dd></div>
                         {% endif %}
-                    </tr>
-                    <tr>
-                        <th>DOI</th>
-                        <td><a href="https://doi.org/{{ Study.DOI }}">{{ Study.DOI }}</a></td>
-                    </tr>
+                        {% if Study.GSE|present %}<div><dt>GEO</dt><dd><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={{ Study.GSE }}">{{ Study.GSE }}</a></dd></div>{% endif %}
+                    </dl>
+                </div>
+                {% if Study.seq_types|present or Study.Description|present %}
+                    <div class="card detail-card">
+                        <div class="card-header">Study details</div>
+                        <dl class="detail-list">
+                            {% if Study.seq_types|present %}<div><dt>Sequencing types</dt><dd>{{ Study.seq_types }}</dd></div>{% endif %}
+                            {% if Study.Description|present %}<div><dt>Description</dt><dd>{{ Study.Description }}</dd></div>{% endif %}
+                        </dl>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <form action="{% url 'sample_select_form' %}" method="get" name="sample_select" data-selection-form class="mt-2">
+            <div class="results-toolbar">
+                <div>
+                    <h2 class="h4 mb-0">Samples</h2>
+                    <span class="text-muted small" data-selection-count>No samples selected</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm" name="links" data-busy-label="Preparing…" data-needs-selection disabled>
+                        Download &amp; Visualise selected<i class="fa fa-arrow-right ms-1" aria-hidden="true"></i>
+                    </button>
+                    <button type="submit" class="btn btn-outline-primary btn-sm" name="metadata" data-download data-busy-label="Preparing CSV…" data-needs-selection disabled>
+                        <i class="fa fa-download me-1" aria-hidden="true"></i>Metadata for selected
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="table table-hover data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-check" scope="col">
+                                <input type="checkbox" class="form-check-input" data-check-all aria-label="Select all samples">
+                            </th>
+                            <th scope="col">Run</th>
+                            <th scope="col">Organism</th>
+                            <th scope="col">Cell line</th>
+                            <th scope="col">Library type</th>
+                            <th scope="col">Inhibitor</th>
+                            <th scope="col" class="col-icon">GWIPS-viz</th>
+                            <th scope="col" class="col-icon">Trips-Viz</th>
+                            <th scope="col" class="col-icon">Reads</th>
+                            <th scope="col" class="col-icon">BAM</th>
+                            <th scope="col" class="col-icon">BigWig (F)</th>
+                            <th scope="col" class="col-icon">BigWig (R)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in ls %}
+                            <tr>
+                                <td class="col-check">
+                                    <input type="checkbox" class="form-check-input" name="run" value="{{ sample.Run }}" aria-label="Select {{ sample.Run }}">
+                                </td>
+                                <td class="col-id"><a href="{% url 'sample' sample.Run %}">{{ sample.Run }}</a></td>
+                                <td><em>{{ sample.ScientificName }}</em></td>
+                                <td>{% if sample.CELL_LINE|present %}{{ sample.CELL_LINE }}{% else %}<span class="text-muted">&ndash;</span>{% endif %}</td>
+                                <td>{{ sample.LIBRARYTYPE }}</td>
+                                <td>{% if sample.INHIBITOR|present %}{{ sample.INHIBITOR }}{% else %}<span class="text-muted">&ndash;</span>{% endif %}</td>
+                                {% include 'main/_sample_file_cells.html' %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
                 </table>
             </div>
-        </div>
-        <div class="fw-container">
-            <div class="fw-header">                
-                <div class="nav-wrapper">
-                    <div class="nav-search">
-                        <div class="nav-item i-user">
-                            <div class="account"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="nav-ad">
-                    <div data-ea-publisher="datatablesnet" data-ea-type="image" data-ea-manual="true"></div>
-                </div>
-            </div>
-            <div class="fw-body">
-                <div class="content">
-                    <table id="samples" class="table table-striped" style="width:100%; margin-left:auto; margin-right:auto">
-                        <thead>
-                            <tr>
-                                <th scope="col"></th>
-                                <th>Run Accession</th>
-                                <th>Study Accession</th>
-                                <th>Scientific Name</th>
-                                <th>Cell Line</th>
-                                <th>Library Type</th>
-                                <th>Treatment</th>
-                                <th>GWIPS-viz</th>
-                                <th>Trips-Viz</th>
-                                <!-- <th>RiboCrypt</th> -->
-                                <th>Reads</th>
-                                <th>BAM</th>
-                                <th>BigWig (F)</th>
-                                <th>BigWig (R)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sample in ls %}
-                                <tr>
-                                    <td><input type="checkbox" /></td>
-                                    <td><a href="/Sample/{{ sample.Run }}">{{ sample.Run }}</a></td>
-                                    <td><a href="/Study/{{ sample.BioProject_id }}">{{ sample.BioProject_id }}</a></td>
-                                    <td>{{ sample.ScientificName }}</td>
-                                    <td>{{ sample.CELL_LINE }}</td>
-                                    <td>{{ sample.LIBRARYTYPE }}</td>
-                                    <td>{{ sample.INHIBITOR }}</td>
-                                    {% if sample.gwips_name == "Visit GWIPS-viz" %}
-                                        <td><a href="{{ sample.gwips_link }}"><img src="{% static 'images/GWIPS-viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/GWIPS-viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.trips_name == "Visit Trips-Viz" %}
-                                        <td><a href="{{ sample.trips_link }}"><img src="{% static 'images/Trips-Viz-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/Trips-Viz-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    <!-- {% if sample.ribocrypt_name == "Visit RiboCrypt" %}
-                                        <td><a href="{{ sample.ribocrypt_link }}"><img src="{% static 'images/RiboCrypt-Potato.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/RiboCrypt-Potato-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %} -->
-                                    {% if sample.reads_link != "" %}
-                                        <td><a href="{{ sample.reads_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bam_link != "" %}
-                                        <td><a href="{{ sample.bam_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bigwig_forward_link != "" %}
-                                        <td><a href="{{ sample.bigwig_forward_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    {% if sample.bigwig_reverse_link != "" %}
-                                        <td><a href="{{ sample.bigwig_reverse_link }}"><img src="{% static 'images/download.png' %}" style="max-height:50px; max-width:50px;"></a></td>
-                                    {% else %}
-                                        <td><img src="{% static 'images/download-Greyscale.png' %}" style="max-height:50px; max-width:50px;"></td>
-                                    {% endif %}
-                                    <td style="background-color: rgba(255, 255, 255, 1);"><input type="checkbox" checked="True" name="run" value="{{ sample.Run }}"/></td>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th scope="col"></th>
-                                <th>Run Accession</th>
-                                <th>Study Accession</th>
-                                <th>Scientific Name</th>
-                                <th>Cell Line</th>
-                                <th>Library Type</th>
-                                <th>Treatment</th>
-                                <th>GWIPS-viz</th>
-                                <th>Trips-Viz</th>
-                                <!-- <th>RiboCrypt</th> -->
-                                <th>Reads</th>
-                                <th>BAM</th>
-                                <th>BigWig (F)</th>
-                                <th>BigWig (R)</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div>
-            <p> ⓘ For more Information on the columns shown here see: <a href="/about#study-descriptions">About</a></p>
-        </div>
-    </section>
+        </form>
+        <p class="small text-muted mt-3"><i class="fa fa-circle-info me-1" aria-hidden="true"></i>Column definitions are on the <a href="{% url 'about' %}#sample-descriptions">About page</a>.</p>
+    </div>
 {% endblock %}

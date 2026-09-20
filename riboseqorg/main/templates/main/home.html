@@ -1,59 +1,60 @@
 {% extends 'main/base.html' %}
-{% block title %}Home | RiboSeq Data Portal{% endblock %}
-{% block head %}
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-
-    <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-{% endblock %}
+{% load static portal %}
+{% block title %}RiboSeq Data Portal{% endblock %}
 {% block content %}
     <div class="container">
-        <div class="row py-4">
-            <div class="col-md-12 text-center">
-                <img src='../static/images/Logo.png' height="100" alt="RiboSeq.org Logo" loading="lazy"/>
-                <h1>Ribo-Seq Data Portal</h1>
-                <h5>Search Curated Metadata and Access Thousands of Processed Ribo-Seq Datasets</h5>
-        
-                <div class="d-flex justify-content-center">
-                    <form method="GET" action="{% url 'search' %}" id="results-searchbar" class="form-inline" style="width: 60%;">
-                        {{ search_form.as_p }}
-                        <button class="btn btn-outline-primary" type="submit" id="search-button">Submit</button>
-                    </form>
+        <section class="hero">
+            <img src="{% static 'images/Logo.png' %}" height="110" alt="" class="mb-3">
+            <h1>Ribo-Seq Data Portal</h1>
+            <p class="lead">Search curated metadata and access thousands of processed Ribo-Seq datasets.</p>
+            <form method="get" action="{% url 'search' %}" class="hero-search" role="search">
+                <div class="input-group input-group-lg">
+                    <label for="{{ search_form.query.id_for_label }}" class="visually-hidden">Search</label>
+                    {{ search_form.query }}
+                    <button class="btn btn-primary px-4" type="submit">
+                        <i class="fa fa-magnifying-glass me-1" aria-hidden="true"></i>Search
+                    </button>
                 </div>
+                <div class="form-text mt-2">Try an organism, cell line, inhibitor or accession, e.g. <em>HEK293</em> or <em>PRJNA171327</em>.</div>
+            </form>
+            <dl class="home-stats">
+                <div><dt>Samples</dt><dd>{{ stats.samples|thousands }}</dd></div>
+                <div><dt>Studies</dt><dd>{{ stats.studies|thousands }}</dd></div>
+                <div><dt>Organisms</dt><dd>{{ stats.organisms|thousands }}</dd></div>
+            </dl>
+        </section>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <a href="{% url 'samples' %}" class="card feature-card text-reset">
+                    <div class="card-body p-4">
+                        <div class="feature-icon mb-2"><i class="fa fa-vials" aria-hidden="true"></i></div>
+                        <h2 class="h4">Samples</h2>
+                        <p class="text-muted mb-0">Browse and filter individual Ribo-Seq runs, then download reads, alignments and profiles.</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'studies' %}" class="card feature-card text-reset">
+                    <div class="card-body p-4">
+                        <div class="feature-icon mb-2"><i class="fa fa-book-open" aria-hidden="true"></i></div>
+                        <h2 class="h4">Studies</h2>
+                        <p class="text-muted mb-0">Explore Ribo-Seq at the study level, with publication details and links to every sample.</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'about' %}" class="card feature-card text-reset">
+                    <div class="card-body p-4">
+                        <div class="feature-icon mb-2"><i class="fa fa-circle-info" aria-hidden="true"></i></div>
+                        <h2 class="h4">About</h2>
+                        <p class="text-muted mb-0">Learn how the data are processed, what each field means and who is behind the initiative.</p>
+                    </div>
+                </a>
             </div>
         </div>
-        
-        <div class="row py-2">
-            <div class="col-md-6 py-2">
-                <div class="card shadow-lg">
-                    <div class="card-body text-center">
-                        <h2>Samples</h2>
-                        <p>Explore Ribo-Seq at Sample Level</p>
-                        <a href="/samples" class="btn btn-primary">View Samples</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 py-2">
-                <div class="card shadow-lg">
-                    <div class="card-body text-center">
-                        <h2>Studies</h2>
-                        <p>Explore Ribo-Seq at Study Level</p>
-                        <a href="/studies" class="btn btn-primary">Explore Studies</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row py-4">
-            <div class="col-md-9 mx-auto text-center">
-                <div class="card shadow-lg">
-                    <div class="card-body text-center">
-                        <h2>About</h2>
-                        <p>Learn more about our initiative.</p>
-                        <a href="/about" class="btn btn-primary">Read More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <section class="cite-note">
+            <h2 class="h6">Using the portal in your work?</h2>
+            <p class="mb-0">Please cite: Tierney JAS, Świrski MI, Tjeldnes H, <i>et al.</i> RiboSeq.Org: an integrated suite of resources for ribosome profiling data analysis and visualization. <i>Nucleic Acids Research</i> 2025;53(D1):D268–D274. <a href="https://doi.org/10.1093/nar/gkae1020">doi:10.1093/nar/gkae1020</a></p>
+        </section>
     </div>
 {% endblock %}

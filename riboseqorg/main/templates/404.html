@@ -1,0 +1,31 @@
+{% extends 'main/base.html' %}
+{% block title %}Page not found | RiboSeq Data Portal{% endblock %}
+{% block content %}
+    <div class="container-xl site-gutter">
+        <div class="error-page">
+            <p class="error-code">404 · page not found</p>
+            {% if accession %}
+                <h1>We don’t have a page for {{ accession }}</h1>
+                <p>It may not be a Ribo-Seq dataset we’ve processed yet, or it may have been merged into another record in a recent data update. Searching for it will show any samples or studies that mention it.</p>
+            {% else %}
+                <h1>We couldn’t find that page</h1>
+                <p>The link might be old; some pages moved when the portal was updated. Try searching for the run, study or organism you were after.</p>
+            {% endif %}
+            <form method="get" action="{% url 'search' %}" role="search" class="my-4">
+                <div class="input-group">
+                    <label for="{{ search_form.query.id_for_label }}" class="visually-hidden">Search</label>
+                    {{ search_form.query }}
+                    <button class="btn btn-primary px-4" type="submit">Search</button>
+                </div>
+            </form>
+            <p class="mb-1">Or go to:</p>
+            <ul class="error-links">
+                <li><a href="{% url 'samples' %}">All samples</a></li>
+                <li><a href="{% url 'studies' %}">All studies</a></li>
+                <li><a href="{% url 'home' %}">The home page</a></li>
+            </ul>
+            <p class="text-muted small mt-4">If a link on our site brought you here, we’d like to fix it. <a href="https://forms.gle/K1HPrcWkgZAvo33M9">Tell us where you found it</a> (it takes a minute).</p>
+            <p class="text-muted small">Requested: <code>{{ request.path }}</code></p>
+        </div>
+    </div>
+{% endblock %}

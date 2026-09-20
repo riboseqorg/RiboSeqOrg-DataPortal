@@ -1,10 +1,6 @@
 import csv
-import mimetypes
 import os
-import random
-import re
 import uuid
-from datetime import datetime
 from functools import reduce
 from operator import or_
 from typing import List, Type, Union
@@ -12,35 +8,40 @@ from typing import List, Type, Union
 from urllib.parse import urlparse, parse_qs
 
 import pandas as pd
+from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.paginator import Paginator
-from django.db.models import CharField, Count, F, Q, Value
-from django.db.models.functions import Concat, Length
+from django.db.models import CharField, Count, F, IntegerField, Q, Value
+from django.db.models.functions import Cast, Concat, Length
 from django.db.models.query import QuerySet
-from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
+from django.http import (HttpRequest, HttpResponse, HttpResponseBadRequest,
+                         HttpResponseNotFound)
 from django.shortcuts import get_object_or_404, loader, render
 from django.views import View
 from django_filters.views import FilterView
 from rest_framework import filters, generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from . import genome_tracks
+from .datafiles import find_run_file
 from .filters import StudyFilter
 from .forms import SearchForm
 from .models import GWIPS, Sample, Study, Trips
 from .serializers import SampleSerializer
-from .utilities import (build_bioproject_query, build_query, build_run_query,
-                        get_clean_names, get_fastp_report_link,
+from .viewer_links import (attach_links, gwips_native_link, sample_links,
+                           trips_file_id)
+from .utilities import (build_query, get_clean_names, get_fastp_report_link,
                         get_fastqc_report_link, get_original_name,
                         get_ribometric_report_link, handle_filter,
-                        handle_gwips_urls, handle_ribocrypt_urls,
-                        handle_trips_urls, handle_urls_for_query,
-                        select_all_query)
+                        PMID_MISSING, pubmed_query, select_all_query)
 
 CharField.register_lookup(Length, 'length')
 
 
-class SampleListView(generics.ListCreateAPIView):
+class SampleListView(generics.ListAPIView):
     serializer_class = SampleSerializer
     filterset_fields = ['Run']
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
@@ -86,28 +87,43 @@ class SampleListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # Get query parameters
-        fields = self.request.query_params.get('fields')
         limit = self.request.query_params.get('limit', self.default_limit)
 
-        # Start with an empty query
-        query = Q()
-        query = self.build_query(self.request.query_params)
-        queryset = Sample.objects.filter(query)
-        # Subset fields to just take selected
-        if fields:
-            requested_fields = set(fields.split(','))
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            raise ValidationError({'limit': 'Must be an integer.'})
+        if limit < 0:
+            raise ValidationError({'limit': 'Must not be negative.'})
 
+        query = self.build_query(self.request.query_params)
+        try:
+            queryset = Sample.objects.filter(query)
+        except (ValueError, DjangoValidationError) as e:
+            raise ValidationError({'detail': str(e)})
+        return queryset[:limit]
+
+    def get_serializer_class(self):
+        '''
+        A serializer for just the requested fields. Built per request so
+        concurrent requests don't share (and overwrite) one field list.
+        '''
+        fields = self.request.query_params.get('fields')
+        selected = self.default_fields
+        if fields:
+            model_fields = {f.name for f in Sample._meta.get_fields()}
             valid_fields = [
-                field for field in requested_fields
-                if field in [f.name for f in Sample._meta.get_fields()] or
-                field in self.added_fields
+                field for field in dict.fromkeys(fields.split(','))
+                if field in model_fields or field in self.added_fields
             ]
             if valid_fields:
-                self.serializer_class.Meta.fields = valid_fields
-        else:
-            self.serializer_class.Meta.fields = self.default_fields
+                selected = valid_fields
 
-        return queryset[:int(limit)]
+        class Meta(SampleSerializer.Meta):
+            pass
+        Meta.fields = selected
+        return type('RequestSampleSerializer', (SampleSerializer,),
+                    {'Meta': Meta})
 
 
 class SampleFieldsView(APIView):
@@ -115,6 +131,53 @@ class SampleFieldsView(APIView):
         # Get all field names from the Sample model
         fields = [field.name for field in Sample._meta.get_fields()]
         return Response(fields)
+
+
+# Rows-per-page choices offered on the list pages
+PAGE_SIZES = (25, 50, 100)
+DEFAULT_PAGE_SIZE = 25
+
+# Sortable columns: ?sort=<key> (or -<key> for descending) -> model field
+SAMPLE_SORTS = {
+    'run': 'Run',
+    'study': 'BioProject_id',
+    'organism': 'ScientificName',
+    'library': 'LIBRARYTYPE',
+    'inhibitor': 'INHIBITOR',
+}
+STUDY_SORTS = {
+    'name': 'Name',
+    'bioproject': 'BioProject',
+    'organism': 'ScientificName',
+    'samples': Cast('Samples', IntegerField()),
+    'released': 'Release_Date',
+    'sra': 'SRA',
+}
+
+
+def page_size(request: HttpRequest) -> int:
+    """The ?per_page value if it is one of PAGE_SIZES, else the default."""
+    try:
+        size = int(request.GET.get('per_page', DEFAULT_PAGE_SIZE))
+    except ValueError:
+        return DEFAULT_PAGE_SIZE
+    return size if size in PAGE_SIZES else DEFAULT_PAGE_SIZE
+
+
+def sort_order(request: HttpRequest, columns: dict, default: list) -> list:
+    """
+    order_by() arguments for the ?sort parameter, falling back to default.
+    'pk' is always last so pages are stable.
+    """
+    sort = request.GET.get('sort', '')
+    field = columns.get(sort.lstrip('-'))
+    if field is None:
+        return default
+    descending = sort.startswith('-')
+    if isinstance(field, str):
+        field = F(field)
+    field = field.desc(nulls_last=True) if descending else field.asc(nulls_last=True)
+    return [field, 'pk']
 
 
 def index(request: HttpRequest) -> str:
@@ -129,8 +192,21 @@ def index(request: HttpRequest) -> str:
     """
     search_form = SearchForm()
 
+    # Headline numbers for the home page; they only change on a DB reload
+    stats = cache.get('home_stats')
+    if stats is None:
+        stats = {
+            'samples': Sample.objects.count(),
+            'studies': Study.objects.count(),
+            'organisms': Sample.objects.exclude(
+                ScientificName__in=['', 'nan', '0.0', '<NA>']
+            ).values('ScientificName').distinct().count(),
+        }
+        cache.set('home_stats', stats, 60 * 60)
+
     context = {
         'search_form': search_form,
+        'stats': stats,
     }
     return render(request, "main/home.html", context)
 
@@ -229,7 +305,8 @@ class SearchView(View):
         - Union[Paginator, render]: Paginator if pagination is successful,
             otherwise render response.
         """
-        paginator: Paginator = Paginator(results, self.paginate_by)
+        paginator: Paginator = Paginator(
+            results.order_by('pk'), page_size(request))
         page_number: str = request.GET.get(page_key)
         return paginator.get_page(page_number)
 
@@ -367,13 +444,13 @@ def samples(request: HttpRequest) -> str:
             query_params.append((name, values))
 
     query = build_query(request, query_params, clean_names)
-    # get entries to populate table
-    sample_entries = Sample.objects.filter(query)
-    sample_entries = list(
-        reversed(sample_entries.order_by('INHIBITOR', 'LIBRARYTYPE')))
+    # get entries to populate table (only the page shown is fetched)
+    sample_entries = Sample.objects.filter(query).order_by(
+        *sort_order(request, SAMPLE_SORTS,
+                    ['-INHIBITOR', '-LIBRARYTYPE', '-pk']))
 
-    # Paginate the studies
-    paginator = Paginator(sample_entries, 10)
+    # Paginate the samples
+    paginator = Paginator(sample_entries, page_size(request))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -414,6 +491,7 @@ def studies(request: HttpRequest) -> str:
         'PMID',
     ]
     clean_names = get_clean_names()
+    pubmed_filter = pubmed_query(request.GET.getlist('PubMed'))
 
     cache_key = f"studies_view_{request.GET.urlencode()}"
     cached_result = cache.get(cache_key)
@@ -449,14 +527,14 @@ def studies(request: HttpRequest) -> str:
                 ]
 
                 query = build_query(request, query_params, clean_names)
-                studies = Study.objects.filter(query)
+                studies = Study.objects.filter(query & pubmed_filter)
 
                 filtered_studies = studies.values(field.name).annotate(
                     count=Count(field.name)).order_by('-count')
                 param_options[field.name] = filtered_studies
             else:
                 query = build_query(request, query_params, clean_names)
-                studies = Study.objects.filter(query)
+                studies = Study.objects.filter(query & pubmed_filter)
 
                 values = studies.values(field.name).annotate(
                     count=Count(field.name)).order_by('-count')
@@ -469,12 +547,12 @@ def studies(request: HttpRequest) -> str:
                 count=Count(field.name)).order_by('-count')
 
             available = [
-                i for i in values if i[field.name] not in ['', 'nan', None]
+                i for i in values if i[field.name] not in PMID_MISSING + [None]
             ]
             available_count = sum([i['count'] for i in available])
 
             not_available = [
-                i for i in values if i[field.name] in ['', 'nan', None]
+                i for i in values if i[field.name] in PMID_MISSING + [None]
             ]
             not_available_count = sum([i['count'] for i in not_available])
 
@@ -491,22 +569,7 @@ def studies(request: HttpRequest) -> str:
     query_params = [(name, values) for name, values in request.GET.lists()
                     if name in appropriate_fields or name in boolean_fields]
     query = build_query(request, query_params, clean_names)
-    study_entries = Study.objects.filter(query)
-    for i, obj in enumerate(study_entries):
-        date_string = obj.Release_Date
-        try:
-            date_obj = datetime.strptime(date_string,
-                                         "%Y/%m/%d %H:%M").strftime("%m/%d/%Y")
-            # Update the object in the database with the date object if needed
-        except ValueError:
-            print(obj.BioProject, date_string)
-            # NOTE: For error associated dates
-            date_obj = "01/01/2001"
-        study_entries[i].Release_Date = date_obj
-
-
-# study_entries.save()
-# Handle invalid date strings if necessary
+    study_entries = Study.objects.filter(query & pubmed_filter)
 
     # The idea behind sample filter options is to be able to filter a study
     # based on the metadata of the samples it contains. This is not currently
@@ -520,8 +583,11 @@ def studies(request: HttpRequest) -> str:
     }  # , **sample_filter_options}
     clean_results_dict.pop('count', None)
 
+    study_entries = study_entries.order_by(
+        *sort_order(request, STUDY_SORTS, ['pk']))
+
     # Paginate the studies
-    paginator = Paginator(study_entries, 10)
+    paginator = Paginator(study_entries, page_size(request))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -563,20 +629,10 @@ def study_detail(request: HttpRequest, query: str) -> str:
     study_model = get_object_or_404(Study, BioProject=query)
 
     # return all results from Study where Accession=query
-    ls = Sample.objects.filter(BioProject=query)
+    ls = list(Sample.objects.filter(BioProject=query).order_by('pk'))
 
-    query = Q(BioProject=query)
-    urls = handle_urls_for_query(request, query)
-
-    for entry in ls:
-        query = Q(Run=entry.Run)
-        urls = handle_urls_for_query(request, query)
-        entry.trips_link = urls['trips_link']
-        entry.trips_name = urls['trips_name']
-        entry.gwips_link = urls['gwips_link']
-        entry.gwips_name = urls['gwips_name']
-        entry.ribocrypt_link = urls['ribocrypt_link']
-        entry.ribocrypt_name = urls['ribocrypt_name']
+    # Per-sample links, plus study-level links covering every sample
+    urls = attach_links(ls, selection={'bioproject': [study_model.BioProject]})
 
     # Return all results from Sample and query the sqlite too and add this to
     # the table
@@ -587,6 +643,8 @@ def study_detail(request: HttpRequest, query: str) -> str:
         'bioproject_trips_name': urls['trips_name'],
         'bioproject_gwips_link': urls['gwips_link'],
         'bioproject_gwips_name': urls['gwips_name'],
+        'bioproject_gwips_native_link': urls['gwips_native_link'],
+        'bioproject_gwips_native_name': urls['gwips_native_name'],
         'bioproject_ribocrypt_link': urls['ribocrypt_link'],
         'bioproject_ribocrypt_name': urls['ribocrypt_name'],
     }
@@ -701,15 +759,14 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         if value not in ['nan', '']:
             if key in appropriate_fields:
                 ks.append((clean_names[key], value))
-    sample_query = Q(Run=query)
-
     # check if custom track exists
     if ls[0].bigwig_forward_link or ls[0].bigwig_reverse_link:
         custom_track = "View Custom Track"
     else:
         custom_track = ""
     # generate GWIPS and Trips URLs
-    urls = handle_urls_for_query(request, sample_query)
+    per_run, _ = sample_links([sample_model])
+    urls = per_run[sample_model.Run]
 
     paginator = Paginator(ls, len(ls))
     page_number = request.GET.get('page')
@@ -723,6 +780,8 @@ def sample_detail(request: HttpRequest, query: str) -> str:
         'trips_name': urls['trips_name'],
         'gwips': urls['gwips_link'],
         'gwips_name': urls['gwips_name'],
+        'gwips_native': urls['gwips_native_link'],
+        'gwips_native_name': urls['gwips_native_name'],
         'ribocrypt': urls['ribocrypt_link'],
         'ribocrypt_name': urls['ribocrypt_name'],
         'custom_track': custom_track,
@@ -765,6 +824,20 @@ def sample_select_form(request: HttpRequest) -> str:
         return links(request)
 
 
+# File suffix for each downloadable file type
+DOWNLOAD_FILE_TYPES = {
+    "reads": ".collapsed.fa.gz",
+    "counts": "_counts.txt",
+    "bams": ".bam",
+    "adapter_report": ".adapter.fa",
+    "fastp": ".html",
+    "fastqc": "_fastqc.html",
+    "ribometric": "bamtrans_RiboMetric.html",
+    "bigwig (forward)": ".forward.bw",
+    "bigwig (reverse)": ".reverse.bw",
+}
+
+
 def generate_link(run, file_type="reads"):
     """
     Generate Link for a specific run of a given type (default is reads)
@@ -779,18 +852,7 @@ def generate_link(run, file_type="reads"):
     OR
     - (None): if the link is not valid
     """
-    server_base = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"
-    path_suffixes = {
-        "reads": ".collapsed.fa.gz",
-        "counts": "_counts.txt",
-        "bams": ".bam",
-        "adapter_report": ".adapter.fa",
-        "fastp": ".html",
-        "fastqc": "_fastqc.html",
-        "ribometric": "bamtrans_RiboMetric.html",
-        "bigwig (forward)": "_pshifted_forward.bigWig",
-        "bigwig (reverse)": "_pshifted_reverse.bigWig",
-    }
+    path_suffixes = DOWNLOAD_FILE_TYPES
     path_dirs = {
         "reads": "collapsed_reads",
         "counts": "counts",
@@ -803,32 +865,9 @@ def generate_link(run, file_type="reads"):
         "bigwig (reverse)": "bigwig",
     }
 
-    run = str(run)
-    if os.path.exists(
-            os.path.join(server_base, path_dirs[file_type], run[:6],
-                         run + path_suffixes[file_type])):
-        return f"/static2/{path_dirs[file_type]}/{run[:6]}/{run + path_suffixes[file_type]}"
-
-    elif os.path.exists(
-            os.path.join(server_base, path_dirs[file_type], run[:6],
-                         run + "_1" + path_suffixes[file_type])):
-        return f"/static2/{path_dirs[file_type]}/{run[:6]}/{run}_1{path_suffixes[file_type]}"
-
-    return None
-
-
-def check_path_exists(
-        path, server_base="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg"):
-    """
-    Check if a given path exists
-
-    Arguments:
-    - path (str): the path to check
-
-    Returns:
-    - (bool): True if the path exists, False otherwise
-    """
-    return os.path.exists(server_base + "/" + path)
+    suffix = path_suffixes[file_type]
+    path = find_run_file(path_dirs[file_type], run, [suffix, "_1" + suffix])
+    return f"/static2/{path}" if path else None
 
 
 def get_links_sample_entries(selected: dict, request: HttpRequest):
@@ -846,14 +885,9 @@ def get_links_sample_entries(selected: dict, request: HttpRequest):
 
     # Parse query from request
     if 'query' in selected:
-        print(selected)
         if selected['query'][0]:
             sample_query = select_all_query(selected['query'][0])
             sample_entries = sample_entries.filter(sample_query)
-            if "PubMed" in selected['query'][0] and "Available" in selected[
-                    'query'][0]:
-                sample_entries = sample_entries.filter(
-                    BioProject__PMID__length__gt=0)
         bioproject_query = sample_entries.values("BioProject").distinct()
         # trips = Trips.objects.filter(Run__in=sample_entries)
         # print(sample_entries)
@@ -871,10 +905,36 @@ def get_links_sample_entries(selected: dict, request: HttpRequest):
         # sample_query = build_bioproject_query(selected['bioproject'])
 
     else:
-        sample_page_obj = None
-        sample_query = None
-    
+        sample_entries = Sample.objects.none()
+        bioproject_query = []
+
     return sample_entries, bioproject_query
+
+
+# Most curated-track links shown on the links page; a wide selection can
+# cover hundreds of studies, and the list is a convenience, not a listing
+MAX_NATIVE_GWIPS_LINKS = 10
+
+
+def native_gwips_links(sample_entries) -> list:
+    '''
+    Curated GWIPS-viz track links for the studies among the selected samples.
+
+    Returns:
+    - (list): dicts with bioproject, organism and link, newest first by
+      table order, capped at MAX_NATIVE_GWIPS_LINKS
+    '''
+    projects = sample_entries.values_list('BioProject', flat=True).distinct()
+    rows = GWIPS.objects.filter(
+        BioProject__in=list(projects)).order_by('pk')[:MAX_NATIVE_GWIPS_LINKS]
+    links = []
+    for row in rows:
+        link, name = gwips_native_link([row])
+        if name:
+            links.append({'bioproject': row.BioProject,
+                          'organism': row.Organism or row.gwips_db,
+                          'link': link})
+    return links
 
 
 def links(request: HttpRequest) -> str:
@@ -900,12 +960,13 @@ def links(request: HttpRequest) -> str:
             trips_sql = Trips.objects.filter(BioProject__in=bioproject_query)
         else:
             trips_sql = Trips.objects.filter(Run__in=sample_entries.values("Run"))
+        trips_sql = trips_sql.order_by('pk')
 
 
         trips = []
         if trips_sql:
             trips_sql = pd.DataFrame(list(trips_sql.values()))
-            trips_sql["Trips_id"] = trips_sql["Trips_id"].apply(lambda x:x[:-2])
+            trips_sql["Trips_id"] = trips_sql["Trips_id"].apply(trips_file_id)
             trips_sql = trips_sql.groupby(
                 ["organism","transcriptome"]
             )["Trips_id"].apply(list).reset_index()
@@ -925,55 +986,16 @@ def links(request: HttpRequest) -> str:
             )
             
         
-        # print(trips,"Anmol")
-        gwips_sql = GWIPS.objects.filter(BioProject__in=bioproject_query)
-        gwips = [] 
-        if gwips_sql:
-            inhibited = pd.DataFrame(list(sample_entries.values())).drop_duplicates(
-                subset=['INHIBITOR', 'BioProject_id'], keep='first')
-            noninhibited = inhibited[~inhibited['INHIBITOR'].str.contains(
-                 'LTM|LAC|HARR', flags=re.IGNORECASE
-            )]
-            inhibited = inhibited[inhibited['INHIBITOR'].str.contains(
-                 'LTM|LAC|HARR', flags=re.IGNORECASE
-            )]
-
-            gwips_sql = pd.DataFrame(list(gwips_sql.values()))
-            gwips_sql_a = gwips_sql[gwips_sql["BioProject"].isin(
-
-                inhibited["BioProject_id"].values)]
-            gwips_sql_a["files"] = gwips_sql_a["GWIPS_Init_Suffix"].apply(
-                lambda x: f"{x}=full"
-            )
-
-            gwips_sql_b = gwips_sql[gwips_sql["BioProject"].isin(
-                noninhibited["BioProject_id"].values)]
-
-            gwips_sql_b["files"] = gwips_sql_b["GWIPS_Elong_Suffix"].apply(
-                lambda x: f"{x}=full"
-            )
-
-            gwips_sql = pd.concat([gwips_sql_a, gwips_sql_b]).groupby(["Organism","gwips_db","BioProject"])["files"].apply(list).reset_index()
-            gwips_sql["files"] = gwips_sql["files"].apply(
-                lambda x: "&".join(x)
-            )
-        
-            for _, gwip in gwips_sql.iterrows():
-                gwips.append({
-                'clean_organism': gwip['Organism'],
-                'bioproject': gwip['BioProject'],
-                'gwipsDB': gwip['gwips_db'],
-                'files': gwip['files']
-            })
-        if not gwips: 
-            gwips = [
-                {
-                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                    'gwips_db':"",
-                    'files':""
-                }
-            ]
+        # Genome browser: one link per organism, built from bigWigs
+        gwips = genome_tracks.selection_links(
+            sample_entries, genome_tracks.selection_from(request.GET))
+        if not gwips:
+            gwips = [{
+                'clean_organism': 'None of the Selected Runs have genome browser tracks',
+            }]
+        # The curated tracks GWIPS-viz already hosts, for whichever of the
+        # selected studies it has loaded
+        gwips_native = native_gwips_links(sample_entries)
 
     else:
         trips = [{
@@ -983,36 +1005,27 @@ def links(request: HttpRequest) -> str:
             'None of the Selected Runs are available on Trips-Viz',
         }]
         gwips = [{
-            'clean_organism':
-            'None of the Selected Runs are available on GWIPS-Viz',
-            'organism':
-            'None of the Selected Runs are available on GWIPS-Viz',
+            'clean_organism': 'None of the Selected Runs have genome browser tracks',
         }]
+        gwips_native = []
     # sample_entries = Sample.objects.filter(sample_query)
 
     # Retrieve entries
 
     # Paginate
-    paginator = Paginator(sample_entries, 10)
+    paginator = Paginator(sample_entries, page_size(request))
     page_number = request.GET.get('page')
     sample_page_obj = paginator.get_page(page_number)
 
     # get links for entries on page
-    for entry in sample_page_obj:
-        query = Q(Run=entry.Run)
-        urls = handle_urls_for_query(request, query)
-        entry.trips_link = urls['trips_link']
-        entry.trips_name = urls['trips_name']
-        entry.gwips_link = urls['gwips_link']
-        entry.gwips_name = urls['gwips_name']
-        entry.ribocrypt_link = urls['ribocrypt_link']
-        entry.ribocrypt_name = urls['ribocrypt_name']
+    attach_links(sample_page_obj)
 
     return render(
         request, 'main/links.html', {
             'sample_results': sample_page_obj,
             'trips': trips,
             'gwips': gwips,
+            'gwips_native': gwips_native,
             #            'ribocrypt': ribocrypt,
             'current_url': request.GET.urlencode(),
         })
@@ -1106,14 +1119,8 @@ def build_run_query(runs):
     """
     from django.db.models import Q
     
-    # Convert to list if it's a queryset
-    runs = list(runs)
-    
-    if not runs:
-        return None
-        
     # Build a single Q object instead of combining multiple
-    query = Q(Run__in=runs)
+    query = Q(Run__in=list(runs))
     return query
 
 def build_bioproject_query(bioprojects):
@@ -1122,14 +1129,8 @@ def build_bioproject_query(bioprojects):
     """
     from django.db.models import Q
     
-    # Convert to list if it's a queryset
-    bioprojects = list(bioprojects)
-    
-    if not bioprojects:
-        return None
-        
     # Build a single Q object instead of combining multiple
-    query = Q(Bioproject__in=bioprojects)
+    query = Q(BioProject__in=list(bioprojects))
     return query
 
 def reports(request, query) -> str:
@@ -1157,16 +1158,16 @@ def download_all(request) -> HttpResponse:
     '''
     selected = dict(request.GET.lists())
     file_type = selected.get('file_type', ['reads'])[0]
+    if file_type != "bigwigs" and file_type not in DOWNLOAD_FILE_TYPES:
+        return HttpResponseBadRequest(f"Unknown file_type: {file_type}")
 
     sample_entries, _ = get_links_sample_entries(selected, request)
 
-    if sample_entries is None:
+    if not sample_entries.exists():
         return HttpResponseNotFound("No Samples Selected")
 
     run_accessions = sample_entries.values_list('Run', flat=True)
     filename = str(uuid.uuid4())
-    static_base_path = "/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/download_files"
-    filepath = f"{static_base_path}/RiboSeqOrg_Download_{filename}.sh"
 
     bash_content = [
         "#!/bin/bash\n\n",
@@ -1201,66 +1202,80 @@ def download_all(request) -> HttpResponse:
     else:
         bash_content = ["#!/bin/bash\n\n", "echo 'No files available for download'\n"]
 
-    with open(filepath, 'w') as f:
-        f.writelines(bash_content)
-
-    with open(filepath, "rb") as f:
-        mime_type, _ = mimetypes.guess_type(filepath)
-        response = HttpResponse(f, content_type=mime_type)
-        response["Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
+    response = HttpResponse("".join(bash_content),
+                            content_type="application/x-sh")
+    response["Content-Disposition"] = f"attachment; filename=RiboSeqOrg_Download_{filename}.sh"
 
     return response
 
 
-def custom_track(request, query) -> str:
+def custom_track(request, query) -> HttpResponse:
     '''
-    Generate custom track page
+    UCSC custom track lines for one run's bigWigs, as plain text
 
     Arguments:
     - request (HttpRequest): the HTTP request for the page
+    - query (str): the run accession
 
     Returns:
-    - (render): the rendered HTTP response for the page
+    - (HttpResponse): the track lines
     '''
-    sample = Sample.objects.get(Run=query)
+    sample = get_object_or_404(Sample, Run=query)
+    lines = genome_tracks.track_lines([sample])
+    if not lines:
+        return HttpResponseNotFound("No bigWig tracks available for this run",
+                                    content_type='text/plain')
+    header = ['# Paste into https://gwips.ucc.ie/cgi-bin/hgCustom '
+              '(or any UCSC Genome Browser custom tracks page)']
+    return HttpResponse('\n'.join(header + lines) + '\n',
+                        content_type='text/plain')
 
-    context = {
-        'Run': sample.Run,
-        'BioProject': sample.BioProject,
-        'description': sample.Info,
-        'forward_url': sample.bigwig_forward_link,
-        'reverse_url': sample.bigwig_reverse_link
 
-    }   
-    return render(request, 'main/custom_track.txt', context, content_type='text/plain')
+def genome_track_lines(request) -> HttpResponse:
+    '''
+    UCSC custom track lines for a selection of runs of one organism, fetched
+    by the genome browser from links built in genome_tracks.selection_link.
+    Takes the links-page parameters (run / bioproject / query) plus organism.
+    '''
+    organism = request.GET.get('organism', '')
+    selected = genome_tracks.selection_from(request.GET)
+    if not organism or not selected:
+        return HttpResponseBadRequest('Give organism and run, bioproject or query',
+                                      content_type='text/plain')
+    sample_entries, _ = get_links_sample_entries(selected, request)
+    samples = sample_entries.filter(ScientificName=organism).order_by('pk')
+    return HttpResponse(genome_tracks.tracks_text(samples),
+                        content_type='text/plain')
+
+
+PIVOT_EXCLUDE = frozenset([
+    'id', 'verified', 'Experiment', 'InsertDev', 'trips_id', 'gwips_id',
+    'ribocrypt_id', 'FASTA_file', 'sample_title', 'MONTH', 'YEAR',
+    'ENA_last_update', 'ENA_checklist', 'ENA_first_public',
+    'INSDC_center_alias', 'INSDC_center_name', 'INSDC_first_public',
+    'INSDC_last_update', 'INSDC_status', 'spots', 'SampleName', 'CenterName',
+    'Submission', 'BioProject_id', 'Run', 'SRAStudy', 'Study_Pubmed_id',
+    'Sample', 'BioSample', 'TaxID', 'AUTHOR', 'GEO_Accession',
+    'Experiment_Date', 'date_sequenced', 'submission_date', 'date', 'Info',
+])
 
 
 def pivot(request):
-    random.seed(42)
-    samples = Sample.objects.all().order_by('?')# [:1000]
-    samples = pd.DataFrame.from_records(samples.values()).fillna("Missing")
-    columns2drop = ["id",'verified','Experiment','InsertDev', 'trips_id', 
-                    'gwips_id', 'ribocrypt_id', 'FASTA_file','sample_title',
-                    'MONTH', 'YEAR', 'ENA_last_update','sample_title',
-                    'ENA_checklist','ENA_first_public', 'ENA_last_update',
-                    'INSDC_center_alias', 'INSDC_center_name',
-                    'INSDC_first_public', 'INSDC_last_update', 
-                    'INSDC_status','spots','SampleName', 'CenterName',
-                    'Submission', 'BioProject_id', 'Run','SRAStudy', 
-                    'Study_Pubmed_id', 'Sample', 'BioSample','TaxID','AUTHOR',
-                    'GEO_Accession', 'Experiment_Date','date_sequenced', 
-                    'submission_date', 'date','Info']
-    samples = samples.drop(columns2drop, axis=1)
-    print(samples.columns)
-
-    samples= samples.to_csv(encoding='utf8')
-    if hasattr(samples, 'decode'):
-        samples = samples.decode('utf8')
+    # Same for every visitor, so build the CSV once per cache period
+    data = cache.get('pivot_csv')
+    if data is None:
+        columns = [f.attname for f in Sample._meta.concrete_fields
+                   if f.attname not in PIVOT_EXCLUDE]
+        samples = pd.DataFrame.from_records(
+            Sample.objects.order_by('pk').values(*columns),
+            columns=columns).fillna("Missing")
+        data = samples.to_csv(encoding='utf8')
+        cache.set('pivot_csv', data, 60 * 15)
 
     template = loader.get_template('main/pivot.html')
 
     context = {
-        'data': samples
+        'data': data
     }
 
     return HttpResponse(template.render(context, request))
@@ -1271,7 +1286,7 @@ def vocabularies(request):
 
 
 def get_reference_data():
-    references_dir = '/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/references'
+    references_dir = os.path.join(settings.RIBOSEQORG_DATA_DIR, 'references')
     reference_data = []
 
     for organism_dir in os.listdir(references_dir):
@@ -1294,307 +1309,3 @@ def get_reference_data():
 def references(request):
     reference_data = get_reference_data()
     return render(request, 'main/references.html', {'references': reference_data})
-
-
-import json
-import io
-import base64
-import matplotlib
-matplotlib.use('Agg')  # Set the backend to Agg (non-interactive)
-import matplotlib.pyplot as plt
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-
-# Import the RDG libraries
-from RDG import RDG, plot
-from RDG.sequence_to_RDG import extract_translons
-
-
-from django.views.decorators.csrf import ensure_csrf_cookie
-
-# Add this function to clean your sequence
-def clean_sequence(sequence):
-    """
-    Clean a nucleotide sequence by removing spaces, line breaks and non-standard characters.
-    Only allows A, T, G, C, U, N (and their lowercase variants).
-    """
-    # Convert to uppercase
-    sequence = sequence.upper()
-    
-    # Remove spaces, newlines, and other whitespace
-    sequence = ''.join(sequence.split())
-    
-    # Keep only valid nucleotide characters
-    valid_chars = set('ATGCUN')
-    sequence = ''.join(char for char in sequence if char in valid_chars)
-    
-    return sequence
-
-
-import requests
-import json
-
-def get_mature_transcript(transcript_id, seq_type="cdna"):
-    """
-    Get mature transcript sequence from Ensembl REST API
-    
-    Parameters:
-    transcript_id (str): Ensembl transcript ID (e.g., 'ENST00000288602')
-    seq_type (str): Type of sequence to retrieve:
-                    'cdna' - full transcript (including UTRs)
-                    'cds' - just the coding sequence
-    
-    Returns:
-    dict: Response from Ensembl containing the sequence
-    """
-    server = "https://rest.ensembl.org"
-    ext = f"/sequence/id/{transcript_id}?type={seq_type}"
-    
-    headers = {"Content-Type": "application/json"}
-    
-    response = requests.get(server + ext, headers=headers)
-    
-    if response.ok:
-        return response.json()
-    else:
-        response.raise_for_status()
-
-# # Example usage
-# transcript_id = "ENST00000288602"  # KRAS transcript
-# result = get_mature_transcript(transcript_id)
-# print(f"Transcript ID: {result['id']}")
-# print(f"Sequence length: {len(result['seq'])}")
-# print(f"Sequence: {result['seq'][:50]}...")  # Print first 50 bases
-
-@ensure_csrf_cookie
-def rdg_view(request: HttpRequest) -> str:
-    """
-    Render the RDG visualization page.
-
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
-
-    Returns:
-    - (render): the rendered HTTP response for the page
-    """
-    if request.method == 'POST':
-        # Handle form submission via AJAX
-        try:
-            data = json.loads(request.body)
-            visualization_type = data.get('type', 'manual')
-          
-            if visualization_type == 'manual':
-                # Process manual input
-                locus_name = data.get('locus_name', 'Unnamed Locus')
-                transcript_length = int(data.get('transcript_length', 2000))
-                allow_reinitiation = data.get('allow_reinitiation', True)
-                reinitiation_limit = int(data.get('reinitiation_limit', 1))
-                translons = data.get('translons', [])
-              
-                # Build the graph
-                g = RDG(name=locus_name, locus_stop=transcript_length)
-              
-                for t in translons:
-                    start_pos = int(t['start'])
-                    stop_pos = int(t['stop'])
-                    if start_pos != stop_pos:  # Only add if start != stop
-                        g.add_open_reading_frame(
-                            start_codon_position=start_pos,
-                            stop_codon_position=stop_pos,
-                            reinitiation=allow_reinitiation,
-                            upstream_limit=reinitiation_limit
-                        )
-              
-            elif visualization_type == 'sequence':
-                # Process sequence input
-                sequence = clean_sequence(data.get('sequence', ''))
-                start_codons = data.get('start_codons', 'ATG,CTG,GTG').split(',')
-                min_length = int(data.get('min_length', 30))
-                max_starts = int(data.get('max_starts', 5))
-                allow_reinitiation = data.get('allow_reinitiation', True)
-                reinitiation_limit = int(data.get('reinitiation_limit', 1))
-
-                #  Extract translons from sequence
-                translons = extract_translons(sequence, 
-                                              starts=start_codons, 
-                                              min_length=min_length)
-              
-                # Build the graph
-                g = RDG(name="Sequence-based RDG", locus_stop=len(sequence))
-              
-                for t in translons[:max_starts + 1]:
-                    g.add_open_reading_frame(
-                        start_codon_position=t[0],
-                        stop_codon_position=t[1],
-                        reinitiation=allow_reinitiation,
-                        upstream_limit=reinitiation_limit
-                    )
-          
-            elif visualization_type == 'gene':
-                # Process gene name input
-                organism = data.get('organism', 'homo_sapiens')
-                gene_name = data.get('gene_name', '')
-                transcript_id = data.get('transcript_id', '')
-                start_codons = [s.strip() for s in data.get('start_codons', 'ATG,CTG,GTG').split(',')]
-                min_length = int(data.get('min_length', 30))
-                max_starts = int(data.get('max_starts', 5))
-                allow_reinitiation = data.get('allow_reinitiation', True)
-                reinitiation_limit = int(data.get('reinitiation_limit', 1))
-              
-                try:
-                    # Import gget for sequence fetching
-                    import gget
-                  
-                    # Step 1: Get the Ensembl ID if gene name is provided
-                    if not transcript_id and gene_name:
-                        search_results = gget.search([gene_name], species=organism, release=111)
-                        if search_results.empty:
-                            return JsonResponse({
-                                'error': f'Could not find gene {gene_name} in {organism}'
-                            }, status=404)
-                      
-                        # Get the first ensembl_id
-                        ensg = search_results['ensembl_id'][0]
-                      
-                        # Get all transcripts for this gene
-                        seq_results = get_mature_transcript(ensg)
-                        # seq_results = gget.seq(ensg, translate=False, isoforms=True)
-                        if not seq_results or len(seq_results) < 2:
-                            return JsonResponse({
-                                'error': f'No transcripts found for {gene_name}'
-                            }, status=404)
-                      
-                        # Use the first transcript
-                        tx_id = seq_results['id']
-                        tx_seq = seq_results['seq']
-                        display_name = f"{gene_name} ({tx_id})"
-                      
-                    else:  # Use provided transcript_id
-                        tx_id = transcript_id
-                        seq_results = get_mature_transcript(tx_id)
-                        # seq_results = gget.seq(tx_id, translate=False)
-                        if not seq_results or len(seq_results) < 2:
-                            return JsonResponse({
-                                'error': f'No sequence found for transcript {tx_id}'
-                            }, status=404)
-                      
-                        tx_seq = seq_results['seq']
-                        display_name = f"Transcript {tx_id}"
-                  
-                    # Step 2: Get transcript information (exon structure)
-                    tx_info_df = gget.info([tx_id])[['exon_starts', 'exon_ends']]
-                    if tx_info_df.empty:
-                        # If exon structure not available, use the raw sequence
-                        sequence = tx_seq
-                    else:
-                        # Process exon structure to get the complete transcript sequence
-                        exon_starts = tx_info_df.loc[tx_id, 'exon_starts']
-                        exon_ends = tx_info_df.loc[tx_id, 'exon_ends']
-                      
-                        # Calculate base offset
-                        base = min(min(exon_starts), min(exon_ends))
-                      
-                        # Adjust exon coordinates
-                        updated_starts = [i - base for i in exon_starts]
-                        updated_ends = [i - base for i in exon_ends]
-                        updated_exons = zip(updated_starts, updated_ends)
-                      
-                        # Extract sequences for each exon and join them
-                        seqs = [tx_seq[exon[0]:exon[1] + 1] for exon in updated_exons]
-                        sequence = ''.join(seqs)
-
-                    sequence = clean_sequence(sequence)
-                    # Step 3: Extract translons from the sequence
-                    translons = extract_translons(sequence, 
-                                                  starts=start_codons, 
-                                                  min_length=min_length)
-                  
-                    if not translons:
-                        return JsonResponse({
-                            'error': f'No translons found in the sequence with the given parameters'
-                        }, status=404)
-                   
-                    # Step 4: Build the RDG
-                    g = RDG(name=display_name, locus_stop=len(sequence))
-                  
-                    # Add open reading frames in order of appearance
-                    for translon_start, translon_stop in sorted(translons)[:max_starts + 1]:
-                        g.add_open_reading_frame(
-                            start_codon_position=translon_start,
-                            stop_codon_position=translon_stop,
-                            reinitiation=allow_reinitiation,
-                            upstream_limit=reinitiation_limit
-                        )
-                      
-                except Exception as e:
-                    return JsonResponse({
-                        'error': f'Error processing gene sequence: {str(e)}'
-                    }, status=500)
-          
-            else:
-                return JsonResponse({
-                    'error': f'Unknown visualization type: {visualization_type}'
-                }, status=400)
-          
-            # Set up color scheme for the graph
-            color_dict = {
-                "edge_colors": {
-                    0: "#4a6fa5",
-                    1: "#98c1d9",
-                    2: "#7dace4"
-                },
-                "node_colors": {
-                    "startpoint": "#003366",
-                    "endpoint": "#003366",
-                    "translation_start": "#2e8b57",
-                    "translation_stop": "#8b0000",
-                    "frameshift": "#ff8c00",
-                },
-            }
-            
-            # Create visualization
-            plt.figure(figsize=(10, 6))
-            plot(g, color_dict=color_dict, reinit_base_limit=reinitiation_limit, allow_reinitiation=allow_reinitiation)
-
-            # Generate PNG for display
-            png_buffer = io.BytesIO()
-            plt.savefig(png_buffer, format='png', dpi=100, bbox_inches='tight')
-            png_buffer.seek(0)
-            image_png = png_buffer.getvalue()
-            png_buffer.close()
-
-            # Generate SVG for download
-            svg_buffer = io.BytesIO()
-            plt.savefig(svg_buffer, format='svg', bbox_inches='tight')
-            svg_buffer.seek(0)
-            svg_data = svg_buffer.getvalue()
-            svg_buffer.close()
-
-            plt.close()  # Close the figure to free memory
-
-            # Encode PNG to base64 for embedding in HTML
-            png_b64 = base64.b64encode(image_png).decode('utf-8')
-
-            # Encode SVG to base64 for download link
-            svg_b64 = base64.b64encode(svg_data).decode('utf-8')
-
-            return JsonResponse({
-                'image': png_b64,          # PNG for display
-                'svg_data': svg_b64,       # SVG for download
-                'filename': g.locus.replace(' ', '_') + '.svg',  # Suggested filename
-                'success': True
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'error': f'Error generating RDG: {str(e)}'
-            }, status=500)
-    
-    # For GET requests, render the template
-    return render(request, "main/rdg.html")
-
-
-#from . import single_transcript_routes
-#def pplot(request: HttpRequest) -> str:
- #   return HttpResponse(single_transcript_routes.query_plot())

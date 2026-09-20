@@ -2,10 +2,10 @@ from django.http import HttpRequest
 from django.db.models import Q
 from typing import List, Dict
 
-from .models import Sample, Trips, GWIPS, RiboCrypt
-import pandas as pd
+from urllib.parse import parse_qsl
 
-import os
+from .datafiles import find_run_file
+from .models import Sample
 
 
 def get_clean_names() -> dict:
@@ -156,7 +156,10 @@ def build_query(
             continue
 
         cn = {v: k for k, v in clean_names.items()}
-        original_field = cn[field]
+        original_field = cn.get(field)
+        if original_field is None:
+            # Not a filter this page knows about
+            continue
 
         if field in toggle_fields:
             query &= Q(**{original_field: 'on' in options})
@@ -204,310 +207,31 @@ def handle_filter(
     return clean_results_dict
 
 
-def build_run_query(run_list: list) -> Q:
+# Values used for "no PMID" in Study.PMID
+PMID_MISSING = ['', 'nan', '<NA>']
+
+
+def pubmed_query(options: list, prefix: str = '') -> Q:
     '''
-    For a given run list return a query to filter the Sample model.
+    Build the query for the PubMed filter, whose options are 'Available'
+    and/or 'Not Available'.
 
     Arguments:
-    - run_list (list): the list of runs to filter
+    - options (list): the selected PubMed options
+    - prefix (str): lookup prefix to reach Study.PMID, e.g. 'BioProject__'
 
     Returns:
-    - (Q): the query
+    - (Q): the query (empty if both or neither option is selected)
     '''
-    query = Q()
-    for run in run_list:
-        query |= Q(Run=run)
-
-    return query
-
-
-def build_bioproject_query(run_list: list) -> Q:
-    '''
-    For a given run list return a query to filter the Sample model.
-
-    Arguments:
-    - run_list (list): the list of runs to filter
-
-    Returns:
-    - (Q): the query
-    '''
-    query = Q()
-    for run in run_list:
-        query |= Q(BioProject=run)
-
-    return query
-
-
-def handle_trips_urls(query: Q) -> list:
-    '''
-    For a given query return the required information to link
-    those sample in trips.
-
-    Arguments:
-    - query (Q): the query
-
-    Returns:
-    - (list): the required information to link those samples in trips
-    '''
-    trips = []
-    trips_entries = Trips.objects.filter(query)
-
-    trips_df = pd.DataFrame(list(trips_entries.values()))
-    if trips_df.empty:
-        trips.append(
-            {
-                'clean_organism': 'None of the Selected Runs are available on Trips-Viz',
-                'organism': 'None of the Selected Runs are available on Trips-Viz',
-            }
-        )
-    else:
-        for transcriptome in trips_df['transcriptome'].unique():
-            organism_df = trips_df[trips_df['transcriptome'] == transcriptome]
-            file_ids = [str(int(float(i))) for i in organism_df[
-                'Trips_id'
-                ].unique().tolist()]
-            trips.append(
-                {
-                    'clean_organism': organism_df[
-                        'organism'
-                        ].unique()[0].replace('_', ' ').capitalize(),
-                    'organism': organism_df['organism'].unique()[0],
-                    'transcriptome': transcriptome,
-                    'files': f"files={','.join(file_ids)}",
-                }
-            )
-
-    return trips
-
-
-def handle_gwips_urls(request: HttpRequest, query=None) -> list:
-    '''
-    For a given query return the required information to link those sample in GWIPS-viz.
-
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
-
-    Returns:
-    - (list): the required information to link those samples in GWIPS-viz (list of dicts)
-    '''
-    gwips = []
-    requested = dict(request.GET.lists())
-    if str(query) != '<Q: (AND: )>' and query is not None:
-        samples = Sample.objects.filter(query)
-    elif 'run' in requested:
-        runs = requested['run']
-        samples = Sample.objects.filter(build_run_query(runs))
-    elif 'bioproject' in requested:
-        bioprojects = requested['bioproject']
-        samples = Sample.objects.filter(BioProject__in=bioprojects)
-
-    samples_df = pd.DataFrame(list(samples.values()))
-
-    organisms = samples_df['ScientificName'].unique()
-    if 'run' in requested:
-        for organism in organisms:
-            organism_df = samples_df[samples_df['ScientificName'] == organism]
-            gwips_dict = {
-                'clean_organism': organism.replace('_', ' ').capitalize(),
-                'bioprojects': '',
-                'files': '',
-                'gwipsDB': '',
-            }
-            for idx, row in organism_df.iterrows():
-                gwips_entry = GWIPS.objects.filter(BioProject=row['BioProject_id'])
-                if gwips_entry:
-                    gwips_df = pd.DataFrame(list(gwips_entry.values()))
-                    if row['BioProject_id'] not in gwips_dict['bioprojects']:
-                        gwips_dict['bioprojects'] += f"{row['BioProject_id']}, "
-                    gwips_dict['gwipsDB'] = gwips_df['gwips_db'].unique()[0]
-
-                    if any(map(row['INHIBITOR'].__contains__, ['ltm', 'LTM', 'Lac', 'LAC', 'harr', 'Harr', 'HARR'])):
-                        suffix = gwips_df['GWIPS_Init_Suffix'].unique()[0]
-                    else:
-                        suffix = gwips_df['GWIPS_Elong_Suffix'].unique()[0]
-
-                    if gwips_dict['files'] != '' and f"{suffix}=full" not in gwips_dict['files']:
-                        gwips_dict['files'].append(f"{suffix}=full")
-                    elif f"{suffix}=full" not in gwips_dict['files']:
-                        gwips_dict['files'] = [f"{suffix}=full"]
-            gwips_dict['files'] = '&'.join(gwips_dict['files'])
-
-            gwips.append(gwips_dict)
-
-    elif 'bioproject' in requested or str(query) != '<Q: (AND: )>':
-        for organism in organisms:
-            organism_df = samples_df[samples_df['ScientificName'] == organism]
-            organism_df = organism_df[organism_df['gwips_id'] == True]
-            if organism_df.empty:
-                continue
-            gwips_dict = None
-            for bioproject in organism_df['BioProject_id'].unique():
-                gwips_entry = GWIPS.objects.filter(BioProject=bioproject)
-                if gwips_entry:
-                    gwips_df = pd.DataFrame(list(gwips_entry.values()))
-                    if gwips_df['Organism'].unique()[0] != organism:
-                        continue
-                    if not gwips_dict:
-                        gwips_dict = {
-                            'bioproject': bioproject,
-                            'clean_organism': organism.replace('_', ' ').capitalize(),
-                            'gwipsDB': gwips_df['gwips_db'].unique()[0],
-                            'files': [],
-                        }
-                    for col in ['GWIPS_Elong_Suffix', 'GWIPS_Init_Suffix']:
-                        if gwips_df[col].unique()[0] != '':
-                            if f"{gwips_df[col].unique()[0]}=full" not in gwips_dict['files']:
-                                gwips_dict['files'].append(f"{gwips_df[col].unique()[0]}=full")
-
-            if gwips_dict:
-                gwips_dict['files'] = '&'.join(gwips_dict['files'])
-                gwips.append(gwips_dict)
-        else:
-            gwips.append(
-                {
-                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                }
-            )
-    else:
-        gwips.append(
-            {
-                'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                'organism': 'None of the Selected Runs are available on GWIPS-Viz',
-            }
-        )
-    
-    if len(gwips) == 1 and 'gwipsDB' in gwips[0]:
-        if gwips[0]['gwipsDB'] == "":
-            gwips = [
-                {
-                    'clean_organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                    'organism': 'None of the Selected Runs are available on GWIPS-Viz',
-                }
-            ]
-    # with open("/tmp/anmol.txt","w") as fout:
-      #  fout.write(gwips)
-    return gwips
-
-
-def handle_ribocrypt_urls(request: HttpRequest, query=None) -> list:
-    '''
-    For a given query return the required information to link those sample in ribocrypt.
-
-    RiboCrypt samples can only be accessed within projects. Therefore, the BioProject information is required to access the samples.
-    If just a bioproject is provided in the query then use all
-
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
-    - query (Q): the query
-
-    Returns:
-    - (list): the required information to link those samples in ribocrypt (list of dicts)
-    '''
-    ribocrypt = []
-
-    requested = dict(request.GET.lists())
-
-    if str(query) != '<Q: (AND: )>' and query is not None:
-        samples = RiboCrypt.objects.filter(query)
-
-    elif 'run' in requested:
-        runs = requested['run']
-        samples = RiboCrypt.objects.filter(Run__in=runs)
-    elif 'bioproject' in requested:
-        bioprojects = requested['bioproject']
-        samples = RiboCrypt.objects.filter(BioProject__in=bioprojects)
-
-    if samples:
-        samples_df = pd.DataFrame(list(samples.values()), columns=['BioProject', 'Organism', 'ribocrypt_id', 'Run'])
-        samples_df = samples_df.groupby(['ribocrypt_id', 'Organism'])
-
-        for (ribocrypt_id, organism), df in samples_df:
-            ribocrypt_dict = {
-                'dff': f"{ribocrypt_id}-{organism.replace(' ', '_').lower()}",
-                'clean_organism': f"{organism.replace('_', ' ').capitalize()} - {ribocrypt_id}",
-                'files': ','.join(df['Run'].unique()),
-            }
-            ribocrypt.append(ribocrypt_dict)
-    else:
-        ribocrypt.append(
-            {
-                'clean_organism': 'None of the Selected Runs are available on RiboCrypt',
-                'organism': 'None of the Selected Runs are available on RiboCrypt',
-            }
-        )
-    return ribocrypt
-
-
-def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
-    '''
-    generate gwips trips and ribocrypt urls for a given query
-
-    Arguments:
-    - request (HttpRequest): the HTTP request for the page
-    - query (Q): the query
-
-    Returns:
-    - (dict): the urls for the query
-    '''
-    image_template = '''<img src="{% static 'images/{0}' %}" style=" max-height:75px; max-width:75px;">'''
-    if query is not None:
-        trips = handle_trips_urls(query)[0]
-        if len(trips['clean_organism'].split(" ")) > 5:
-            bioproject_trips_link = "https://trips.ucc.ie/"
-            bioproject_trips_name = ""
-        else:
-            bioproject_trips_link = f"https://trips.ucc.ie/{ trips['organism'] }/{ trips['transcriptome'] }/interactive_plot/?{ trips['files']}"
-            bioproject_trips_name = 'Visit Trips-Viz'
-
-        gwips = handle_gwips_urls(request, query=query)[0]
-        if gwips['clean_organism'] == 'None of the Selected Runs are available on GWIPS-Viz':
-            bioproject_gwips_link = "https://gwips.ucc.ie/"
-            bioproject_gwips_name = ""
-        else:
-            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
-            bioproject_gwips_name = "Visit GWIPS-viz"
-
-        ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
-        if len(ribocrypt['clean_organism'].split(" ")) > 5:
-            bioproject_ribocrypt_link = "https://ribocrypt.org/"
-            bioproject_ribocrypt_name = ""
-        else:
-            bioproject_ribocrypt_link = f"https://ribocrypt.org/?dff={ ribocrypt['dff'] }&library={ ribocrypt['files'] }&go=TRUE&go=TRUE"
-            bioproject_ribocrypt_name = "Visit RiboCrypt"
-        
-        return {
-            'trips_link': bioproject_trips_link,
-            'trips_name': bioproject_trips_name,
-            'gwips_link': bioproject_gwips_link,
-            'gwips_name': bioproject_gwips_name,
-            'ribocrypt_link': bioproject_ribocrypt_link,
-            'ribocrypt_name': bioproject_ribocrypt_name,
-        }
-
-    else:
-        return {
-            'trips_link': "https://trips.ucc.ie/",
-            'trips_name': "Not Available",
-            'gwips_link': "https://gwips.ucc.ie/",
-            'gwips_name': "Not Available",
-            'ribocrypt_link': "https://ribocrypt.org/",
-            'ribocrypt_name': "Not Available",
-        }
-
-
-def check_custom_track(run: str) -> bool:
-    '''
-    Check if the custom track is available for the run
-
-    Arguments:
-    - run (str): the run to check
-
-    Returns:
-    - (bool): whether the custom track is available for the run
-    '''
-    print(f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/bigwig/{run[:5]}")
-    return os.path.exists(f"/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/bigwig/{run[:5]}/{run}.bw")
+    missing = (Q(**{f'{prefix}PMID__isnull': True})
+               | Q(**{f'{prefix}PMID__in': PMID_MISSING}))
+    available = 'Available' in options
+    not_available = 'Not Available' in options
+    if available and not not_available:
+        return ~missing
+    if not_available and not available:
+        return missing
+    return Q()
 
 
 def select_all_query(query_string):
@@ -520,129 +244,77 @@ def select_all_query(query_string):
     Returns:
     - (Q): the Django Q object to select all the samples in the database that were shown in the table
     '''
-    query_string = query_string.replace('+', ' ').replace("run", "Run")
+    ignored_keys = [
+        'page',
+        'csrfmiddlewaretoken',
+        'links',
+        'sample_page',
+        'study_page',
+        'query',
+    ]
+    sample_fields = {field.name for field in Sample._meta.get_fields()}
+    clean_names = get_clean_names()
 
-    query_list = [i.split("=") for i in query_string.split('&')]
-
-    query_list = [i for i in query_list if i[0] not in [
-            'page',
-            'csrfmiddlewaretoken',
-            'links',
-            'sample_page',
-            'study_page',
-            ]
-        ]
-    
     main_query = Q()  # Initialize an empty main query for AND between fields
     field_queries = {}  # Dictionary to store OR queries for each field
+    pubmed_options = []
 
-    if query_list:
-        if len(query_list[0]) != 1:
-            query_list = [
-                [
-                    i[0], i[1].replace('on', 'True')
-                    ] if i[1] == 'on' else i for i in query_list
-                ]
-            query_mappings = {
-                i[0]: get_original_name(
-                    i[0], get_clean_names()
-                    ) for i in query_list
-            }
+    for model_key, value in parse_qsl(query_string):
+        if model_key in ignored_keys:
+            continue
+        if model_key == 'PubMed':
+            # PMID lives on Study, not Sample
+            pubmed_options.append(value)
+            continue
+        if value == 'on':
+            value = 'True'
 
-            for model_key, value in query_list:
-                if model_key in ['query']:
-                    continue
+        field_name = 'Run' if model_key == 'run' else get_original_name(
+            model_key, clean_names)
+        if field_name not in sample_fields:
+            continue
 
-                field_name = query_mappings[model_key]
-
-                # If the field already exists in field_queries, add to its OR query
-                if field_name in field_queries:
-                    field_queries[field_name] |= Q(**{field_name: value})
-                else:
-                    # If it's a new field, create a new OR query
-                    field_queries[field_name] = Q(**{field_name: value})
+        # If the field already exists in field_queries, add to its OR query
+        if field_name in field_queries:
+            field_queries[field_name] |= Q(**{field_name: value})
+        else:
+            # If it's a new field, create a new OR query
+            field_queries[field_name] = Q(**{field_name: value})
 
     # Combine all field queries with AND
     for field_query in field_queries.values():
         main_query &= field_query
 
-    return main_query
+    return main_query & pubmed_query(pubmed_options, prefix='BioProject__')
 
 
-def get_fastp_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastp"):
+def get_fastp_report_link(run: str):
     '''
     Return path to fastp report file for given run
-
 
     Arguments:
     - run (str): the run to get the report for
 
     Returns:
-    - (str): the path to the report file
+    - (str): the path to the report file, relative to RIBOSEQORG_DATA_DIR
+    OR
+    - (None): if there is no report
     '''
-    path = f"{base_path}/{run[:6]}/{run}.html"
-    if os.path.exists(path):
-
-        return '/'.join(path.split('/')[-3:])
-    else:
-        path = f"{base_path}/{run[:6]}/{run}_1.html"
-        if os.path.exists(path):
-            return '/'.join(path.split('/')[-3:])
-        else:
-            path = f"{base_path}/{run[:6]}/{run}_2.html"
-            if os.path.exists(path):
-                return '/'.join(path.split('/')[-3:])
-            else:
-                return None
+    return find_run_file('fastp', run, ['.html', '_1.html', '_2.html'])
 
 
-def get_fastqc_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/fastqc"):
+def get_fastqc_report_link(run: str):
     '''
-    Return path to fastp report file for given run
-
-
-    Arguments:
-    - run (str): the run to get the report for
-
-    Returns:
-    - (str): the path to the report file
+    Return path to FastQC report file for given run (see get_fastp_report_link)
     '''
-    path = f"{base_path}/{run[:6]}/{run}_fastqc.html"
-    if os.path.exists(path):
-        return '/'.join(path.split('/')[-3:])
-    else:
-        path = f"{base_path}/{run[:6]}/{run}_1_fastqc.html"
-        if os.path.exists(path):
-            return '/'.join(path.split('/')[-3:])
-        else:
-            path = f"{base_path}/{run[:6]}/{run}_2_fastqc.html"
-            if os.path.exists(path):
-                return '/'.join(path.split('/')[-3:])
-            else:
-                return None
+    return find_run_file('fastqc', run, [
+        '_fastqc.html', '_1_fastqc.html', '_2_fastqc.html'])
 
 
-def get_ribometric_report_link(run: str, base_path="/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/ribometric"):
+def get_ribometric_report_link(run: str):
     '''
-    Return path to fastp report file for given run
-
-
-    Arguments:
-    - run (str): the run to get the report for
-
-    Returns:
-    - (str): the path to the report file
+    Return path to RiboMetric report file for given run (see get_fastp_report_link)
     '''
-    path = f"{base_path}/{run[:6]}/{run}bamtrans_RiboMetric.html"
-    if os.path.exists(path):
-        return '/'.join(path.split('/')[-3:])
-    else:
-        path = f"{base_path}/{run[:6]}/{run}_1bamtrans_RiboMetric.html"
-        if os.path.exists(path):
-            return '/'.join(path.split('/')[-3:])
-        else:
-            path = f"{base_path}/{run[:6]}/{run}_2bamtrans_RiboMetric.html"
-            if os.path.exists(path):
-                return '/'.join(path.split('/')[-3:])
-            else:
-                return None
+    return find_run_file('ribometric', run, [
+        'bamtrans_RiboMetric.html', '_1bamtrans_RiboMetric.html',
+        '_2bamtrans_RiboMetric.html'])

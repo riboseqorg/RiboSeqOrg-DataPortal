@@ -1,78 +1,65 @@
 {% extends 'main/base.html' %}
-{% block title %}Reports{% endblock %}
-{% load static %}
-{% block head_static %}
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          crossorigin="anonymous">
-    <!-- Include Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            crossorigin="anonymous"></script>    
-    <link href="{% static 'css/riboseq-css.css' %}"
-        rel="stylesheet"
-        type="text/css">
-{% endblock %}
-
+{% block title %}Quality reports | RiboSeq Data Portal{% endblock %}
 {% block content %}
-
-{% include 'main/navbar.html' %}
-    <section id="reports" style="padding: 2%;">
-      <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-left: 2%;">
+    {% with run=request.resolver_match.kwargs.query %}
+    <div class="container-fluid site-gutter">
+        <nav aria-label="breadcrumb" class="pt-3">
+            <ol class="breadcrumb small mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'samples' %}">Samples</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'sample' run %}">{{ run }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Quality reports</li>
+            </ol>
+        </nav>
+        <div class="page-header">
+            <h1>Quality reports for {{ run }}</h1>
+        </div>
         {% if not fastqc and not fastp and not ribometric %}
-        <div class="alert alert-info" role="alert">
-          <h4 class="alert-heading">No Reports Available</h4>
-          <p>Currently, there are no analysis reports available for viewing. This could be because:</p>
-          <ul>
-            <li>The analysis has not been run yet</li>
-            <li>There was an error during the analysis process</li>
-            <li>The report files have been moved or deleted</li>
-          </ul>
-          <p>If you believe this is an error, please contact the system administrator.</p>
-        </div>
-      {% else %}
-        {% if fastqc %}
-        <li class="nav-item" role="presentation">
-          <button class="nav-link {% if fastqc %}active{% endif %}" id="FASTQC-tab" data-bs-toggle="tab" data-bs-target="#FASTQC" type="button" role="tab" aria-controls="FASTQC" aria-selected="{% if fastqc %}true{% else %}false{% endif %}">FASTQC</button>
-        </li>
+            <div class="alert alert-light border" role="status" style="max-width: 720px;">
+                <h2 class="h5">No reports available</h2>
+                <p>There are no analysis reports for this sample. This usually means that:</p>
+                <ul>
+                    <li>the sample has not been processed yet,</li>
+                    <li>processing failed, or</li>
+                    <li>the report files have been moved.</li>
+                </ul>
+                <p class="mb-0">If you think this is a mistake, please <a href="https://forms.gle/K1HPrcWkgZAvo33M9">let us know</a>.</p>
+            </div>
+        {% else %}
+            <ul class="nav nav-tabs" role="tablist">
+                {% if fastqc %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="fastqc-tab" data-bs-toggle="tab" data-bs-target="#fastqc" type="button" role="tab" aria-controls="fastqc" aria-selected="true">FastQC</button>
+                    </li>
+                {% endif %}
+                {% if fastp %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not fastqc %}active{% endif %}" id="fastp-tab" data-bs-toggle="tab" data-bs-target="#fastp" type="button" role="tab" aria-controls="fastp" aria-selected="{% if not fastqc %}true{% else %}false{% endif %}">fastp</button>
+                    </li>
+                {% endif %}
+                {% if ribometric %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not fastqc and not fastp %}active{% endif %}" id="ribometric-tab" data-bs-toggle="tab" data-bs-target="#ribometric" type="button" role="tab" aria-controls="ribometric" aria-selected="{% if not fastqc and not fastp %}true{% else %}false{% endif %}">RiboMetric</button>
+                    </li>
+                {% endif %}
+            </ul>
+            <div class="tab-content border border-top-0 rounded-bottom p-3">
+                {% if fastqc %}
+                    <div class="tab-pane fade show active" id="fastqc" role="tabpanel" aria-labelledby="fastqc-tab">
+                        {% include 'main/_report_frame.html' with src=fastqc name="FastQC" %}
+                    </div>
+                {% endif %}
+                {% if fastp %}
+                    <div class="tab-pane fade {% if not fastqc %}show active{% endif %}" id="fastp" role="tabpanel" aria-labelledby="fastp-tab">
+                        {% include 'main/_report_frame.html' with src=fastp name="fastp" %}
+                    </div>
+                {% endif %}
+                {% if ribometric %}
+                    <div class="tab-pane fade {% if not fastqc and not fastp %}show active{% endif %}" id="ribometric" role="tabpanel" aria-labelledby="ribometric-tab">
+                        {% include 'main/_report_frame.html' with src=ribometric name="RiboMetric" %}
+                    </div>
+                {% endif %}
+            </div>
         {% endif %}
-        {% if fastp %}
-        <li class="nav-item" role="presentation">
-          <button class="nav-link {% if not fastqc and fastp %}active{% endif %}" id="FASTP-tab" data-bs-toggle="tab" data-bs-target="#FASTP" type="button" role="tab" aria-controls="FASTP" aria-selected="{% if not fastqc and fastp %}true{% else %}false{% endif %}">FASTP</button>
-        </li>
-        {% endif %}
-        {% if ribometric %}
-        <li class="nav-item" role="presentation">
-          <button class="nav-link {% if not fastqc and not fastp and ribometric %}active{% endif %}" id="RiboMetric-tab" data-bs-toggle="tab" data-bs-target="#RiboMetric" type="button" role="tab" aria-controls="RiboMetric" aria-selected="{% if not fastqc and not fastp and ribometric %}true{% else %}false{% endif %}">RiboMetric</button>
-        </li>
-        {% endif %}
-      </ul>
-      <div class="tab-content" id="myTabContent">
-        {% if fastqc %}
-        <div class="tab-pane fade {% if fastqc %}show active{% endif %}" id="FASTQC" role="tabpanel" aria-labelledby="FASTQC-tab">
-          <a href="/static2/{{ fastqc }}" download class="btn btn-primary">Download</a>
-          <div id="fastqc" class="tab-content">
-            <iframe src="/static2/{{fastqc}}" width="100%" height="1000"></iframe>
-          </div>
-        </div>
-        {% endif %}
-        {% if fastp %}
-        <div class="tab-pane fade {% if not fastqc and fastp %}show active{% endif %}" id="FASTP" role="tabpanel" aria-labelledby="FASTP-tab">
-          <a href="/static2/{{ fastp }}" download class="btn btn-primary">Download</a>
-          <div id="fastp" class="tab-content">
-            <iframe src="/static2/{{fastp}}" width="100%" height="1000"></iframe>
-          </div>
-        </div>
-        {% endif %}
-        {% if ribometric %}
-        <div class="tab-pane fade {% if not fastqc and not fastp and ribometric %}show active{% endif %}" id="RiboMetric" role="tabpanel" aria-labelledby="RiboMetric-tab">
-          <a href="/static2/{{ ribometric }}" download class="btn btn-primary">Download</a>
-          <div id="ribometric" class="tab-content">
-            <iframe src="/static2/{{ribometric}}" width="100%" height="1000"></iframe>
-          </div>
-        </div>
-        {% endif %}
-      </div>
-      {% endif %}
-    </section>
+    </div>
+    {% endwith %}
 {% endblock %}
