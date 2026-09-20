@@ -148,17 +148,53 @@ def _read_tsv(path: str) -> list:
         return list(csv.DictReader(f, delimiter='\t'))
 
 
+GLOBAL_PARENT = re.compile(r'^Global', re.IGNORECASE)
+PARENT = re.compile(r'^parent (\S+)', re.MULTILINE)
+
+
+def _parent(row: dict) -> str:
+    # trackDb settings are newline-separated, and stored here with a literal \n
+    settings = (row.get('settings') or '').replace('\\n', '\n')
+    match = PARENT.search(settings)
+    return match.group(1) if match else ''
+
+
+def _link_track(row: dict, containers: dict) -> str:
+    '''
+    The name to put in an hgTracks URL to turn a study's tracks on.
+
+    hgTracks takes a track name, not a table name, and a subtrack does
+    nothing while its parent is hidden. So a sample resolves to its parent, and
+    a study aggregate ("<Study>_All_<type>_track", whose parent is a global
+    catch-all holding every study) to the study's own container, found by
+    name prefix among the study-level tracks of the group, or failing that
+    the parent of the study's samples (GWIPS names a few containers
+    differently from their samples, e.g. Ji_RiboProInit over Ji15_*). When
+    that isn't unambiguous the aggregate's own name is all there is.
+
+    Arguments:
+    - row (dict): a trackDb row
+    - containers (dict): group -> (names of the study-level tracks in it,
+      (sample name, parent) pairs)
+    '''
+    name, parent = row['tableName'], _parent(row)
+    if not parent:
+        return name
+    if not GLOBAL_PARENT.match(parent):
+        return parent
+    prefix = name.split('_All_')[0] if '_All_' in name else None
+    tops, samples = containers.get(row.get('grp'), (set(), []))
+    found = {c for c in tops if prefix and c.startswith(prefix)}
+    if not found and prefix:
+        found = {p for n, p in samples if n.startswith(prefix + '_')}
+    return found.pop() if len(found) == 1 else name
+
+
 def _pick_table(tables: list) -> str:
     '''
-    The table to link for a group: the study-level aggregate if there is one.
-
-    Aggregates are named "<Study><year>_All_<type>_track"; anything else is a
-    single sample or timepoint, so it is only a fallback. Sorted for a stable
-    choice between equals.
+    The track to link for a group. Sorted for a stable choice between equals.
     '''
-    if not tables:
-        return ''
-    return sorted(tables, key=lambda t: ('_All_' not in t, t))[0]
+    return sorted(tables)[0] if tables else ''
 
 
 def read_gwips_trackdb(path: str, study_index: dict) -> tuple:
@@ -193,7 +229,16 @@ def read_gwips_trackdb(path: str, study_index: dict) -> tuple:
         found: dict = {}
         for name in names:
             assembly = name[len('gwips_trackDb_'):-len('.tsv')]
-            for row in _read_tsv(os.path.join(directory, name)):
+            tracks = _read_tsv(os.path.join(directory, name))
+            containers: dict = {}
+            for row in tracks:
+                tops, samples = containers.setdefault(row.get('grp'), (set(), []))
+                parent = _parent(row)
+                if not parent and not GLOBAL_PARENT.match(row['tableName']):
+                    tops.add(row['tableName'])
+                elif parent and not GLOBAL_PARENT.match(parent):
+                    samples.append((row['tableName'], parent))
+            for row in tracks:
                 group = (row.get('grp') or '').strip()
                 if group not in DATA_GROUPS:
                     skipped['not a ribosome profiling track'] += 1
@@ -208,7 +253,7 @@ def read_gwips_trackdb(path: str, study_index: dict) -> tuple:
                     skipped['study not in portal'] += 1
                     continue
                 groups = found.setdefault((bioproject, assembly), {})
-                groups.setdefault(group, []).append(row['tableName'])
+                groups.setdefault(group, []).append(_link_track(row, containers))
 
     rows = []
     for (bioproject, assembly), groups in sorted(found.items()):

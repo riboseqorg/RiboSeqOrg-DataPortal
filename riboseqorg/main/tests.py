@@ -510,6 +510,22 @@ class TestGwipsTrackDb(TestCase):
         self.assertEqual(skipped['study not in portal'], 1)
         self.assertEqual(skipped['not a ribosome profiling track'], 1)
 
+    def test_links_the_track_hgtracks_can_turn_on(self):
+        # hgTracks wants a track name; a subtrack does nothing under a hidden
+        # parent, so an aggregate under a Global_ catch-all links the study's
+        # own container
+        self.write(
+            'gwips_trackDb_hg38.tsv', self.COLUMNS,
+            'hg38\tGlobal_RiboPro\tAll\tAll\tbigWig\tRP-ElongatingRibos\tcontainer multiWig\t',
+            'hg38\tCenik15_ribopro\tCenik 2015\tCenik paper\tbedGraph 4\t'
+            'RP-ElongatingRibos\tcontainer multiWig\t',
+            'hg38\tCenik15_ribo_a_ribopro\ta\tSample\tbigWig\tRP-ElongatingRibos\t'
+            'autoScale on\\nparent Cenik15_ribopro on\t',
+            'hg38\tCenik15_All_ribopro_track\tCenik 2015\tAll data, SRP055009\t'
+            'bigWig\tRP-ElongatingRibos\tautoScale on\\nparent Global_RiboPro on\t')
+        rows, _ = self.read()
+        self.assertEqual([r.GWIPS_Elong_Suffix for r in rows], ['Cenik15_ribopro'])
+
     def test_accession_must_belong_to_a_portal_study(self):
         from .management.commands.load_viewer_links import read_gwips_trackdb
         rows, skipped = read_gwips_trackdb(self.dump, {})
