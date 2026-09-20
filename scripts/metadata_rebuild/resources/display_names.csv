@@ -1,0 +1,98 @@
+column,value,display,origin
+CELL_LINE,Bone marrow-derived dendritic cells,BMDC,added in rebuild: curator abbreviation
+CELL_LINE,lymphoblastoid,LCL,added in rebuild: curator abbreviation
+CONDITION,KO,KO,added in rebuild: curator abbreviation
+CONDITION,WT,Wild Type,derived: 43680/43680 historical samples
+CONDITION,high,High,derived: 4590/4590 historical samples
+CONDITION,low,Low,derived: 633/633 historical samples
+CONDITION,mutant,Mutant,added in rebuild: curator abbreviation
+FRACTION,ER,Endoplasmic reticulum,derived: 2098/2098 historical samples
+FRACTION,auxin,Auxin,derived: 826/826 historical samples
+FRACTION,cyto,Cytoplasmic,derived: 2088/2088 historical samples
+FRACTION,dmso,DMSO,derived: 2165/2165 historical samples
+FRACTION,fasting,Fasting,derived: 170/170 historical samples
+FRACTION,mito,Mitochondrial,derived: 768/768 historical samples
+FRACTION,nuc,Nuclear,derived: 28/28 historical samples
+INHIBITOR,amikacin,Amikacin,added in rebuild: curator abbreviation
+INHIBITOR,anisomycin,Anisomycin,derived: 92/92 historical samples
+INHIBITOR,chx,Cycloheximide,derived: 11326/11326 historical samples
+INHIBITOR,chx_harr,Cycloheximide + Harringtonine,added in rebuild: curator abbreviation
+INHIBITOR,frozen,Frozen,derived: 308/308 historical samples
+INHIBITOR,harr,Harringtonine,derived: 1702/1702 historical samples
+INHIBITOR,lactim,Lactimidomycin,derived: 402/402 historical samples
+INHIBITOR,ltm,Lactimidomycin,added in rebuild: curator abbreviation
+INHIBITOR,puro,Puromycin,added in rebuild: curator abbreviation
+INHIBITOR,tunicamycin,Tunicamycin,added in rebuild: curator abbreviation
+LIBRARYTYPE,40S,SSU,derived: 756/756 historical samples
+LIBRARYTYPE,CAGE,CAGE-Seq,derived: 28/28 historical samples
+LIBRARYTYPE,LSU,LSU,added in rebuild: curator abbreviation
+LIBRARYTYPE,QTI,QTI-Seq,derived: 72/72 historical samples
+LIBRARYTYPE,RFP,Ribo-Seq,derived: 158961/158961 historical samples
+LIBRARYTYPE,RNA,RNA-Seq,derived: 8682/8682 historical samples
+LIBRARYTYPE,Ribotag,RiboTag,added in rebuild: curator abbreviation
+LIBRARYTYPE,SSU,SSU,added in rebuild: curator abbreviation
+TISSUE,adipose,Adipose,derived: 280/280 historical samples
+TISSUE,amygdala,Amygdala,derived: 112/112 historical samples
+TISSUE,blood,Blood,derived: 1512/1512 historical samples
+TISSUE,bone,Bone,derived: 3824/3824 historical samples
+TISSUE,brain,Brain,derived: 5398/5398 historical samples
+TISSUE,breast,Breast,derived: 4694/4694 historical samples
+TISSUE,cervix,Cervix,derived: 248/248 historical samples
+TISSUE,colon,Colon,derived: 1664/1664 historical samples
+TISSUE,cortex,Cortex,derived: 1058/1058 historical samples
+TISSUE,cotyledon,Cotyledon,derived: 84/84 historical samples
+TISSUE,embryo,Embryo,derived: 20958/20958 historical samples
+TISSUE,eye,Eye,derived: 180/180 historical samples
+TISSUE,flower,Flower,derived: 210/210 historical samples
+TISSUE,heart,Heart,derived: 1838/1838 historical samples
+TISSUE,kidney,Kidney,derived: 11494/11494 historical samples
+TISSUE,leaf,Leaf,derived: 5248/5248 historical samples
+TISSUE,liver,Liver,derived: 20329/20329 historical samples
+TISSUE,lung,Lung,derived: 4823/4823 historical samples
+TISSUE,melanocyte,Melanocyte,derived: 10/10 historical samples
+TISSUE,muscle,Muscle,derived: 1538/1538 historical samples
+TISSUE,mycelia,Mycelia,derived: 1640/1640 historical samples
+TISSUE,myeloid,Myeloid,derived: 592/592 historical samples
+TISSUE,oocyte,Oocyte,derived: 1610/1610 historical samples
+TISSUE,ovary,Ovary,derived: 860/860 historical samples
+TISSUE,pancreas,Pancreas,derived: 462/462 historical samples
+TISSUE,pollen,Pollen,derived: 12/12 historical samples
+TISSUE,prostate,Prostate,derived: 364/364 historical samples
+TISSUE,retina,Retina,derived: 556/556 historical samples
+TISSUE,root,Root,derived: 1358/1358 historical samples
+TISSUE,seedling,Seedling,derived: 2270/2270 historical samples
+TISSUE,shoot,Shoot,derived: 634/634 historical samples
+TISSUE,skin,Skin,derived: 2508/2508 historical samples
+TISSUE,spinal cord,Spinal Cord,derived: 368/368 historical samples
+TISSUE,spleen,Spleen,derived: 346/346 historical samples
+TISSUE,stem,Stem,derived: 256/256 historical samples
+TISSUE,testis,Testis,derived: 1298/1298 historical samples
+TISSUE,throat,Throat,derived: 1036/1036 historical samples
+TISSUE,whole organism,Whole Organism,derived: 4320/4320 historical samples
+INHIBITOR,chloram,Chloramphenicol,added in rebuild: ORFik name
+LIBRARYTYPE,TRAP,TRAP,added in rebuild: curator abbreviation
+LIBRARYTYPE,miRNA,miRNA-Seq,added in rebuild: ORFik name
+LIBRARYTYPE,Disome,Disome-Seq,added in rebuild: curator abbreviation
+LIBRARYTYPE,CRAC,CRAC,added in rebuild: curator abbreviation
+LIBRARYTYPE,ATAC,ATAC-Seq,added in rebuild: ORFik name
+LIBRARYTYPE,ChIP,ChIP-Seq,added in rebuild: ORFik name
+LIBRARYTYPE,GRO,GRO-Seq,added in rebuild: ORFik name
+LIBRARYTYPE,PAL,PAL-Seq,added in rebuild: ORFik name
+LIBRARYTYPE,PAS,PAS-Seq,added in rebuild: ORFik name
+LIBRARYTYPE,Ribodepleted RNA,RNA-Seq,added in rebuild: synonym
+INHIBITOR,chl,Chloramphenicol,added in rebuild: curator abbreviation
+INHIBITOR,aniso,Anisomycin,added in rebuild: curator abbreviation
+INHIBITOR,chx_tig,Cycloheximide + Tigecycline,added in rebuild: curator abbreviation
+INHIBITOR,chx_ans,Cycloheximide + Anisomycin,added in rebuild: curator abbreviation
+FRACTION,thaps,Thapsigargin,added in rebuild: ORFik name
+FRACTION,silvestrol,Silvestrol,added in rebuild: ORFik name
+FRACTION,membrane,Membrane,added in rebuild: ORFik name
+FRACTION,disome,Disome,added in rebuild: curator abbreviation
+FRACTION,Dis,Disome,added in rebuild: curator abbreviation
+FRACTION,Mono,Monosome,added in rebuild: curator abbreviation
+FRACTION,80S monosome,Monosome,added in rebuild: synonym
+FRACTION,Monosome (1 ribosome),Monosome,added in rebuild: synonym
+FRACTION,Light polysome (2-4 ribosomes),Polysome,added in rebuild: synonym
+FRACTION,Membrane bound polysome (MBP),Membrane,added in rebuild: synonym
+FRACTION,Tg,Thapsigargin,added in rebuild: ORFik name
+LIBRARYTYPE,tRNA,tRNA-Seq,added in rebuild: consistent naming

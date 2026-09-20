@@ -209,26 +209,6 @@ def fixtures_to_file(fixtures: str, output_file: str):
         f.write(fixtures)
 
 
-def generate_open_column_sqlites(df: pd.DataFrame, sqlite_dir_path: str):
-    '''
-    For all studies (unique BioProject) in the dataframe, generate a sqlite database
-    that contains a open columns table named after the BioProject. This is to contain 
-    all the columns that are not in the core columns list 
-
-    Inputs:
-        df: pandas dataframe no core columns except BioProject
-        sqlite_dir_path: string
-    
-    '''
-
-    grouped = df.groupby("BioProject")
-    for group, group_df in grouped:
-        group_df = group_df.dropna(axis=1, how="all")
-        conn = sqlite3.connect(f"{sqlite_dir_path}/{group}.sqlite")
-
-        group_df.to_sql(group, conn, if_exists="replace")
-
-
 def add_trips_booleans(df: pd.DataFrame, trips_df: pd.DataFrame) -> pd.DataFrame:
     '''
     If the sample is in the trips_df, add a boolean to the sample dataframe
@@ -399,10 +379,6 @@ def main(args):
     fixtures += "\n]"
     print("writing fixtures to file")
     fixtures_to_file(fixtures, args.output)
-    open_df = df.drop(
-        [i for i in core_columns if i not in ['Run', 'BioProject']]
-            , axis=1)
-    generate_open_column_sqlites(open_df, "/home/jack/projects/RiboSeqOrg-DataPortal/sqlites")
     print("Done!")
 
 

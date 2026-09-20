@@ -1,0 +1,32 @@
+[
+ {
+  "file": "ribocrypt_manual_curation.csv.gz",
+  "source": "/Users/jackt/projects/Metadata-Curation/resources/RiboCrypt_Metadata_13_09_24.csv",
+  "sha256_of_source": "6cdae34514965fc02de276ac4e72fe3b9b0ed5fba5055765a70e79cdedc841f7",
+  "note": null
+ },
+ {
+  "file": "standardized_columns_final_2025-08-30.csv.gz",
+  "source": "/Users/jackt/projects/Metadata-Curation/temp_files/standardized_columns_final_2025-08-30.csv",
+  "sha256_of_source": "a8e7fdee7e21bd7abf58a2f139a62e622ce92e304a382cf73bd20599770feebf",
+  "note": null
+ },
+ {
+  "file": "whitelisted_samples.csv.gz",
+  "source": "/Users/jackt/projects/Metadata-Curation/resources/whitelisted_samples.csv",
+  "sha256_of_source": "97cdec900ab2a2a18ff2098b8c9a039119b222f23d2c78c2a9d503949b48dab3",
+  "note": null
+ },
+ {
+  "file": "whitelisted_bioprojects.csv.gz",
+  "source": "/Users/jackt/projects/Metadata-Curation/resources/whitelisted_bioprojects.csv",
+  "sha256_of_source": "be5a76adf43f68cb72231390d09d9477416a8d5b89693dd63667efbc05c1c2d4",
+  "note": null
+ },
+ {
+  "file": "misaligned_projects.txt",
+  "source": "computed from /Users/jackt/projects/Metadata-Curation/SraRunInfo",
+  "sha256_of_source": null,
+  "note": "229 projects"
+ }
+]

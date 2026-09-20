@@ -1,0 +1,8 @@
+[
+ {
+  "file": "ribocrypt_live_libraries_2026-09-20.csv.gz",
+  "source": "~/Downloads/Misc/FINAL_LIST.csv",
+  "sha256_of_source": "17d045cea4249427b03c70f262fe54fa99d144a760d891d456af764493ad0cff",
+  "note": "Live RiboCrypt library list, supplied 2026-09-20. 13,617 runs, 997 study accessions, 48 columns (same schema as scripts/metadata_rebuild/inputs/ribocrypt_manual_curation.csv.gz, which is the older 13-09-24 curation snapshot). Source of main_ribocrypt rows."
+ }
+]
