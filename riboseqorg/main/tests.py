@@ -403,6 +403,38 @@ class TestViewerLinks(TestCase):
         self.assertFalse(per_run['SRR1']['has_gwips_native'])
 
 
+class TestProcessedFlags(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        study = Study.objects.create(BioProject='PRJ_PROCESSED')
+        Sample.objects.create(Run='SRR_MERGE', BioProject=study, processed=False)
+        Sample.objects.create(Run='SRR_KEEP', BioProject=study, processed=True)
+
+    def test_merge_preserves_existing_flags(self):
+        import tempfile
+        from django.core.management import call_command
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt') as runs_file:
+            runs_file.write('SRR_MERGE\nMISSING_RUN\n')
+            runs_file.flush()
+            call_command('sync_processed_flags', runs_file.name, '--apply', '--merge')
+
+        self.assertTrue(Sample.objects.get(Run='SRR_MERGE').processed)
+        self.assertTrue(Sample.objects.get(Run='SRR_KEEP').processed)
+
+    def test_dry_run_does_not_change_flags(self):
+        import tempfile
+        from django.core.management import call_command
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt') as runs_file:
+            runs_file.write('SRR_MERGE\n')
+            runs_file.flush()
+            call_command('sync_processed_flags', runs_file.name)
+
+        self.assertFalse(Sample.objects.get(Run='SRR_MERGE').processed)
+        self.assertTrue(Sample.objects.get(Run='SRR_KEEP').processed)
+
+
 class TestLoadViewerLinks(TestCase):
     def setUp(self):
         import sqlite3
