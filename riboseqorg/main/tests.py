@@ -105,8 +105,6 @@ class TestDataFiles(TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         os.makedirs(os.path.join(self.tmp.name, 'bams', 'SRR123'))
         open(os.path.join(self.tmp.name, 'bams', 'SRR123', 'SRR1234_1.bam'), 'w').close()
-        open(os.path.join(self.tmp.name, 'bams', 'SRR123', 'SRR1234.forward.bw'), 'w').close()
-        open(os.path.join(self.tmp.name, 'bams', 'SRR123', 'SRR1234.reverse.bw'), 'w').close()
         self.settings_override = override_settings(RIBOSEQORG_DATA_DIR=self.tmp.name)
         self.settings_override.enable()
         clear_cache()
@@ -119,8 +117,6 @@ class TestDataFiles(TestCase):
         from .datafiles import find_run_file
         self.assertEqual(find_run_file('bams', 'SRR1234', ['.bam', '_1.bam']),
                          'bams/SRR123/SRR1234_1.bam')
-        self.assertEqual(find_run_file('bigwig', 'SRR1234', ['.forward.bw']),
-                         'bams/SRR123/SRR1234.forward.bw')
         self.assertIsNone(find_run_file('bams', 'SRR9999', ['.bam']))
         self.assertIsNone(find_run_file('counts', 'SRR1234', ['_counts.txt']))
 
@@ -131,16 +127,6 @@ class TestDataFiles(TestCase):
             self.assertEqual(sample.bam_link,
                              'https://rdp.ucc.ie/static2/bams/SRR123/SRR1234_1.bam')
             self.assertEqual(sample.reads_link, '')
-
-    def test_bigwig_links_fall_back_to_bams_directory(self):
-        study = Study.objects.create(BioProject='PRJ1')
-        sample = Sample.objects.create(Run='SRR1234', BioProject=study)
-        self.assertEqual(
-            sample.bigwig_forward_link,
-            'https://rdp.ucc.ie/static2/bams/SRR123/SRR1234.forward.bw')
-        self.assertEqual(
-            sample.bigwig_reverse_link,
-            'https://rdp.ucc.ie/static2/bams/SRR123/SRR1234.reverse.bw')
 
 
 class TestSampleOrdering(TestCase):
