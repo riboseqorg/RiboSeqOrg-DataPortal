@@ -8,6 +8,32 @@ import pandas as pd
 import os
 
 
+# Only build GWIPS links for assemblies that are explicitly supported.  The
+# GWIPS database value is deliberately not used here because it is external
+# data and must not select an arbitrary genome assembly.
+GWIPS_ASSEMBLIES = {
+    'human': 'hg38',
+    'homo sapiens': 'hg38',
+    'mouse': 'mm39',
+    'mus musculus': 'mm39',
+}
+
+
+def get_gwips_assembly(organism: str) -> str:
+    """Return the allowlisted GWIPS assembly for an organism, if supported."""
+    normalized = ' '.join(str(organism or '').replace('_', ' ').split()).casefold()
+    return GWIPS_ASSEMBLIES.get(normalized, '')
+
+
+def build_gwips_url(organism: str, files: str) -> str:
+    """Build a GWIPS URL only for a supported organism and non-empty tracks."""
+    assembly = get_gwips_assembly(organism)
+    if not assembly or not files:
+        return ''
+
+    return f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={assembly}&{files}"
+
+
 def get_clean_names() -> dict:
     '''
     Return a dictionary of clean names to original names as in database
@@ -309,6 +335,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
             organism_df = samples_df[samples_df['ScientificName'] == organism]
             gwips_dict = {
                 'clean_organism': organism.replace('_', ' ').capitalize(),
+                'organism': organism,
                 'bioprojects': '',
                 'files': '',
                 'gwipsDB': '',
@@ -351,6 +378,7 @@ def handle_gwips_urls(request: HttpRequest, query=None) -> list:
                         gwips_dict = {
                             'bioproject': bioproject,
                             'clean_organism': organism.replace('_', ' ').capitalize(),
+                            'organism': organism,
                             'gwipsDB': gwips_df['gwips_db'].unique()[0],
                             'files': [],
                         }
@@ -459,12 +487,11 @@ def handle_urls_for_query(request: HttpRequest, query=None) -> dict:
             bioproject_trips_name = 'Visit Trips-Viz'
 
         gwips = handle_gwips_urls(request, query=query)[0]
-        if gwips['clean_organism'] == 'None of the Selected Runs are available on GWIPS-Viz':
-            bioproject_gwips_link = "https://gwips.ucc.ie/"
-            bioproject_gwips_name = ""
-        else:
-            bioproject_gwips_link = f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={gwips['gwipsDB']}&{gwips['files']}"
-            bioproject_gwips_name = "Visit GWIPS-viz"
+        bioproject_gwips_link = build_gwips_url(
+            gwips.get('organism', gwips.get('clean_organism', '')),
+            gwips.get('files', ''),
+        )
+        bioproject_gwips_name = "Visit GWIPS-viz" if bioproject_gwips_link else ""
 
         ribocrypt = handle_ribocrypt_urls(request, query=query)[0]
         if len(ribocrypt['clean_organism'].split(" ")) > 5:

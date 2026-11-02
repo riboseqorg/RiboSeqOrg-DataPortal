@@ -94,9 +94,13 @@
                                             <div class="card-body">
                                             <h5 class="card-title">Visualise</h5>
                                             <p class="card-text">Visualise selected datasets in GWIPS-Viz</p>
-                                            <a href="https://gwips.ucc.ie/cgi-bin/hgTracks?db={{ genome.gwipsDB }}&{{ genome.files }}" 
-                                            class="btn btn-primary" 
-                                            id="gwips-btn">Genomic View</a>
+                                            {% if genome.gwips_url %}
+                                                <a href="{{ genome.gwips_url }}"
+                                                class="btn btn-primary"
+                                                id="gwips-btn">Genomic View</a>
+                                            {% else %}
+                                                <span class="text-muted">Genomic view unavailable</span>
+                                            {% endif %}
                                         </div>
                                         </div>
                                     </div>

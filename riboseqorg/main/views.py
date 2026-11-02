@@ -30,7 +30,7 @@ from .forms import SearchForm
 from .models import GWIPS, Sample, Study, Trips
 from .serializers import SampleSerializer
 from .utilities import (build_bioproject_query, build_query, build_run_query,
-                        get_clean_names, get_fastp_report_link,
+                        build_gwips_url, get_clean_names, get_fastp_report_link,
                         get_fastqc_report_link, get_original_name,
                         get_ribometric_report_link, handle_filter,
                         handle_gwips_urls, handle_ribocrypt_urls,
@@ -964,7 +964,8 @@ def links(request: HttpRequest) -> str:
                 'clean_organism': gwip['Organism'],
                 'bioproject': gwip['BioProject'],
                 'gwipsDB': gwip['gwips_db'],
-                'files': gwip['files']
+                'files': gwip['files'],
+                'gwips_url': build_gwips_url(gwip['Organism'], gwip['files']),
             })
         if not gwips: 
             gwips = [
@@ -1274,6 +1275,19 @@ def vocabularies(request):
     return render(request, 'main/vocabularies.html')
 
 
+def format_organism_name(organism_dir):
+    """Format an underscore-separated organism directory as a binomial name."""
+    name_parts = organism_dir.replace('_', ' ').split()
+    if not name_parts:
+        return ''
+
+    name_parts[0] = name_parts[0].capitalize()
+    if len(name_parts) > 1:
+        name_parts[1] = name_parts[1].lower()
+
+    return ' '.join(name_parts)
+
+
 def get_reference_data():
     references_dir = '/home/DATA/RiboSeqOrg-DataPortal-Files/RiboSeqOrg/references'
     reference_data = []
@@ -1281,7 +1295,7 @@ def get_reference_data():
     for organism_dir in os.listdir(references_dir):
         organism_path = os.path.join(references_dir, organism_dir)
         if os.path.isdir(organism_path):
-            organism_name = organism_dir.replace('_', ' ').title()
+            organism_name = format_organism_name(organism_dir)
             gtf_file = next((f for f in os.listdir(organism_path) if f.endswith('.gtf')), None)
             fa_file = next((f for f in os.listdir(organism_path) if f.endswith('.fa')), None)
 

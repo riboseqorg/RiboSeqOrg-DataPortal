@@ -51,7 +51,11 @@
                 <!-- <th>RiboCrypt</th> -->
             </tr>
             <tr>
-                <td><a href="{{ bioproject_gwips_link }}">{{ bioproject_gwips_name }}</a></td>
+                {% if bioproject_gwips_link %}
+                    <td><a href="{{ bioproject_gwips_link }}">{{ bioproject_gwips_name }}</a></td>
+                {% else %}
+                    <td class="text-muted">Genomic view unavailable</td>
+                {% endif %}
                 <td><a href="{{ bioproject_trips_link }}">{{ bioproject_trips_name }}</a></td>
                 <!-- <td><a href="{{ bioproject_ribocrypt_link }}">{{ bioproject_ribocrypt_name }}</a></td> -->
             </tr>
