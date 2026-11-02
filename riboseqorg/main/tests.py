@@ -226,6 +226,14 @@ class TestViewerLinks(TestCase):
             'https://ribocrypt.org/?dff=all_samples-PRJ1-homo_sapiens'
             '&library=SRR1,SRR2&go=TRUE&go=TRUE')
 
+    def test_genome_assembly_allowlist(self):
+        from .genome_tracks import assembly_for
+        self.assertEqual(assembly_for('Homo sapiens')[1], 'hg38')
+        self.assertEqual(assembly_for('Mus_musculus')[1], 'mm39')
+        self.assertEqual(assembly_for('human')[1], 'hg38')
+        self.assertEqual(assembly_for('mouse')[1], 'mm39')
+        self.assertIsNone(assembly_for('Saccharomyces cerevisiae'))
+
     def test_genome_browser_links(self):
         from urllib.parse import parse_qs, urlparse
         from .viewer_links import sample_links
@@ -284,12 +292,11 @@ class TestViewerLinks(TestCase):
     def test_native_gwips_links(self):
         from .viewer_links import sample_links
         # No GWIPS rows yet: only the custom-track link, and the native side
-        # falls back to the home page with no name
+        # has no URL or name when no curated tracks are available
         per_run, combined = sample_links(list(Sample.objects.order_by('pk')),
                                          {'bioproject': ['PRJ1']})
         self.assertEqual(per_run['SRR1']['gwips_native_name'], '')
-        self.assertEqual(per_run['SRR1']['gwips_native_link'],
-                         'https://gwips.ucc.ie/')
+        self.assertEqual(per_run['SRR1']['gwips_native_link'], '')
 
         GWIPS.objects.create(BioProject='PRJ1', Organism='Homo sapiens',
                              gwips_db='hg38',
@@ -319,7 +326,7 @@ class TestViewerLinks(TestCase):
             '&Study15_All_RiboProElong_track=full')
         # A row with an assembly but no tracks at all is not a link
         self.assertEqual(gwips_native_link([GWIPS(gwips_db='hg38')]),
-                         ('https://gwips.ucc.ie/', ''))
+                         ('', ''))
 
     def test_study_page_query_count_is_constant(self):
         # Study, samples, then one query per link table. Grouping the links
@@ -364,16 +371,19 @@ class TestViewerLinks(TestCase):
                   GWIPS_Elong_Suffix='S_Elong', GWIPS_Init_Suffix='S_Init'),
             GWIPS(BioProject='PRJ1', Organism='Mus musculus', gwips_db='mm10',
                   GWIPS_Elong_Suffix='M_Elong', GWIPS_Init_Suffix=''),
-            # No tracks: not a link, and must not create an empty group
-            GWIPS(BioProject='PRJ1', gwips_db='ce10'),
+            # Unsupported organisms must not create a link, even with tracks.
+            GWIPS(BioProject='PRJ1', Organism='Caenorhabditis elegans',
+                  gwips_db='ce10', GWIPS_Elong_Suffix='C_Elong'),
+            # No tracks: not a link, and must not create an empty group.
+            GWIPS(BioProject='PRJ1', Organism='Mus musculus', gwips_db='mm39'),
         ]
         groups = gwips_native_links(rows)
-        self.assertEqual([g['assembly'] for g in groups], ['hg38', 'mm10'])
+        self.assertEqual([g['assembly'] for g in groups], ['hg38', 'mm39'])
         self.assertEqual(groups[0]['link'],
                          'https://gwips.ucc.ie/cgi-bin/hgTracks?db=hg38'
                          '&S_Elong=full&S_Init=full')
         self.assertEqual(groups[1]['link'],
-                         'https://gwips.ucc.ie/cgi-bin/hgTracks?db=mm10'
+                         'https://gwips.ucc.ie/cgi-bin/hgTracks?db=mm39'
                          '&M_Elong=full')
         # Curated tracks are per study and carry no run count, so the button
         # tooltip must not claim one

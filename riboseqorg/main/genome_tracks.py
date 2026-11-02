@@ -7,8 +7,8 @@ selection) would make the URL too long, so those link to the tracks view,
 which serves the track lines as text for the browser to fetch.
 
 Links open GWIPS-viz (a UCSC Genome Browser install), with the assembly
-chosen per organism in GENOME_ASSEMBLIES. Organisms not listed there get no
-genome browser link.
+chosen per organism in GENOME_ASSEMBLIES. Only organisms explicitly listed
+there get a genome browser link.
 '''
 from urllib.parse import quote, urlencode
 
@@ -16,31 +16,14 @@ from django.conf import settings
 
 GWIPS = "https://gwips.ucc.ie"
 
-# Sample.ScientificName -> (browser, GWIPS-viz assembly). The assembly must be
-# the one the bigWigs were aligned to; UNVERIFIED until checked against the
-# bigWigs' chromosome names and sizes (see audit/performance-info-needed.md).
+# Organism name -> (browser, GWIPS-viz assembly). Keep this allowlist narrow:
+# the assembly is selected from trusted configuration, never from a database
+# value or an arbitrary organism name.
 GENOME_ASSEMBLIES = {
-    'Homo sapiens': (GWIPS, 'hg38'),
-    'Mus musculus': (GWIPS, 'mm10'),
-    'Saccharomyces cerevisiae': (GWIPS, 'sacCer3'),
-    'Danio rerio': (GWIPS, 'danRer7'),
-    'Caenorhabditis elegans': (GWIPS, 'ce10'),
-    'Rattus norvegicus': (GWIPS, 'rn6'),
-    'Drosophila melanogaster': (GWIPS, 'dm3'),
-    'Arabidopsis thaliana': (GWIPS, 'araTha1'),
-    'Escherichia coli': (GWIPS, 'eschColi_K12'),
-    'Schizosaccharomyces pombe': (GWIPS, 's_pombe'),
-    'Bacillus subtilis': (GWIPS, 'baciSubt2'),
-    'Staphylococcus aureus': (GWIPS, 'Saureus_ASM1346'),
-    'Xenopus laevis': (GWIPS, 'xenLaevis'),
-    'Zea mays': (GWIPS, 'Zea_Mays_B73'),
-    'Trypanosoma brucei': (GWIPS, 'Tbrucei_TREU927'),
-    'Streptomyces coelicolor': (GWIPS, 'S_coelicolor_ASM20383v1'),
-    'Salmonella enterica': (GWIPS, 'Salmonella_typhimurium_SL1344'),
-    'Plasmodium falciparum': (GWIPS, 'plasFalc1'),
-    'Mycobacteroides abscessus': (GWIPS, 'Mabcessus_ASM6918v1'),
-    'Human betaherpesvirus 5': (GWIPS, 'HHV5'),
-    'Caulobacter vibrioides': (GWIPS, 'caulCres'),
+    'homo sapiens': (GWIPS, 'hg38'),
+    'human': (GWIPS, 'hg38'),
+    'mus musculus': (GWIPS, 'mm39'),
+    'mouse': (GWIPS, 'mm39'),
 }
 
 # Most runs shown in one multi-run view; more makes the browser unusable
@@ -60,7 +43,8 @@ DESCRIPTION_FIELDS = ['LIBRARYTYPE', 'CELL_LINE', 'TISSUE', 'INHIBITOR',
 
 
 def assembly_for(organism: str):
-    return GENOME_ASSEMBLIES.get(organism)
+    normalized = ' '.join(str(organism or '').replace('_', ' ').split()).casefold()
+    return GENOME_ASSEMBLIES.get(normalized)
 
 
 def has_tracks(sample) -> bool:

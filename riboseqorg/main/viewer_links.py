@@ -11,8 +11,8 @@ GWIPS-viz gets two links, because there are two different things to show:
 Each link is a dict with the keys used by the templates: trips_link,
 trips_name, gwips_link, gwips_name, gwips_native_link, gwips_native_name,
 ribocrypt_link, ribocrypt_name, plus a has_* boolean per viewer. An
-unavailable viewer gets its home page as the link, an empty name and a false
-has_*. Templates test the boolean, never the name.
+unavailable GWIPS viewer gets an empty link and name and a false has_*.
+Templates test the boolean, never the name.
 
 A single run is never ambiguous, so its links stay singular. A *set* of runs
 can span organisms, and no viewer can plot two organisms at once, so the
@@ -25,7 +25,6 @@ from . import genome_tracks
 from .models import GWIPS, RiboCrypt, Trips
 
 TRIPS_HOME = "https://trips.ucc.ie/"
-GWIPS_HOME = "https://gwips.ucc.ie/"
 RIBOCRYPT_HOME = "https://ribocrypt.org/"
 
 # Keeps each IN (...) under SQLite's bound-parameter limit
@@ -132,8 +131,13 @@ def ribocrypt_links(rows: list) -> list:
 
 
 def _gwips(link) -> tuple:
-    # The name is what the templates test for, so it stays the same
-    return (link, 'Visit GWIPS-viz') if link else (GWIPS_HOME, "")
+    return (link, 'Visit GWIPS-viz') if link else ('', "")
+
+
+def _configured_gwips_assembly(row) -> str:
+    """Return the configured assembly for a GWIPS row, or no assembly."""
+    target = genome_tracks.assembly_for(getattr(row, 'Organism', ''))
+    return target[1] if target else ''
 
 
 def gwips_native_link(rows: list) -> tuple:
@@ -143,14 +147,15 @@ def gwips_native_link(rows: list) -> tuple:
     One assembly per link, so a study whose samples span several gets the
     first row in table order, as the custom-track side does for organisms.
     '''
-    rows = [r for r in rows if r.gwips_db and
+    rows = [r for r in rows if _configured_gwips_assembly(r) and
             (r.GWIPS_Elong_Suffix or r.GWIPS_Init_Suffix)]
     if not rows:
-        return GWIPS_HOME, ""
+        return '', ""
     first = rows[0]
+    assembly = _configured_gwips_assembly(first)
     tracks = [t for t in (first.GWIPS_Elong_Suffix, first.GWIPS_Init_Suffix) if t]
     params = ''.join(f'&{track}=full' for track in tracks)
-    return (f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={first.gwips_db}{params}",
+    return (f"https://gwips.ucc.ie/cgi-bin/hgTracks?db={assembly}{params}",
             'Visit GWIPS-viz')
 
 
@@ -158,19 +163,20 @@ def gwips_native_links(rows: list) -> list:
     '''
     One curated GWIPS-viz link per assembly among the given GWIPS rows.
 
-    A study loaded against two assemblies (PRJNA279785 is in ce10 and
-    sacCer3) gets one link each, with every track for that assembly on it.
+    A study loaded against multiple configured assemblies gets one link each,
+    with every track for that assembly on it. Unsupported organisms are
+    omitted.
 
     Returns:
     - (list): dicts with organism, assembly, link and studies (how many).
       There is no run count: these tracks are curated per study, and GWIPS
       does not tell us which runs went into them.
     '''
-    rows = [r for r in rows if r.gwips_db and
+    rows = [r for r in rows if _configured_gwips_assembly(r) and
             (r.GWIPS_Elong_Suffix or r.GWIPS_Init_Suffix)]
     groups: dict = {}
     for row in rows:
-        groups.setdefault(row.gwips_db, []).append(row)
+        groups.setdefault(_configured_gwips_assembly(row), []).append(row)
     out = []
     for assembly, rs in groups.items():
         tracks = _unique(t for r in rs for t in
