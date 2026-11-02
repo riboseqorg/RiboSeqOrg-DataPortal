@@ -2,6 +2,8 @@
 Look up processed files under settings.RIBOSEQORG_DATA_DIR.
 
 Files live at <DATA_DIR>/<type dir>/<first 6 chars of run>/<file name>.
+BigWigs normally live under ``bigwig/``; production also contains some
+correctly named BigWigs under ``bams/``, which is supported as a fallback.
 Rather than checking each file with os.path.exists, each directory is listed
 once and the listing cached for settings.DATA_DIR_LISTING_TTL seconds, so a
 page with hundreds of samples costs a handful of listdir calls.
@@ -46,10 +48,15 @@ def find_run_file(type_dir: str, run: str, suffixes: list):
     '''
     run = str(run)
     prefix = run[:6]
-    names = files_in(os.path.join(settings.RIBOSEQORG_DATA_DIR, type_dir, prefix))
-    for suffix in suffixes:
-        if run + suffix in names:
-            return f"{type_dir}/{prefix}/{run}{suffix}"
+    type_dirs = [type_dir]
+    if type_dir == 'bigwig':
+        type_dirs.append('bams')
+    for candidate_dir in type_dirs:
+        names = files_in(os.path.join(settings.RIBOSEQORG_DATA_DIR,
+                                      candidate_dir, prefix))
+        for suffix in suffixes:
+            if run + suffix in names:
+                return f"{candidate_dir}/{prefix}/{run}{suffix}"
     return None
 
 
